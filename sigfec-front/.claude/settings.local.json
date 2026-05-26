@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(rtk grep *)",
+      "Bash(xargs grep -l \"label\")",
+      "Bash(xargs grep -h \"className=\")",
+      "Bash(rtk find *)",
+      "Bash(xargs -0 grep -l \"label.*hover\\\\|hover.*label\")",
+      "Bash(xargs grep \"hover:font\\\\|font.*hover\")"
+    ]
+  }
+}

@@ -1,0 +1,62 @@
+@import "tailwindcss";
+
+@layer base {
+  label, td, th, tr {
+    cursor: default;
+  }
+}
+
+html, body, #root {
+  min-height: 100%;
+  background-color: #020617;
+}
+
+body {
+  margin: 0;
+  overflow-x: hidden;
+  color: #f8fafc;
+  /* dot grid */
+  background-image: radial-gradient(circle, #1e293b 1px, transparent 1px);
+  background-size: 28px 28px;
+  background-attachment: fixed;
+}
+
+button {
+  transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease, opacity 150ms ease, box-shadow 150ms ease;
+}
+
+input, select, textarea {
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+}
+
+input:focus, select:focus, textarea:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.12);
+}
+
+::selection {
+  background: rgba(16, 185, 129, 0.25);
+}
+
+/* scrollbar */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #334155; }
+
+/* table row hover via box-shadow inset (não afeta layout) */
+table tbody tr {
+  transition: box-shadow 120ms ease;
+}
+table tbody tr:hover {
+  box-shadow: inset 2px 0 0 0 rgb(16 185 129);
+}
+
+/* input autofill dark override */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px #1e293b inset !important;
+  -webkit-text-fill-color: #f8fafc !important;
+  caret-color: #f8fafc;
+}

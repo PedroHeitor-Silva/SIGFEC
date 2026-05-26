@@ -1,0 +1,34 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(Get-ChildItem -Path \"C:\\\\Users\\\\pedro\\\\OneDrive\\\\Área de Trabalho\\\\TCC\\\\SIGFEC\\\\SIGFEC-backend\" -Recurse | Where-Object {$_.Extension -eq \".java\"} | Select-Object FullName)",
+      "PowerShell(Get-ChildItem -Path \"C:\\\\Users\\\\pedro\\\\OneDrive\\\\Área de Trabalho\\\\TCC\\\\SIGFEC\\\\sigfec-front\" -Recurse | Where-Object {$_.Extension -in \".js\",\".jsx\",\".ts\",\".tsx\",\".vue\"} | Select-Object FullName)",
+      "PowerShell(Get-ChildItem -Path \"C:\\\\Users\\\\pedro\\\\OneDrive\\\\Área de Trabalho\\\\TCC\\\\SIGFEC\\\\SIGFEC-backend\" -Recurse -Exclude node_modules | Where-Object {$_.Extension -eq \".java\"} | Select-Object FullName | Format-Table -AutoSize)",
+      "PowerShell(Get-ChildItem -Path \"C:\\\\Users\\\\pedro\\\\OneDrive\\\\Área de Trabalho\\\\TCC\\\\SIGFEC\\\\sigfec-front\\\\src\" -Recurse -ErrorAction SilentlyContinue | Where-Object {$_.Extension -in \".js\",\".jsx\",\".ts\",\".tsx\",\".vue\"} | Select-Object FullName)",
+      "PowerShell(if \\(Test-Path \"C:\\\\Users\\\\pedro\\\\OneDrive\\\\Área de Trabalho\\\\TCC\\\\SIGFEC\\\\sigfec-front\\\\src\"\\) { Get-ChildItem -Path \"C:\\\\Users\\\\pedro\\\\OneDrive\\\\Área de Trabalho\\\\TCC\\\\SIGFEC\\\\sigfec-front\\\\src\" -Recurse | Where-Object {$_.Extension -in \".js\",\".jsx\",\".ts\",\".tsx\",\".vue\"} | Select-Object FullName } else { \"src directory not found\" })",
+      "Bash(rtk ls *)",
+      "Bash(rm -f domain/enums/EnumPerfilUsuario.java domain/enums/EnumTipoLancamento.java domain/repositories/CidadeRepository.java domain/repositories/EstadoRepository.java domain/repositories/PesagemRepository.java)",
+      "Bash(rm -rf domain/services)",
+      "Bash(rmdir domain/repositories)",
+      "Bash(npx vite *)",
+      "Bash(rtk npx *)",
+      "Bash(rtk grep *)",
+      "Bash(npm install *)",
+      "PowerShell($j = Get-Command java -ErrorAction SilentlyContinue; if\\($j\\){ \"java: $\\($j.Source\\)\"; java -version } else { \"java NAO no PATH\" }; \"JAVA_HOME=$\\([Environment]::GetEnvironmentVariable\\('JAVA_HOME','User'\\)\\)$\\([Environment]::GetEnvironmentVariable\\('JAVA_HOME','Machine'\\)\\)\"; \"--- JDKs ---\"; Get-ChildItem 'C:\\\\Program Files\\\\Java','C:\\\\Program Files\\\\Eclipse Adoptium','C:\\\\Program Files\\\\Microsoft' -ErrorAction SilentlyContinue | Select-Object FullName)",
+      "PowerShell(java -version 2>&1; \"---\"; \\(Get-Item 'C:\\\\Program Files\\\\Common Files\\\\Oracle\\\\Java\\\\javapath\\\\java.exe'\\).Target; \"--- procurar JDK ---\"; Get-ChildItem 'C:\\\\Program Files' -Directory -ErrorAction SilentlyContinue | Where-Object { $_.Name -match 'jdk|java|Adoptium|Temurin|Zulu|Corretto' } | Select-Object FullName)",
+      "Bash(java -version)",
+      "Bash(echo \"exit=$?\")",
+      "Bash(cd /c)",
+      "Bash(cmd //c \"java -version\")",
+      "Bash(cmd //c \"javac -version\")",
+      "Bash(rtk find *)",
+      "WebSearch",
+      "Bash(PGPASSWORD=root rtk psql -h localhost -U postgres -d sigfec_db -c \"SELECT id, nome, categoria, unidade_medida FROM produto ORDER BY id;\")",
+      "PowerShell($psql = @\\('C:\\\\Program Files\\\\PostgreSQL\\\\18\\\\bin\\\\psql.exe','C:\\\\Program Files\\\\PostgreSQL\\\\17\\\\bin\\\\psql.exe','C:\\\\Program Files\\\\PostgreSQL\\\\16\\\\bin\\\\psql.exe'\\) | Where-Object { Test-Path $_ } | Select-Object -First 1; if\\($psql\\){\"psql: $psql\"; $env:PGPASSWORD='root'; & $psql -h localhost -U postgres -d sigfec_db -c \"SELECT id, nome, categoria, unidade_medida FROM produto ORDER BY id;\"} else {\"psql NAO achado\"})",
+      "Bash(rtk read *)",
+      "Bash(rtk git *)",
+      "Bash(git init *)",
+      "Bash(git config *)"
+    ]
+  }
+}
