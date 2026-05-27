@@ -1,62 +1,179 @@
 @import "tailwindcss";
 
-@layer base {
-  label, td, th, tr {
-    cursor: default;
-  }
+/*
+ * SIGFEC — visual baseado no Dashboard de referência
+ * Cor primária: TEAL #1ABB9C  (verde-azulado discreto)
+ * Tema claro, MUI-like: cards brancos, sombra suave 0 2px 10px rgba(0,0,0,0.05)
+ */
+@theme {
+  /* === SLATE invertida — superficies escuras viram claras automaticamente === */
+  --color-slate-50:  #1e293b;
+  --color-slate-100: #334155;
+  --color-slate-200: #475569;
+  --color-slate-300: #64748b;
+  --color-slate-400: #94a3b8;
+  --color-slate-500: #94a3b8;
+  --color-slate-600: #d1d5db;
+  --color-slate-700: #e5e7eb;
+  --color-slate-800: #eef2f6;
+  --color-slate-900: #ffffff;
+  --color-slate-950: #f5f7fa;
+
+  /* "text-white" antes era texto principal — agora cinza escuro */
+  --color-white: #1f2937;
+  --color-black: #1f2937;
+
+  /* Acentos -400 (usados em ícones/labels) — versões corporativas, sem neon */
+  --color-emerald-400: #1ABB9C;
+  --color-emerald-500: #1ABB9C;
+  --color-emerald-600: #16a085;
+  --color-sky-400:     #0369a1;
+  --color-cyan-400:    #0e7490;
+  --color-amber-400:   #b45309;
+  --color-violet-400:  #6d28d9;
+  --color-fuchsia-400: #9333ea;
+  --color-rose-400:    #be123c;
+  --color-lime-400:    #4d7c0f;
+
+  /* Marca/primaria do sistema */
+  --color-brand-50:  #f0fdf9;
+  --color-brand-100: #d1fae5;
+  --color-brand-200: #a7f3d0;
+  --color-brand-500: #1ABB9C;
+  --color-brand-600: #16a085;
+  --color-brand-700: #0e7c66;
+
+  --font-sans: "Inter", "Roboto", "Segoe UI", system-ui, -apple-system, sans-serif;
 }
 
+/* === DARK MODE — sobrescreve slate quando data-theme=dark === */
+:root[data-theme="dark"] {
+  --color-slate-50:  #f8fafc;
+  --color-slate-100: #f1f5f9;
+  --color-slate-200: #e2e8f0;
+  --color-slate-300: #cbd5e1;
+  --color-slate-400: #94a3b8;
+  --color-slate-500: #64748b;
+  --color-slate-600: #475569;
+  --color-slate-700: #334155;
+  --color-slate-800: #1e293b;
+  --color-slate-900: #0f172a;
+  --color-slate-950: #020617;
+  --color-white: #ffffff;
+  --color-black: #000000;
+}
+
+/* === Base === */
 html, body, #root {
   min-height: 100%;
+  background-color: #f5f7fa;
+}
+
+:root[data-theme="dark"] body,
+:root[data-theme="dark"] #root,
+:root[data-theme="dark"] html {
   background-color: #020617;
+  color: #f8fafc;
 }
 
 body {
   margin: 0;
   overflow-x: hidden;
-  color: #f8fafc;
-  /* dot grid */
-  background-image: radial-gradient(circle, #1e293b 1px, transparent 1px);
-  background-size: 28px 28px;
-  background-attachment: fixed;
+  color: #333;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+@layer base {
+  label, td, th, tr { cursor: default; }
+  h1, h2, h3, h4 { letter-spacing: -0.01em; color: #333; }
 }
 
 button {
-  transition: background-color 150ms ease, color 150ms ease, border-color 150ms ease, opacity 150ms ease, box-shadow 150ms ease;
+  transition: background-color 140ms ease, color 140ms ease, border-color 140ms ease,
+              opacity 140ms ease, box-shadow 140ms ease;
 }
 
 input, select, textarea {
-  transition: border-color 150ms ease, box-shadow 150ms ease;
+  transition: border-color 140ms ease, box-shadow 140ms ease, background-color 140ms ease;
 }
 
 input:focus, select:focus, textarea:focus {
   outline: none;
-  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.12);
+  box-shadow: 0 0 0 3px rgba(26, 187, 156, 0.18);
 }
 
-::selection {
-  background: rgba(16, 185, 129, 0.25);
-}
+::selection { background: rgba(26, 187, 156, 0.22); color: #1f2937; }
 
-/* scrollbar */
-::-webkit-scrollbar { width: 5px; height: 5px; }
+/* Scrollbar discreta */
+::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: #334155; }
-
-/* table row hover via box-shadow inset (não afeta layout) */
-table tbody tr {
-  transition: box-shadow 120ms ease;
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1; border-radius: 8px;
+  border: 2px solid transparent; background-clip: padding-box;
 }
-table tbody tr:hover {
-  box-shadow: inset 2px 0 0 0 rgb(16 185 129);
+::-webkit-scrollbar-thumb:hover { background: #94a3b8; background-clip: padding-box; border: 2px solid transparent; }
+
+/* Hover suave em tabelas */
+table tbody tr { transition: background-color 120ms ease; }
+table tbody tr:hover { background-color: #f8fafc; }
+
+/* Autofill claro */
+input:-webkit-autofill, input:-webkit-autofill:hover, input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px #ffffff inset !important;
+  -webkit-text-fill-color: #1f2937 !important;
+  caret-color: #1f2937;
 }
 
-/* input autofill dark override */
-input:-webkit-autofill,
-input:-webkit-autofill:hover,
-input:-webkit-autofill:focus {
-  -webkit-box-shadow: 0 0 0 1000px #1e293b inset !important;
-  -webkit-text-fill-color: #f8fafc !important;
-  caret-color: #f8fafc;
+/* === Utilities customizadas — estilo do Dashboard de referência === */
+@layer utilities {
+  .sigfec-card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    padding: 24px;
+  }
+  .sigfec-card-tight {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  }
+  .sigfec-section-title {
+    color: #1ABB9C;
+    font-weight: 600;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .sigfec-section-title::before {
+    content: '';
+    display: block;
+    width: 4px;
+    height: 22px;
+    background: #1ABB9C;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+  .sigfec-input {
+    width: 100%;
+    border: 1px solid #e5e7eb;
+    background: #fff;
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #1f2937;
+  }
+  .sigfec-input:focus {
+    border-color: #1ABB9C;
+  }
+  .sigfec-label {
+    display: block;
+    font-size: 12px;
+    color: #6b7280;
+    font-weight: 500;
+    margin-bottom: 6px;
+  }
 }

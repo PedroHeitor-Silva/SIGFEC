@@ -27,7 +27,8 @@ export default function Tooltip({ label, children, side = 'top' }) {
             initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 4 }}
             transition={{ duration: 0.12 }}
             role="tooltip"
-            className={`absolute z-50 whitespace-nowrap rounded-md border border-slate-700 bg-slate-900 px-2.5 py-1 text-[11px] font-semibold text-slate-200 shadow-xl pointer-events-none ${sideCls[side]}`}
+            className={`absolute z-50 whitespace-nowrap rounded-md px-2 py-1 text-[11px] font-medium shadow-lg pointer-events-none ${sideCls[side]}`}
+            style={{ background: '#1f2937', color: '#f9fafb', border: '1px solid #374151' }}
           >
             {label}
           </motion.span>
