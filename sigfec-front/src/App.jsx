@@ -30,6 +30,7 @@ import RomaneioDiario from './pages/RomaneioDiario';
 import TabelaPrecos from './pages/TabelaPrecos';
 import VendaLista from './pages/VendaLista';
 import VendaForm from './pages/VendaForm';
+import MockupShowcase from './pages/MockupShowcase';
 import { MODULES, SECTIONS, PATHS, moduleFromPath } from './theme/modules.jsx';
 import { canAccessModule, canAccessPath, PERFIS } from './theme/permissions';
 import ConfirmDialog from './components/ConfirmDialog';
@@ -100,6 +101,14 @@ function AppRoutes() {
     return (
       <Routes>
         <Route path="/balanca" element={<BalancaExpress />} />
+      </Routes>
+    );
+  }
+
+  if (location.pathname === '/mockup') {
+    return (
+      <Routes>
+        <Route path="/mockup" element={<MockupShowcase />} />
       </Routes>
     );
   }
