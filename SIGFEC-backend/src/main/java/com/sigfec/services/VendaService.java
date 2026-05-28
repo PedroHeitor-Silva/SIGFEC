@@ -23,6 +23,8 @@ public class VendaService {
     private final ProdutoRepository produtoRepository;
     private final EstoqueRepository estoqueRepository;
     private final ContaReceberRepository contaReceberRepository;
+    private final MovimentacaoEstoqueService movEstoqueService;
+    private final AuditService auditService;
 
     public List<Venda> listar() {
         return vendaRepository.findAll();
@@ -77,16 +79,19 @@ public class VendaService {
             }
         }
 
-        // 2. Baixa de estoque (já validado acima — não fica negativo)
+        // 2. Baixa de estoque via Kardex (registra movimentação)
         for (ItemVenda item : venda.getItens()) {
             if (item.getProduto() == null) continue;
-            estoqueRepository.findByProduto_Id(item.getProduto().getId())
-                    .ifPresent(estoque -> {
-                        double atual = estoque.getQuantidadeAtual() != null ? estoque.getQuantidadeAtual() : 0.0;
-                        double baixa = item.getQuantidade() != null ? item.getQuantidade().doubleValue() : 0.0;
-                        estoque.setQuantidadeAtual(atual - baixa);
-                        estoqueRepository.save(estoque);
-                    });
+            double baixa = item.getQuantidade() != null ? item.getQuantidade().doubleValue() : 0.0;
+            if (baixa <= 0) continue;
+            movEstoqueService.aplicar(
+                    item.getProduto(),
+                    com.sigfec.domain.enums.EnumTipoMovEstoque.SAIDA_VENDA,
+                    baixa,
+                    "Venda #" + venda.getId(),
+                    "VENDA",
+                    venda.getId()
+            );
         }
 
         // 2. Gera Conta a Receber do cliente
@@ -100,7 +105,11 @@ public class VendaService {
         contaReceberRepository.save(conta);
 
         venda.setStatusVenda(EnumStatusVenda.CONFIRMADA);
-        return vendaRepository.save(venda);
+        Venda salva = vendaRepository.save(venda);
+        auditService.log("VENDA_CONFIRMADA", "Venda", venda.getId(),
+                "total=" + venda.getValorTotal() + " cliente=" +
+                (venda.getCliente() != null ? venda.getCliente().getNome() : "?"));
+        return salva;
     }
 
     /** Fatura a venda — gera número de nota sequencial. */

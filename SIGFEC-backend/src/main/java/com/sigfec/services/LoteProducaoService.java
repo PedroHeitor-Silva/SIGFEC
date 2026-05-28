@@ -30,6 +30,8 @@ public class LoteProducaoService {
     private final LoteProducaoRepository loteRepository;
     private final PesagemRepository pesagemRepository;
     private final EstoqueRepository estoqueRepository;
+    private final MovimentacaoEstoqueService movEstoqueService;
+    private final AuditService auditService;
 
     public List<LoteProducao> listar() {
         return loteRepository.findAll();
@@ -93,7 +95,10 @@ public class LoteProducaoService {
         }
 
         lote.setStatusLote(novo);
-        return loteRepository.save(lote);
+        LoteProducao salvo = loteRepository.save(lote);
+        auditService.log("LOTE_" + novo.name(), "LoteProducao", lote.getId(),
+                "transição " + atual + "→" + novo + " (" + lote.getCodigoLote() + ")");
+        return salvo;
     }
 
     @Transactional
@@ -121,7 +126,7 @@ public class LoteProducaoService {
         }
     }
 
-    /** Soma a quantidade produzida no estoque do produto (cria estoque se não houver). */
+    /** Soma a quantidade produzida no estoque via Kardex (cria estoque se não houver). */
     private void entrarEstoque(LoteProducao lote) {
         if (lote.getProduto() == null) {
             throw new RuntimeException("Lote sem produto vinculado — não dá pra entrar no estoque.");
@@ -131,18 +136,15 @@ public class LoteProducaoService {
             throw new RuntimeException("Quantidade produzida do lote é inválida.");
         }
         double qtd = lote.getQuantidadeProduzida().doubleValue();
-        Estoque estoque = estoqueRepository.findByProduto_Id(lote.getProduto().getId())
-                .orElseGet(() -> {
-                    Estoque novo = new Estoque();
-                    novo.setProduto(lote.getProduto());
-                    novo.setQuantidadeAtual(0.0);
-                    novo.setQuantidadeMinima(0.0);
-                    return novo;
-                });
-        double atual = estoque.getQuantidadeAtual() != null ? estoque.getQuantidadeAtual() : 0.0;
-        estoque.setQuantidadeAtual(atual + qtd);
-        estoqueRepository.save(estoque);
-        log.info("Lote #{} finalizado — +{} no estoque do produto #{}",
+        movEstoqueService.aplicar(
+                lote.getProduto(),
+                com.sigfec.domain.enums.EnumTipoMovEstoque.ENTRADA_PRODUCAO,
+                qtd,
+                "Lote " + lote.getCodigoLote(),
+                "LOTE",
+                lote.getId()
+        );
+        log.info("Lote #{} finalizado — +{} no estoque (Kardex) do produto #{}",
                 lote.getId(), qtd, lote.getProduto().getId());
     }
 

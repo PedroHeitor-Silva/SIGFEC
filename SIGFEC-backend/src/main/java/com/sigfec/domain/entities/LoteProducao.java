@@ -41,6 +41,18 @@ public class LoteProducao {
     @Column(name = "rendimento_real", precision = 5, scale = 2)
     private BigDecimal rendimentoReal;
 
+    /** Custo total do lote = soma do valor pago aos produtores das pesagens consumidas. */
+    @Column(name = "custo_total", precision = 14, scale = 2)
+    private BigDecimal custoTotal;
+
+    /** Custo unitário = custoTotal / quantidadeProduzida. */
+    @Column(name = "custo_unitario", precision = 14, scale = 4)
+    private BigDecimal custoUnitario;
+
+    /** Usuário que criou o lote (rastreabilidade). */
+    @Column(name = "usuario_responsavel")
+    private String usuarioResponsavel;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "status_lote")
     private EnumStatusLote statusLote;
@@ -64,6 +76,20 @@ public class LoteProducao {
         if (dataCriacao == null) dataCriacao = LocalDateTime.now();
         if (statusLote == null) statusLote = EnumStatusLote.EM_PRODUCAO;
         if (dataFabricacao == null) dataFabricacao = LocalDate.now();
+        // Validade padrão: dataFabricacao + 18 meses (padrão fécula)
+        if (validade == null && dataFabricacao != null) {
+            validade = dataFabricacao.plusMonths(18);
+        }
+
+        // Custo total = soma valorTotal das pesagens consumidas (preenchido pelo Lab)
+        if (pesagensConsumidas != null && !pesagensConsumidas.isEmpty()) {
+            custoTotal = pesagensConsumidas.stream()
+                    .map(p -> p.getValorTotal() != null ? p.getValorTotal() : BigDecimal.ZERO)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            if (quantidadeProduzida != null && quantidadeProduzida.compareTo(BigDecimal.ZERO) > 0) {
+                custoUnitario = custoTotal.divide(quantidadeProduzida, 4, RoundingMode.HALF_UP);
+            }
+        }
 
         // Rendimento = (quantidadeProduzida_em_kg / soma_pesoFinal_pesagens) * 100
         // Converte produzido pra kg conforme a unidade do produto (saco 25kg, tonelada etc).

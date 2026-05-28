@@ -2,8 +2,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Bell, AlertCircle, Beaker, DollarSign, TrendingDown, Calendar, CheckCircle2 } from 'lucide-react';
+import { Bell, AlertCircle, Beaker, DollarSign, TrendingDown, Calendar, CheckCircle2, Package } from 'lucide-react';
 import api from '../services/api';
+import { formatarQtd } from '../utils/unidades';
 
 const fmtMoney = (v) =>
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(v) || 0);
@@ -29,17 +30,48 @@ export default function NotificationBell() {
     return () => document.removeEventListener('mousedown', close);
   }, []);
 
+  // Perfil do usuário logado — só ADMIN vê alertas de estoque
+  const perfilUser = (() => {
+    try { return JSON.parse(localStorage.getItem('@sigfec:user') || '{}').perfilAcesso; }
+    catch { return null; }
+  })();
+  // Estoque baixo: ADMIN (gerente) e PRODUCAO veem
+  const veEstoque = perfilUser === 'ADMIN' || perfilUser === 'PRODUCAO';
+
   useEffect(() => {
     Promise.allSettled([
       api.get('/financeiro'),
       api.get('/laboratorio'),
       api.get('/pesagens'),
-    ]).then(([fin, lab, pes]) => {
+      api.get('/estoque'),
+    ]).then(([fin, lab, pes, est]) => {
       const titulos = fin.status === 'fulfilled' ? (fin.value.data || []) : [];
       const analises = lab.status === 'fulfilled' ? (lab.value.data || []) : [];
       const pesagens = pes.status === 'fulfilled' ? (pes.value.data || []) : [];
+      const estoques = est.status === 'fulfilled' ? (est.value.data || []) : [];
 
       const alerts = [];
+
+      // === Estoque baixo (ADMIN + PRODUCAO) ===
+      if (veEstoque) {
+        estoques.forEach((e) => {
+          const atual = Number(e.quantidadeAtual || 0);
+          const min = Number(e.quantidadeMinima || 0);
+          if (min > 0 && atual <= min) {
+            const zerado = atual <= 0;
+            const un = e.produto?.unidadeMedida;
+            alerts.push({
+              type: 'estoque-baixo',
+              icon: Package,
+              accent: zerado ? 'rose' : 'amber',
+              title: zerado ? 'Estoque ZERADO' : 'Estoque baixo',
+              desc: `${e.produto?.nome || 'Produto'} — ${formatarQtd(atual, un)} (mínimo ${formatarQtd(min, un)})`,
+              date: e.ultimaAtualizacao || new Date().toISOString(),
+              link: '/estoque',
+            });
+          }
+        });
+      }
 
       // Vencimentos próximos (<=7 dias) e atrasados
       titulos.filter((t) => t.statusFinanceiro === 'ABERTO').forEach((t) => {

@@ -85,4 +85,52 @@ public class FinanceiroController {
         tituloRepo.deleteById(id);
         return ResponseEntity.noContent().build();
     }
+
+    /**
+     * Fluxo de caixa projetado — agrupa entradas (a receber) e saídas (a pagar)
+     * por dia nos próximos N dias. Útil pra dashboard de gestão.
+     * GET /api/financeiro/fluxo-caixa?dias=30
+     */
+    @GetMapping("/fluxo-caixa")
+    public Map<String, Object> fluxoCaixa(@RequestParam(value = "dias", defaultValue = "30") int dias) {
+        java.time.LocalDate hoje = java.time.LocalDate.now();
+        java.time.LocalDate fim = hoje.plusDays(dias);
+
+        java.util.Map<java.time.LocalDate, java.math.BigDecimal> entradas = new java.util.TreeMap<>();
+        java.util.Map<java.time.LocalDate, java.math.BigDecimal> saidas = new java.util.TreeMap<>();
+
+        receberRepo.findAll().forEach(c -> {
+            if (c.getStatusFinanceiro() == com.sigfec.domain.enums.EnumStatusFinanceiro.PAGO
+                    || c.getStatusFinanceiro() == com.sigfec.domain.enums.EnumStatusFinanceiro.CANCELADO) return;
+            if (c.getDataVencimento() == null || c.getDataVencimento().isBefore(hoje)
+                    || c.getDataVencimento().isAfter(fim)) return;
+            entradas.merge(c.getDataVencimento(),
+                    c.getSaldo() != null ? c.getSaldo() : java.math.BigDecimal.ZERO,
+                    java.math.BigDecimal::add);
+        });
+
+        pagarRepo.findAll().forEach(c -> {
+            if (c.getStatusFinanceiro() == com.sigfec.domain.enums.EnumStatusFinanceiro.PAGO
+                    || c.getStatusFinanceiro() == com.sigfec.domain.enums.EnumStatusFinanceiro.CANCELADO) return;
+            if (c.getDataVencimento() == null || c.getDataVencimento().isBefore(hoje)
+                    || c.getDataVencimento().isAfter(fim)) return;
+            saidas.merge(c.getDataVencimento(),
+                    c.getSaldo() != null ? c.getSaldo() : java.math.BigDecimal.ZERO,
+                    java.math.BigDecimal::add);
+        });
+
+        java.math.BigDecimal totalEntradas = entradas.values().stream()
+                .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
+        java.math.BigDecimal totalSaidas = saidas.values().stream()
+                .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
+
+        return Map.of(
+                "dias", dias,
+                "entradas", entradas,
+                "saidas", saidas,
+                "totalEntradas", totalEntradas,
+                "totalSaidas", totalSaidas,
+                "saldoProjetado", totalEntradas.subtract(totalSaidas)
+        );
+    }
 }

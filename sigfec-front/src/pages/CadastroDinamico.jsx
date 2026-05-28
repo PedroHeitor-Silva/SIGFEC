@@ -63,7 +63,9 @@ export default function CadastroDinamico({ tipo = 'PARCEIRO', onBack }) {
   const [loading, setLoading] = useState(false);
   const [form, setForm, draft] = useDraft(`cadastro-${tipo}`, {
     nome: '', documento: '', email: '', telefone: '', cep: '', logradouro: '', bairro: '', numero: '',
-    inscricaoEstadual: '', rg: '', tipoParceiro: '', limiteCredito: '', cnh: '', placa: '', tara: '',
+    inscricaoEstadual: '', rg: '', tipoParceiro: '', limiteCredito: '',
+    cnh: '', categoriaCnh: '', validadeCnh: '',
+    placa: '', tara: '', capacidadeKg: '', tipoVeiculo: '',
     unidadeMedida: '', categoria: '', login: '', senha: '', perfilAcesso: '',
   });
   const [estados, setEstados] = useState([]);
@@ -137,12 +139,23 @@ export default function CadastroDinamico({ tipo = 'PARCEIRO', onBack }) {
       case 'MOTORISTA':
         return {
           path: '/motoristas',
-          body: { nome: form.nome, documento: form.documento, email: form.email, telefone: form.telefone, cnh: form.cnh },
+          body: {
+            nome: form.nome, documento: form.documento, email: form.email, telefone: form.telefone,
+            cnh: form.cnh,
+            categoriaCnh: form.categoriaCnh || null,
+            validadeCnh: form.validadeCnh || null,
+          },
         };
       case 'VEICULO':
         return {
           path: '/veiculos',
-          body: { modelo: form.nome, placa: form.placa, tara: form.tara ? Number(form.tara) : null },
+          body: {
+            modelo: form.nome,
+            placa: form.placa,
+            tara: form.tara ? Number(form.tara) : null,
+            capacidadeKg: form.capacidadeKg ? Number(form.capacidadeKg) : null,
+            tipoVeiculo: form.tipoVeiculo || null,
+          },
         };
       case 'PRODUTO':
         return {
@@ -284,12 +297,26 @@ export default function CadastroDinamico({ tipo = 'PARCEIRO', onBack }) {
               </label>
             </>)}
 
-            {tipo === 'MOTORISTA' && (
+            {tipo === 'MOTORISTA' && (<>
               <label className="block">
                 <span className={labelCls}>Registro CNH</span>
                 <input name="cnh" value={form.cnh} onChange={handleChange} className={inputCls} placeholder="Número da habilitação" required />
               </label>
-            )}
+              <label className="block">
+                <span className={labelCls}>Categoria CNH</span>
+                <select name="categoriaCnh" value={form.categoriaCnh} onChange={handleChange} className={inputCls}>
+                  <option value="">Selecione...</option>
+                  <option value="A">A</option><option value="B">B</option><option value="C">C</option>
+                  <option value="D">D</option><option value="E">E</option>
+                  <option value="AB">AB</option><option value="AC">AC</option>
+                  <option value="AD">AD</option><option value="AE">AE</option>
+                </select>
+              </label>
+              <label className="block">
+                <span className={labelCls}>Validade CNH</span>
+                <input type="date" name="validadeCnh" value={form.validadeCnh} onChange={handleChange} className={inputCls} />
+              </label>
+            </>)}
 
             {tipo === 'VEICULO' && (<>
               <label className="block">
@@ -297,8 +324,23 @@ export default function CadastroDinamico({ tipo = 'PARCEIRO', onBack }) {
                 <input name="placa" value={form.placa} onChange={handleChange} className={`${inputCls} uppercase`} placeholder="ABC-1234" />
               </label>
               <label className="block">
+                <span className={labelCls}>Tipo</span>
+                <select name="tipoVeiculo" value={form.tipoVeiculo} onChange={handleChange} className={inputCls}>
+                  <option value="">Selecione...</option>
+                  <option value="TOCO">Toco</option>
+                  <option value="TRUCK">Truck</option>
+                  <option value="CARRETA">Carreta</option>
+                  <option value="BITREM">Bitrem</option>
+                  <option value="RODOTREM">Rodotrem</option>
+                </select>
+              </label>
+              <label className="block">
                 <span className={labelCls}>Tara (kg)</span>
-                <input type="number" name="tara" value={form.tara} onChange={handleChange} className={inputCls} placeholder="0" />
+                <input type="number" name="tara" value={form.tara} onChange={handleChange} className={inputCls} placeholder="Peso vazio" />
+              </label>
+              <label className="block">
+                <span className={labelCls}>Capacidade (kg)</span>
+                <input type="number" name="capacidadeKg" value={form.capacidadeKg} onChange={handleChange} className={inputCls} placeholder="Carga máxima" />
               </label>
             </>)}
 

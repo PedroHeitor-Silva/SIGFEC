@@ -1,8 +1,8 @@
 /* eslint-disable react/prop-types */
 
 /**
- * SIGFEC logo — hexágono industrial com "S" estilizado + folha de mandioca.
- * Representa: indústria (hex), fecularia (S), agricultura (folha).
+ * SIGFEC logo — hexágono industrial com "S" estilizado + grão de amido.
+ * Representa: indústria (hex), fecularia (S), agricultura (grão).
  */
 export default function Logo({ size = 40, withText = false }) {
   return (
@@ -61,8 +61,8 @@ export default function Logo({ size = 40, withText = false }) {
       </svg>
       {withText && (
         <span className="flex flex-col leading-none">
-          <span className="text-xl font-black tracking-tight text-white">SIGFEC</span>
-          <span className="text-[9px] uppercase tracking-[0.25em] text-slate-500 mt-1">ERP Fecularia</span>
+          <span className="text-xl font-bold tracking-tight text-gray-800">SIGFEC</span>
+          <span className="text-[9px] uppercase tracking-[0.22em] text-gray-500 mt-1">Fecularia Loanda</span>
         </span>
       )}
     </span>

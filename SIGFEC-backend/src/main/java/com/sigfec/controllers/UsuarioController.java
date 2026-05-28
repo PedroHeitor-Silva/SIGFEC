@@ -3,6 +3,7 @@ package com.sigfec.controllers;
 import com.sigfec.domain.entities.Usuario;
 import com.sigfec.repositories.UsuarioRepository;
 import com.sigfec.security.JwtUtil;
+import com.sigfec.services.AuditService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -26,6 +27,7 @@ public class UsuarioController {
     private final UsuarioRepository repository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwt;
+    private final AuditService auditService;
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody Map<String, String> credenciais) {
@@ -38,6 +40,7 @@ public class UsuarioController {
 
         Optional<Usuario> opt = repository.findByLogin(login);
         if (opt.isEmpty() || !passwordEncoder.matches(senha, opt.get().getSenha())) {
+            auditService.log("LOGIN_FAIL", "Usuario", null, "login=" + login);
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "Credenciais inválidas."));
         }
 
@@ -60,8 +63,11 @@ public class UsuarioController {
         body.put("email", usuario.getEmail());
         body.put("perfilAcesso", usuario.getPerfilAcesso());
         body.put("statusAtivo", usuario.isStatusAtivo());
+        body.put("permissoesExtras", usuario.getPermissoesExtras());
+        body.put("permissoesNegadas", usuario.getPermissoesNegadas());
 
         log.info("Login bem-sucedido: {}", usuario.getLogin());
+        auditService.log("LOGIN_OK", "Usuario", usuario.getId(), "perfil=" + usuario.getPerfilAcesso());
         return ResponseEntity.ok(body);
     }
 
@@ -105,6 +111,9 @@ public class UsuarioController {
             if (payload.getDocumento() != null) u.setDocumento(payload.getDocumento());
             if (payload.getLogin() != null) u.setLogin(payload.getLogin());
             if (payload.getPerfilAcesso() != null) u.setPerfilAcesso(payload.getPerfilAcesso());
+            // Permissões granulares (nullable = mantém atual; "" = limpa)
+            if (payload.getPermissoesExtras() != null) u.setPermissoesExtras(payload.getPermissoesExtras());
+            if (payload.getPermissoesNegadas() != null) u.setPermissoesNegadas(payload.getPermissoesNegadas());
             u.setStatusAtivo(payload.isStatusAtivo());
             // Senha: só atualiza se vier nova e não-vazia, e ainda não estiver hasheada
             if (payload.getSenha() != null && !payload.getSenha().isBlank()) {

@@ -11,6 +11,7 @@ import { TableSkeleton } from '../components/Skeleton';
 import { toastUndo } from '../utils/undoToast';
 import EditModal from '../components/EditModal';
 import { unidadeLabel, formatarQtd, equivalenteKg } from '../utils/unidades';
+import { can } from '../theme/permissions';
 
 const CATEGORIA_LABEL = {
   FECULA: 'Fécula', TAPIOCA: 'Tapioca', POLVILHO_DOCE: 'Polvilho Doce',
@@ -167,18 +168,22 @@ export default function EstoqueListagem() {
                       </td>
                       <td className="px-5 py-4">
                         <div className="flex gap-1">
-                          <Tooltip label="Ajustar quantidades">
-                            <button type="button" onClick={() => setEditing(e)}
-                              className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:text-sky-400 hover:bg-sky-500/10 transition">
-                              <Pencil size={13} />
-                            </button>
-                          </Tooltip>
-                          <Tooltip label="Excluir">
-                            <button type="button" onClick={() => handleDelete(e.id)}
-                              className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition">
-                              <Trash2 size={14} />
-                            </button>
-                          </Tooltip>
+                          {can('estoque', 'editar') && (
+                            <Tooltip label="Ajustar quantidades">
+                              <button type="button" onClick={() => setEditing(e)}
+                                className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:text-sky-400 hover:bg-sky-500/10 transition">
+                                <Pencil size={13} />
+                              </button>
+                            </Tooltip>
+                          )}
+                          {can('estoque', 'excluir') && (
+                            <Tooltip label="Excluir">
+                              <button type="button" onClick={() => handleDelete(e.id)}
+                                className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition">
+                                <Trash2 size={14} />
+                              </button>
+                            </Tooltip>
+                          )}
                         </div>
                       </td>
                     </tr>

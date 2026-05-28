@@ -23,5 +23,14 @@ public class Veiculo {
 
     private String modelo;
 
+    /** Tara em kg (peso do veículo vazio). */
     private Double tara;
+
+    /** Capacidade máxima de carga em kg (PBT - tara). */
+    @Column(name = "capacidade_kg")
+    private Double capacidadeKg;
+
+    /** Tipo: TRUCK, CARRETA, BITREM, TOCO, etc. */
+    @Column(name = "tipo_veiculo", length = 20)
+    private String tipoVeiculo;
 }
