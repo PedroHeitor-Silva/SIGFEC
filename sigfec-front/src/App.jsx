@@ -121,43 +121,43 @@ function AppRoutes() {
         <div className="lg:hidden fixed inset-0 bg-gray-900/40 z-40" onClick={() => setMobileOpen(false)} />
       )}
 
-      {/* === SIDEBAR (dark navy, maior) === */}
+      {/* === SIDEBAR (dark navy, ainda maior) === */}
       {user && (
         <aside
           style={{ background: '#1e293b', color: '#e5e7eb' }}
           className={`
-            ${collapsed ? 'lg:w-24' : 'lg:w-80'}
+            ${collapsed ? 'lg:w-28' : 'lg:w-96'}
             ${mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
             fixed lg:sticky top-0 left-0 z-50
-            w-80 lg:w-auto h-screen flex flex-col
+            w-96 lg:w-auto h-screen flex flex-col
             transition-all duration-200
           `}
         >
-          <div className="flex items-center justify-between px-6 h-20" style={{ borderBottom: '1px solid #334155' }}>
-            <div className="flex items-center gap-3 min-w-0">
-              <Logo size={40} />
-              {!collapsed && <span className="text-xl font-bold tracking-tight" style={{ color: '#fff' }}>SIGFEC</span>}
+          <div className="flex items-center justify-between px-7 h-24" style={{ borderBottom: '1px solid #334155' }}>
+            <div className="flex items-center gap-4 min-w-0">
+              <Logo size={48} />
+              {!collapsed && <span className="text-2xl font-bold tracking-tight" style={{ color: '#fff' }}>SIGFEC</span>}
             </div>
             <button
               type="button"
               onClick={() => setMobileOpen(false)}
               className="lg:hidden p-2 rounded-md"
               style={{ color: '#94a3b8' }}
-            ><X size={20} /></button>
+            ><X size={22} /></button>
           </div>
 
-          <nav className="flex-1 overflow-y-auto py-5 px-4">
+          <nav className="flex-1 overflow-y-auto py-6 px-5">
             {SECTIONS.map((sec) => {
               const itemsAllowed = sec.items.filter((key) => canAccessModule(user?.perfilAcesso, key));
               if (!itemsAllowed.length) return null;
               return (
-                <div key={sec.label} className="mb-7">
+                <div key={sec.label} className="mb-8">
                   {!collapsed && (
-                    <p className="px-3 mb-3 text-[12px] font-bold uppercase tracking-[0.14em]" style={{ color: '#64748b' }}>
+                    <p className="px-3 mb-3 text-[13px] font-bold uppercase tracking-[0.14em]" style={{ color: '#64748b' }}>
                       {sec.label}
                     </p>
                   )}
-                  <div className="space-y-1.5">
+                  <div className="space-y-2">
                     {itemsAllowed.map((key) => (
                       <NavItem key={key} to={PATHS[key]} moduleKey={key}
                         currentPath={location.pathname} collapsed={collapsed} />
@@ -169,15 +169,15 @@ function AppRoutes() {
           </nav>
 
           <div style={{ borderTop: '1px solid #334155' }}>
-            <div className={`flex items-center gap-3 px-5 py-4 ${collapsed ? 'justify-center' : ''}`}>
-              <div className="flex h-12 w-12 items-center justify-center rounded-full text-base font-semibold"
+            <div className={`flex items-center gap-4 px-6 py-5 ${collapsed ? 'justify-center' : ''}`}>
+              <div className="flex h-14 w-14 items-center justify-center rounded-full text-lg font-bold"
                 style={{ background: 'rgba(26,187,156,0.18)', color: '#1ABB9C', border: '1px solid rgba(26,187,156,0.35)' }}>
                 {(user.nome || user.login || 'U').charAt(0).toUpperCase()}
               </div>
               {!collapsed && (
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold truncate" style={{ color: '#f1f5f9' }}>{user.login || user.nome}</p>
-                  <p className="text-[11px] uppercase tracking-wider truncate" style={{ color: '#94a3b8' }}>
+                  <p className="text-base font-semibold truncate" style={{ color: '#f1f5f9' }}>{user.login || user.nome}</p>
+                  <p className="text-xs uppercase tracking-wider truncate mt-0.5" style={{ color: '#94a3b8' }}>
                     {PERFIS[user.perfilAcesso] ?? user.perfilAcesso ?? 'Usuário'}
                   </p>
                 </div>
@@ -186,23 +186,23 @@ function AppRoutes() {
             <div className="flex" style={{ borderTop: '1px solid #334155' }}>
               <button
                 type="button" onClick={handleLogout}
-                className="flex-1 inline-flex items-center justify-center gap-2 px-3 py-3.5 text-sm font-medium transition"
+                className="flex-1 inline-flex items-center justify-center gap-2.5 px-3 py-4 text-base font-medium transition"
                 style={{ color: '#cbd5e1' }}
                 onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(244,63,94,0.12)'; e.currentTarget.style.color = '#fda4af'; }}
                 onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#cbd5e1'; }}
               >
-                <LogOut size={18} />
+                <LogOut size={20} />
                 {!collapsed && <span>Sair</span>}
               </button>
               <button
                 type="button" onClick={() => setCollapsed((c) => !c)}
-                className="hidden lg:inline-flex items-center justify-center w-14 transition"
+                className="hidden lg:inline-flex items-center justify-center w-16 transition"
                 style={{ borderLeft: '1px solid #334155', color: '#94a3b8' }}
                 onMouseEnter={(e) => { e.currentTarget.style.background = '#334155'; e.currentTarget.style.color = '#fff'; }}
                 onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#94a3b8'; }}
                 title={collapsed ? 'Expandir' : 'Recolher'}
               >
-                {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
+                {collapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
               </button>
             </div>
           </div>
@@ -328,9 +328,9 @@ function NavItem({ to, moduleKey, currentPath, collapsed }) {
   const isActive = to === '/' ? currentPath === '/' : currentPath === to || currentPath.startsWith(`${to}/`);
 
   const base = {
-    display: 'flex', alignItems: 'center', gap: 14,
-    padding: collapsed ? '14px 0' : '13px 16px',
-    borderRadius: 10, fontSize: 15, fontWeight: 500,
+    display: 'flex', alignItems: 'center', gap: 16,
+    padding: collapsed ? '16px 0' : '15px 18px',
+    borderRadius: 10, fontSize: 16, fontWeight: 500,
     justifyContent: collapsed ? 'center' : 'flex-start',
     position: 'relative', transition: 'background 140ms, color 140ms',
     textDecoration: 'none',
@@ -352,7 +352,7 @@ function NavItem({ to, moduleKey, currentPath, collapsed }) {
           borderRadius: '0 4px 4px 0', background: '#1ABB9C',
         }} />
       )}
-      <Icon size={22} style={{ flexShrink: 0, color: isActive ? '#1ABB9C' : '#94a3b8' }} />
+      <Icon size={24} style={{ flexShrink: 0, color: isActive ? '#1ABB9C' : '#94a3b8' }} />
       {!collapsed && <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{m.label}</span>}
     </Link>
   );

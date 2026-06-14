@@ -28,7 +28,9 @@
       "Bash(rtk read *)",
       "Bash(rtk git *)",
       "Bash(git init *)",
-      "Bash(git config *)"
+      "Bash(git config *)",
+      "Bash(rtk wc *)",
+      "Read(//c/Users/pedro/AppData/Local/Temp/**)"
     ]
   }
 }
