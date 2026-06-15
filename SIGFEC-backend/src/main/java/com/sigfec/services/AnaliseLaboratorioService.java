@@ -9,6 +9,7 @@ import com.sigfec.repositories.PesagemRepository;
 import com.sigfec.repositories.TabelaPrecoRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -36,6 +37,7 @@ public class AnaliseLaboratorioService {
      * Registra análise de uma pesagem. Vincula amostras, calcula renda média
      * e atualiza o valor a pagar ao produtor na pesagem.
      */
+    @Transactional
     public AnaliseLaboratorio realizarAnalise(Long pesagemId, AnaliseLaboratorio analise) {
         Pesagem pesagem = pesagemRepository.findById(pesagemId)
                 .orElseThrow(() -> new RuntimeException("Pesagem não encontrada"));

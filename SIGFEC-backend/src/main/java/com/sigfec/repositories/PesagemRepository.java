@@ -10,4 +10,7 @@ import java.util.List;
 public interface PesagemRepository extends JpaRepository<Pesagem, Long> {
     /** Pesagens ainda não consumidas por nenhum lote — disponíveis pra produção. */
     List<Pesagem> findByConsumidaFalse();
+
+    /** Verifica vínculo com produtor — usado antes de excluir parceiro. */
+    boolean existsByProdutor_Id(Long produtorId);
 }

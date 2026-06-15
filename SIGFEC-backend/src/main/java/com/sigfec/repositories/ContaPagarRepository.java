@@ -6,4 +6,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ContaPagarRepository extends JpaRepository<ContaPagar, Long> {
+
+    /** Verifica vínculo com fornecedor — usado antes de excluir parceiro. */
+    boolean existsByFornecedor_Id(Long fornecedorId);
 }

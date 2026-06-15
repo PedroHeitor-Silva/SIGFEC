@@ -59,21 +59,21 @@ public class ParceiroController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deletar(@PathVariable Long id) {
-        // Bloqueia delete se tem vínculos — protege integridade referencial
-        long pesagens = pesagemRepository.findAll().stream()
-                .filter(p -> p.getProdutor() != null && id.equals(p.getProdutor().getId())).count();
-        long vendas = vendaRepository.findAll().stream()
-                .filter(v -> v.getCliente() != null && id.equals(v.getCliente().getId())).count();
-        long pagar = contaPagarRepository.findAll().stream()
-                .filter(c -> c.getFornecedor() != null && id.equals(c.getFornecedor().getId())).count();
-        long receber = contaReceberRepository.findAll().stream()
-                .filter(c -> c.getCliente() != null && id.equals(c.getCliente().getId())).count();
-        long total = pesagens + vendas + pagar + receber;
-        if (total > 0) {
+        // Bloqueia delete se tem vínculos — protege integridade referencial.
+        // Usa existsBy (consulta direta no banco) em vez de carregar tudo em memória.
+        boolean temPesagem = pesagemRepository.existsByProdutor_Id(id);
+        boolean temVenda = vendaRepository.existsByCliente_Id(id);
+        boolean temPagar = contaPagarRepository.existsByFornecedor_Id(id);
+        boolean temReceber = contaReceberRepository.existsByCliente_Id(id);
+        if (temPesagem || temVenda || temPagar || temReceber) {
+            StringBuilder vinculos = new StringBuilder();
+            if (temPesagem) vinculos.append("pesagens, ");
+            if (temVenda) vinculos.append("vendas, ");
+            if (temPagar) vinculos.append("contas a pagar, ");
+            if (temReceber) vinculos.append("contas a receber, ");
+            String lista = vinculos.substring(0, vinculos.length() - 2);
             return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of(
-                "error", "Parceiro não pode ser excluído — tem " + total + " vínculo(s): " +
-                         pesagens + " pesagem(s), " + vendas + " venda(s), " +
-                         pagar + " conta(s) a pagar, " + receber + " conta(s) a receber."
+                "error", "Parceiro não pode ser excluído — possui vínculos em: " + lista + "."
             ));
         }
         service.deletar(id);

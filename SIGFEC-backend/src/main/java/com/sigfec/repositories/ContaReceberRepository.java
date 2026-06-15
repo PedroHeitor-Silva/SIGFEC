@@ -11,4 +11,7 @@ public interface ContaReceberRepository extends JpaRepository<ContaReceber, Long
 
     /** Localiza a conta pela cobrança Asaas — usado no webhook. */
     Optional<ContaReceber> findByAsaasPaymentId(String asaasPaymentId);
+
+    /** Verifica vínculo com cliente — usado antes de excluir parceiro. */
+    boolean existsByCliente_Id(Long clienteId);
 }
