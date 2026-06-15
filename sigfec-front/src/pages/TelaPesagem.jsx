@@ -41,6 +41,8 @@ export default function TelaPesagem() {
   const [produtores, setProdutores] = useState([]);
   const [selectedProdutor, setSelectedProdutor] = useState(null);
   const [loadingProdutores, setLoadingProdutores] = useState(true);
+  const [veiculos, setVeiculos] = useState([]);
+  const [selectedVeiculo, setSelectedVeiculo] = useState(null);
   const [pesoBruto, setPesoBruto] = useState('');
   const [tara, setTara] = useState('');
   const [impureza, setImpureza] = useState(8);
@@ -59,7 +61,25 @@ export default function TelaPesagem() {
       })
       .catch(() => toast.error('Não foi possível carregar os produtores.'))
       .finally(() => setLoadingProdutores(false));
+
+    // Veículos ativos com tara cadastrada — para tara automática
+    api.get('/veiculos')
+      .then(({ data }) => {
+        const ativos = (Array.isArray(data) ? data : []).filter((v) => v.statusAtivo !== false);
+        setVeiculos(ativos.map((v) => ({
+          value: v.id,
+          label: `${v.placa}${v.modelo ? ' — ' + v.modelo : ''}${v.tara ? ' (tara ' + v.tara + 'kg)' : ''}`,
+          tara: v.tara,
+        })));
+      })
+      .catch(() => {});
   }, []);
+
+  // Ao escolher o veículo, preenche a tara automaticamente (editável depois)
+  const handleVeiculo = (opt) => {
+    setSelectedVeiculo(opt);
+    if (opt && opt.tara != null) setTara(String(opt.tara));
+  };
 
   const pesoLiquido = useMemo(() => {
     const b = parseFloat(pesoBruto), t = parseFloat(tara);
@@ -81,6 +101,7 @@ export default function TelaPesagem() {
     try {
       await api.post('/pesagens', {
         produtor: { id: selectedProdutor.value },
+        veiculo: selectedVeiculo ? { id: selectedVeiculo.value } : null,
         pesoBruto: b, pesoTara: t, percentualImpureza: i,
         dataHoraEntrada: new Date().toISOString(),
       });
@@ -141,12 +162,29 @@ export default function TelaPesagem() {
           </label>
 
           <label className="block">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Veículo</span>
+            <div className="mt-2">
+              <Select
+                value={selectedVeiculo}
+                onChange={handleVeiculo}
+                options={veiculos}
+                styles={selectStyles}
+                {...selectMenuProps}
+                isClearable
+                placeholder="Selecione o veículo (preenche a tara)..."
+              />
+            </div>
+          </label>
+
+          <label className="block">
             <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Peso Bruto (kg)</span>
             <input type="number" min="0" step="0.01" value={pesoBruto} onChange={(e) => setPesoBruto(e.target.value)} placeholder="0.00" className={inputCls} />
           </label>
 
           <label className="block">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Tara do Veículo (kg)</span>
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
+              Tara do Veículo (kg) {selectedVeiculo && <span className="text-emerald-400 normal-case">— automática, ajustável</span>}
+            </span>
             <input type="number" min="0" step="0.01" value={tara} onChange={(e) => setTara(e.target.value)} placeholder="0.00" className={inputCls} />
           </label>
 

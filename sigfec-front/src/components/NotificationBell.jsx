@@ -2,7 +2,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Bell, AlertCircle, Beaker, DollarSign, TrendingDown, Calendar, CheckCircle2, Package } from 'lucide-react';
+import { Bell, AlertCircle, Beaker, DollarSign, TrendingDown, Calendar, CheckCircle2, Package, IdCard } from 'lucide-react';
 import api from '../services/api';
 import { formatarQtd } from '../utils/unidades';
 
@@ -44,13 +44,38 @@ export default function NotificationBell() {
       api.get('/laboratorio'),
       api.get('/pesagens'),
       api.get('/estoque'),
-    ]).then(([fin, lab, pes, est]) => {
+      api.get('/motoristas'),
+    ]).then(([fin, lab, pes, est, mot]) => {
       const titulos = fin.status === 'fulfilled' ? (fin.value.data || []) : [];
       const analises = lab.status === 'fulfilled' ? (lab.value.data || []) : [];
       const pesagens = pes.status === 'fulfilled' ? (pes.value.data || []) : [];
       const estoques = est.status === 'fulfilled' ? (est.value.data || []) : [];
+      const motoristas = mot.status === 'fulfilled' ? (mot.value.data || []) : [];
 
       const alerts = [];
+
+      // === CNH vencida ou a vencer (<=30 dias) — ADMIN + PRODUCAO ===
+      if (veEstoque) {
+        motoristas.forEach((m) => {
+          if (!m.validadeCnh || m.statusAtivo === false) return;
+          const dias = Math.floor((new Date(m.validadeCnh + 'T00:00:00') - new Date()) / (1000 * 60 * 60 * 24));
+          if (dias < 0) {
+            alerts.push({
+              type: 'cnh-vencida', icon: IdCard, accent: 'rose',
+              title: 'CNH vencida',
+              desc: `${m.nome} — habilitação vencida há ${Math.abs(dias)} dia(s)`,
+              date: m.validadeCnh, link: '/motoristas',
+            });
+          } else if (dias <= 30) {
+            alerts.push({
+              type: 'cnh-vencer', icon: IdCard, accent: 'amber',
+              title: 'CNH a vencer',
+              desc: `${m.nome} — habilitação vence em ${dias} dia(s)`,
+              date: m.validadeCnh, link: '/motoristas',
+            });
+          }
+        });
+      }
 
       // === Estoque baixo (ADMIN + PRODUCAO) ===
       if (veEstoque) {

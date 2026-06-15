@@ -64,8 +64,9 @@ export default function CadastroDinamico({ tipo = 'PARCEIRO', onBack }) {
   const [form, setForm, draft] = useDraft(`cadastro-${tipo}`, {
     nome: '', documento: '', email: '', telefone: '', cep: '', logradouro: '', bairro: '', numero: '',
     inscricaoEstadual: '', rg: '', tipoParceiro: '', limiteCredito: '',
-    cnh: '', categoriaCnh: '', validadeCnh: '',
-    placa: '', tara: '', capacidadeKg: '', tipoVeiculo: '',
+    cnh: '', categoriaCnh: '', validadeCnh: '', statusAtivoMotorista: true,
+    codigo: '', placa: '', marca: '', tara: '', capacidadeKg: '', tipoVeiculo: '',
+    eixos: '', motoristaId: '', dataLicenciamento: '', statusAtivoVeiculo: true, observacao: '',
     unidadeMedida: '', categoria: '', login: '', senha: '', perfilAcesso: '',
   });
   const [estados, setEstados] = useState([]);
@@ -73,6 +74,7 @@ export default function CadastroDinamico({ tipo = 'PARCEIRO', onBack }) {
   const [estadoSel, setEstadoSel] = useState(null);
   const [cidadeSel, setCidadeSel] = useState(null);
   const [loadingCidades, setLoadingCidades] = useState(false);
+  const [motoristas, setMotoristas] = useState([]);
   const numeroRef = useRef(null);
 
   useEffect(() => {
@@ -80,6 +82,14 @@ export default function CadastroDinamico({ tipo = 'PARCEIRO', onBack }) {
       .then(({ data }) => setEstados(data.map((e) => ({ value: e.sigla, label: e.nome }))))
       .catch(() => {});
   }, []);
+
+  // Carrega motoristas para o vínculo no cadastro de veículo
+  useEffect(() => {
+    if (tipo !== 'VEICULO') return;
+    api.get('/motoristas')
+      .then(({ data }) => setMotoristas(data || []))
+      .catch(() => {});
+  }, [tipo]);
 
   const handleEstado = async (opt) => {
     setEstadoSel(opt);
@@ -144,17 +154,25 @@ export default function CadastroDinamico({ tipo = 'PARCEIRO', onBack }) {
             cnh: form.cnh,
             categoriaCnh: form.categoriaCnh || null,
             validadeCnh: form.validadeCnh || null,
+            statusAtivo: form.statusAtivoMotorista,
           },
         };
       case 'VEICULO':
         return {
           path: '/veiculos',
           body: {
-            modelo: form.nome,
+            codigo: form.codigo || null,
             placa: form.placa,
+            marca: form.marca || null,
+            modelo: form.nome,
             tara: form.tara ? Number(form.tara) : null,
             capacidadeKg: form.capacidadeKg ? Number(form.capacidadeKg) : null,
             tipoVeiculo: form.tipoVeiculo || null,
+            eixos: form.eixos ? Number(form.eixos) : null,
+            motorista: form.motoristaId ? { id: Number(form.motoristaId) } : null,
+            dataLicenciamento: form.dataLicenciamento || null,
+            statusAtivo: form.statusAtivoVeiculo,
+            observacao: form.observacao || null,
           },
         };
       case 'PRODUTO':
@@ -228,8 +246,14 @@ export default function CadastroDinamico({ tipo = 'PARCEIRO', onBack }) {
           </div>
           <div className="p-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             <label className="block">
-              <span className={labelCls}>Nome {tipo === 'VEICULO' ? '(Modelo)' : tipo === 'PRODUTO' ? '(Produto)' : 'Completo / Razão Social'}</span>
-              <input name="nome" value={form.nome} onChange={handleChange} className={inputCls} placeholder="Digite o nome..." required />
+              <span className={labelCls}>{
+                tipo === 'VEICULO' ? 'Modelo'
+                : tipo === 'PRODUTO' ? 'Nome do Produto'
+                : tipo === 'PARCEIRO' ? 'Nome Completo / Razão Social'
+                : 'Nome Completo'
+              }</span>
+              <input name="nome" value={form.nome} onChange={handleChange} className={inputCls}
+                placeholder={tipo === 'VEICULO' ? 'Ex: R450, FH540...' : 'Digite o nome...'} required />
             </label>
 
             {/* Documento (Pessoa) — todos que herdam Pessoa */}
@@ -316,12 +340,30 @@ export default function CadastroDinamico({ tipo = 'PARCEIRO', onBack }) {
                 <span className={labelCls}>Validade CNH</span>
                 <input type="date" name="validadeCnh" value={form.validadeCnh} onChange={handleChange} className={inputCls} />
               </label>
+              <label className="block">
+                <span className={labelCls}>Status</span>
+                <select name="statusAtivoMotorista"
+                  value={form.statusAtivoMotorista ? 'true' : 'false'}
+                  onChange={(e) => setForm((p) => ({ ...p, statusAtivoMotorista: e.target.value === 'true' }))}
+                  className={inputCls}>
+                  <option value="true">Ativo</option>
+                  <option value="false">Inativo</option>
+                </select>
+              </label>
             </>)}
 
             {tipo === 'VEICULO' && (<>
               <label className="block">
+                <span className={labelCls}>Código</span>
+                <input name="codigo" value={form.codigo} onChange={handleChange} className={`${inputCls} uppercase`} placeholder="Ex: V001" />
+              </label>
+              <label className="block">
                 <span className={labelCls}>Placa</span>
-                <input name="placa" value={form.placa} onChange={handleChange} className={`${inputCls} uppercase`} placeholder="ABC-1234" />
+                <input name="placa" value={form.placa} onChange={handleChange} className={`${inputCls} uppercase`} placeholder="ABC-1D23" />
+              </label>
+              <label className="block">
+                <span className={labelCls}>Marca</span>
+                <input name="marca" value={form.marca} onChange={handleChange} className={inputCls} placeholder="Ex: Scania, Volvo" />
               </label>
               <label className="block">
                 <span className={labelCls}>Tipo</span>
@@ -335,12 +377,43 @@ export default function CadastroDinamico({ tipo = 'PARCEIRO', onBack }) {
                 </select>
               </label>
               <label className="block">
+                <span className={labelCls}>Eixos</span>
+                <input type="number" name="eixos" value={form.eixos} onChange={handleChange} className={inputCls} placeholder="Ex: 9" />
+              </label>
+              <label className="block">
                 <span className={labelCls}>Tara (kg)</span>
                 <input type="number" name="tara" value={form.tara} onChange={handleChange} className={inputCls} placeholder="Peso vazio" />
               </label>
               <label className="block">
                 <span className={labelCls}>Capacidade (kg)</span>
                 <input type="number" name="capacidadeKg" value={form.capacidadeKg} onChange={handleChange} className={inputCls} placeholder="Carga máxima" />
+              </label>
+              <label className="block">
+                <span className={labelCls}>Motorista</span>
+                <select name="motoristaId" value={form.motoristaId} onChange={handleChange} className={inputCls}>
+                  <option value="">Selecione...</option>
+                  {motoristas.map((m) => (
+                    <option key={m.id} value={m.id}>{m.nome}</option>
+                  ))}
+                </select>
+              </label>
+              <label className="block">
+                <span className={labelCls}>Licenciamento</span>
+                <input type="date" name="dataLicenciamento" value={form.dataLicenciamento} onChange={handleChange} className={inputCls} />
+              </label>
+              <label className="block">
+                <span className={labelCls}>Status</span>
+                <select name="statusAtivoVeiculo"
+                  value={form.statusAtivoVeiculo ? 'true' : 'false'}
+                  onChange={(e) => setForm((p) => ({ ...p, statusAtivoVeiculo: e.target.value === 'true' }))}
+                  className={inputCls}>
+                  <option value="true">Ativo</option>
+                  <option value="false">Inativo</option>
+                </select>
+              </label>
+              <label className="block sm:col-span-2 lg:col-span-3">
+                <span className={labelCls}>Observação</span>
+                <input name="observacao" value={form.observacao} onChange={handleChange} className={inputCls} placeholder="Ex: Autorizado para transporte de fécula e mandioca" />
               </label>
             </>)}
 

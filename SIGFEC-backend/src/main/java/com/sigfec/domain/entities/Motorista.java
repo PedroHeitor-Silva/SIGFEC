@@ -27,6 +27,10 @@ public class Motorista extends Pessoa {
     @Column(name = "validade_cnh")
     private LocalDate validadeCnh;
 
+    /** Motorista ativo (em atividade) ou inativo (desligado, sem excluir). */
+    @Column(name = "status_ativo")
+    private boolean statusAtivo = true;
+
     /** True se CNH vencida. */
     @Transient
     public boolean isCnhVencida() {
