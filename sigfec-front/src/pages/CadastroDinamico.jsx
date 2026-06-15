@@ -8,37 +8,9 @@ import { cpfOrCnpj, cpf, email, phone, required, compose } from '../utils/valida
 import { maskTelefone, maskCEP, maskCpfCnpj, maskRG, maskPlaca, maskCNH, maskMoeda, unmaskMoeda, maskPeso, unmaskInteiro } from '../utils/masks';
 import { buscarCep } from '../utils/cep';
 import useDraft, { DraftIndicator } from '../hooks/useDraft.jsx';
+import { getSelectStyles, selectMenuProps } from '../theme/selectStyles';
 
-const selectStyles = {
-  control: (p, s) => ({
-    ...p,
-    backgroundColor: '#1e293b',
-    borderColor: s.isFocused ? '#10b981' : '#334155',
-    borderRadius: '0.5rem',
-    color: 'white',
-    padding: '2px',
-    minHeight: '48px',
-    boxShadow: s.isFocused ? '0 0 0 3px rgba(16,185,129,0.12)' : 'none',
-    '&:hover': { borderColor: '#10b981' },
-  }),
-  menu: (p) => ({ ...p, backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '0.5rem' }),
-  menuPortal: (p) => ({ ...p, zIndex: 9999 }),
-  menuList: (p) => ({ ...p, maxHeight: '260px' }),
-  option: (p, s) => ({
-    ...p,
-    backgroundColor: s.isSelected ? '#059669' : s.isFocused ? '#064e3b' : 'transparent',
-    color: 'white', cursor: 'pointer',
-  }),
-  singleValue: (p) => ({ ...p, color: 'white' }),
-  placeholder: (p) => ({ ...p, color: '#64748b' }),
-  input: (p) => ({ ...p, color: 'white' }),
-  noOptionsMessage: (p) => ({ ...p, color: '#64748b' }),
-};
-
-const selectMenuProps = {
-  menuPortalTarget: typeof document !== 'undefined' ? document.body : null,
-  menuPosition: 'fixed',
-};
+const selectStyles = getSelectStyles();
 
 const inputCls = 'w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-3 text-white placeholder:text-slate-500 outline-none focus:border-emerald-500 transition';
 const labelCls = 'block text-xs font-bold uppercase tracking-wider text-slate-400 mb-2';
