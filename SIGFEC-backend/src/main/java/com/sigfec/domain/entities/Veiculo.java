@@ -54,7 +54,7 @@ public class Veiculo {
     private LocalDate dataLicenciamento;
 
     /** Veículo ativo (em uso) ou inativo (desativado, sem excluir). */
-    @Column(name = "status_ativo")
+    @Column(name = "status_ativo", columnDefinition = "boolean default true not null")
     private boolean statusAtivo = true;
 
     private String observacao;

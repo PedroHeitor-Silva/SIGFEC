@@ -5,7 +5,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Save, X, Pencil } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../services/api';
-import { applyMask } from '../utils/masks';
+import { applyMask, unmaskMoeda, unmaskInteiro } from '../utils/masks';
 
 const inputCls = 'mt-2 w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-3 text-white placeholder:text-slate-500 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/20 transition';
 const labelCls = 'text-xs font-bold uppercase tracking-wider text-slate-400';
@@ -31,7 +31,22 @@ export default function EditModal({ open, onClose, onSaved, title, endpoint, ini
   const maskMap = {};
   fields.forEach((f) => { if (f.mask) maskMap[f.name] = f.mask; });
 
-  useEffect(() => { if (open) setForm(initial || {}); }, [open, initial]);
+  // Ao abrir, aplica máscara nos valores existentes (números crus e textos)
+  useEffect(() => {
+    if (!open) return;
+    const f = { ...(initial || {}) };
+    fields.forEach((fld) => {
+      if (!fld.mask || f[fld.name] == null || f[fld.name] === '') return;
+      if (fld.mask === 'moeda') {
+        f[fld.name] = applyMask('moeda', String(Math.round(Number(initial[fld.name]) * 100)));
+      } else if (fld.mask === 'peso' || fld.mask === 'inteiro') {
+        f[fld.name] = applyMask(fld.mask, String(Math.round(Number(initial[fld.name]))));
+      } else {
+        f[fld.name] = applyMask(fld.mask, String(initial[fld.name]));
+      }
+    });
+    setForm(f);
+  }, [open, initial]);
 
   if (typeof document === 'undefined') return null;
 
@@ -46,7 +61,14 @@ export default function EditModal({ open, onClose, onSaved, title, endpoint, ini
     e.preventDefault();
     setSaving(true);
     try {
-      const { data } = await api.put(endpoint, form);
+      // Remove máscara de campos numéricos antes de enviar ao backend
+      const payload = { ...form };
+      fields.forEach((f) => {
+        if (payload[f.name] == null || payload[f.name] === '') return;
+        if (f.mask === 'moeda') payload[f.name] = unmaskMoeda(payload[f.name]);
+        else if (f.mask === 'peso' || f.mask === 'inteiro') payload[f.name] = unmaskInteiro(payload[f.name]);
+      });
+      const { data } = await api.put(endpoint, payload);
       toast.success('Alterações salvas.');
       onSaved?.(data);
       onClose();

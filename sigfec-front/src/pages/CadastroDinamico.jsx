@@ -5,7 +5,7 @@ import toast from 'react-hot-toast';
 import api from '../services/api';
 import ValidatedInput from '../components/ValidatedInput';
 import { cpfOrCnpj, cpf, email, phone, required, compose } from '../utils/validators';
-import { maskTelefone, maskCEP, maskCpfCnpj, maskRG, maskPlaca, maskCNH, maskMoeda, unmaskMoeda } from '../utils/masks';
+import { maskTelefone, maskCEP, maskCpfCnpj, maskRG, maskPlaca, maskCNH, maskMoeda, unmaskMoeda, maskPeso, unmaskInteiro } from '../utils/masks';
 import { buscarCep } from '../utils/cep';
 import useDraft, { DraftIndicator } from '../hooks/useDraft.jsx';
 
@@ -121,6 +121,7 @@ export default function CadastroDinamico({ tipo = 'PARCEIRO', onBack }) {
   const MASK_FIELDS = {
     telefone: maskTelefone, cep: maskCEP, documento: maskCpfCnpj,
     rg: maskRG, placa: maskPlaca, cnh: maskCNH,
+    tara: maskPeso, capacidadeKg: maskPeso, eixos: (v) => String(v ?? '').replace(/\D/g, '').slice(0, 2),
     limiteCredito: maskMoeda, precoBase: maskMoeda,
   };
 
@@ -164,8 +165,8 @@ export default function CadastroDinamico({ tipo = 'PARCEIRO', onBack }) {
             placa: form.placa,
             marca: form.marca || null,
             modelo: form.nome,
-            tara: form.tara ? Number(form.tara) : null,
-            capacidadeKg: form.capacidadeKg ? Number(form.capacidadeKg) : null,
+            tara: form.tara ? unmaskInteiro(form.tara) : null,
+            capacidadeKg: form.capacidadeKg ? unmaskInteiro(form.capacidadeKg) : null,
             tipoVeiculo: form.tipoVeiculo || null,
             eixos: form.eixos ? Number(form.eixos) : null,
             motorista: form.motoristaId ? { id: Number(form.motoristaId) } : null,
@@ -373,15 +374,15 @@ export default function CadastroDinamico({ tipo = 'PARCEIRO', onBack }) {
               </label>
               <label className="block">
                 <span className={labelCls}>Eixos</span>
-                <input type="number" name="eixos" value={form.eixos} onChange={handleChange} className={inputCls} placeholder="Ex: 9" />
+                <input type="text" inputMode="numeric" name="eixos" value={form.eixos} onChange={handleChange} className={inputCls} placeholder="Ex: 9" />
               </label>
               <label className="block">
                 <span className={labelCls}>Tara (kg)</span>
-                <input type="number" name="tara" value={form.tara} onChange={handleChange} className={inputCls} placeholder="Peso vazio" />
+                <input type="text" inputMode="numeric" name="tara" value={form.tara} onChange={handleChange} className={`${inputCls} font-mono`} placeholder="Ex: 18.500" />
               </label>
               <label className="block">
                 <span className={labelCls}>Capacidade (kg)</span>
-                <input type="number" name="capacidadeKg" value={form.capacidadeKg} onChange={handleChange} className={inputCls} placeholder="Carga máxima" />
+                <input type="text" inputMode="numeric" name="capacidadeKg" value={form.capacidadeKg} onChange={handleChange} className={`${inputCls} font-mono`} placeholder="Ex: 74.000" />
               </label>
               <label className="block">
                 <span className={labelCls}>Motorista</span>

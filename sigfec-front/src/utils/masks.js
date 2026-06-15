@@ -47,9 +47,23 @@ export function maskRG(v) {
     .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
 }
 
-/** Placa: ABC1D23 (Mercosul) ou ABC1234 — letras maiúsculas, sem separador */
+/** Placa: ABC-1D23 (Mercosul) ou ABC-1234 — letras maiúsculas com hífen após 3 letras */
 export function maskPlaca(v) {
-  return String(v ?? '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 7);
+  const c = String(v ?? '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 7);
+  if (c.length <= 3) return c;
+  return `${c.slice(0, 3)}-${c.slice(3)}`;
+}
+
+/** Peso em kg: inteiro com milhar + sufixo " kg" só na exibição. Ex: 18.500 kg */
+export function maskPeso(v) {
+  const d = onlyDigits(v);
+  return d ? parseInt(d, 10).toLocaleString('pt-BR') : '';
+}
+
+/** Formata número como peso para exibição: 18500 → "18.500 kg" */
+export function pesoFromNumber(n, sufixo = 'kg') {
+  if (n == null || n === '') return '—';
+  return `${Number(n).toLocaleString('pt-BR')} ${sufixo}`;
 }
 
 /** CNH: somente dígitos, 11 posições */
@@ -105,6 +119,7 @@ export function applyMask(tipo, valor) {
     case 'cnh': return maskCNH(valor);
     case 'moeda': return maskMoeda(valor);
     case 'inteiro': return maskInteiro(valor);
+    case 'peso': return maskPeso(valor);
     default: return valor;
   }
 }

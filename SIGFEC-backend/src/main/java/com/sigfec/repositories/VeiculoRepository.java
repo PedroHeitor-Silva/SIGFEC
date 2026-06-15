@@ -6,4 +6,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface VeiculoRepository extends JpaRepository<Veiculo, Long> {
+
+    /** Verifica se já existe veículo com a placa (evita duplicidade). */
+    boolean existsByPlaca(String placa);
 }

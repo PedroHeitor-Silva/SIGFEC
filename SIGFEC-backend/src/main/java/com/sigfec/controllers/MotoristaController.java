@@ -41,6 +41,9 @@ public class MotoristaController {
             if (payload.getEmail() != null) m.setEmail(payload.getEmail());
             if (payload.getTelefone() != null) m.setTelefone(payload.getTelefone());
             if (payload.getCnh() != null) m.setCnh(payload.getCnh());
+            if (payload.getCategoriaCnh() != null) m.setCategoriaCnh(payload.getCategoriaCnh());
+            if (payload.getValidadeCnh() != null) m.setValidadeCnh(payload.getValidadeCnh());
+            m.setStatusAtivo(payload.isStatusAtivo());
             return ResponseEntity.ok(repository.save(m));
         }).orElse(ResponseEntity.notFound().build());
     }
