@@ -65,7 +65,7 @@ export default function CadastroDinamico({ tipo = 'PARCEIRO', onBack }) {
     nome: '', documento: '', email: '', telefone: '', cep: '', logradouro: '', bairro: '', numero: '',
     inscricaoEstadual: '', rg: '', tipoParceiro: '', limiteCredito: '',
     cnh: '', categoriaCnh: '', validadeCnh: '', statusAtivoMotorista: true,
-    codigo: '', placa: '', marca: '', tara: '', capacidadeKg: '', tipoVeiculo: '',
+    placa: '', marca: '', tara: '', capacidadeKg: '', tipoVeiculo: '',
     eixos: '', motoristaId: '', dataLicenciamento: '', statusAtivoVeiculo: true, observacao: '',
     unidadeMedida: '', categoria: '', login: '', senha: '', perfilAcesso: '',
   });
@@ -161,7 +161,6 @@ export default function CadastroDinamico({ tipo = 'PARCEIRO', onBack }) {
         return {
           path: '/veiculos',
           body: {
-            codigo: form.codigo || null,
             placa: form.placa,
             marca: form.marca || null,
             modelo: form.nome,
@@ -353,10 +352,6 @@ export default function CadastroDinamico({ tipo = 'PARCEIRO', onBack }) {
             </>)}
 
             {tipo === 'VEICULO' && (<>
-              <label className="block">
-                <span className={labelCls}>Código</span>
-                <input name="codigo" value={form.codigo} onChange={handleChange} className={`${inputCls} uppercase`} placeholder="Ex: V001" />
-              </label>
               <label className="block">
                 <span className={labelCls}>Placa</span>
                 <input name="placa" value={form.placa} onChange={handleChange} className={`${inputCls} uppercase`} placeholder="ABC-1D23" />

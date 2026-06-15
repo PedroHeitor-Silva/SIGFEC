@@ -20,10 +20,6 @@ public class Veiculo {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    /** Código interno amigável (ex: V001). */
-    @Column(name = "codigo")
-    private String codigo;
-
     @NotBlank
     @Column(unique = true, nullable = false)
     private String placa;
