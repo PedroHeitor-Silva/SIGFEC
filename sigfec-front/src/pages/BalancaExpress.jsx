@@ -101,8 +101,8 @@ export default function BalancaExpress() {
       setPesoBruto('');
       setVeiculoId('');
       setPesoTara('');
-    } catch {
-      toast.error('Falha ao salvar');
+    } catch (err) {
+      toast.error(err?.response?.data?.error || 'Falha ao salvar');
     } finally {
       setSaving(false);
     }

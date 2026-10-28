@@ -9,6 +9,10 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+/**
+ * Vendas: ORCAMENTO → CONFIRMADA (baixa estoque + conta a receber) → FATURADA (nota).
+ * Erros de regra chegam ao cliente com a mensagem real via GlobalExceptionHandler.
+ */
 @RestController
 @RequestMapping("/api/vendas")
 @RequiredArgsConstructor
@@ -28,41 +32,27 @@ public class VendaController {
 
     @PostMapping
     public ResponseEntity<Venda> criar(@RequestBody Venda venda) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(service.salvar(venda));
+        return ResponseEntity.status(HttpStatus.CREATED).body(service.criar(venda));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Venda> atualizar(@PathVariable Long id, @RequestBody Venda venda) {
-        venda.setId(id);
-        return ResponseEntity.ok(service.salvar(venda));
+    public Venda atualizar(@PathVariable Long id, @RequestBody Venda venda) {
+        return service.atualizar(id, venda);
     }
 
     @PatchMapping("/{id}/confirmar")
-    public ResponseEntity<?> confirmar(@PathVariable Long id) {
-        try {
-            return ResponseEntity.ok(service.confirmar(id));
-        } catch (RuntimeException e) {
-            // estoque insuficiente / venda não encontrada
-            return ResponseEntity.badRequest().body(java.util.Map.of("error", e.getMessage()));
-        }
+    public Venda confirmar(@PathVariable Long id) {
+        return service.confirmar(id);
     }
 
     @PatchMapping("/{id}/faturar")
-    public ResponseEntity<Venda> faturar(@PathVariable Long id) {
-        try {
-            return ResponseEntity.ok(service.faturar(id));
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
-        }
+    public Venda faturar(@PathVariable Long id) {
+        return service.faturar(id);
     }
 
     @PatchMapping("/{id}/cancelar")
-    public ResponseEntity<Venda> cancelar(@PathVariable Long id) {
-        try {
-            return ResponseEntity.ok(service.cancelar(id));
-        } catch (RuntimeException e) {
-            return ResponseEntity.notFound().build();
-        }
+    public Venda cancelar(@PathVariable Long id) {
+        return service.cancelar(id);
     }
 
     @DeleteMapping("/{id}")

@@ -3,6 +3,8 @@ package com.sigfec.controllers;
 import com.sigfec.domain.entities.ContaPagar;
 import com.sigfec.domain.entities.ContaReceber;
 import com.sigfec.domain.entities.TituloFinanceiro;
+import com.sigfec.domain.enums.EnumStatusFinanceiro;
+import com.sigfec.services.RegraNegocioException;
 import com.sigfec.repositories.ContaPagarRepository;
 import com.sigfec.repositories.ContaReceberRepository;
 import com.sigfec.repositories.FinanceiroRepository;
@@ -40,22 +42,51 @@ public class FinanceiroController {
 
     @PostMapping("/pagar")
     public ResponseEntity<ContaPagar> criarPagar(@RequestBody ContaPagar conta) {
+        prepararNovo(conta);
         return ResponseEntity.status(HttpStatus.CREATED).body(pagarRepo.save(conta));
     }
 
     @PostMapping("/receber")
     public ResponseEntity<ContaReceber> criarReceber(@RequestBody ContaReceber conta) {
+        prepararNovo(conta);
+        // dados da cobrança só são preenchidos pela integração Asaas
+        conta.setAsaasPaymentId(null);
+        conta.setStatusPagamento(null);
+        conta.setQrCodePix(null);
+        conta.setCopiaEColaPix(null);
+        conta.setLinkPagamento(null);
+        conta.setLinkBoleto(null);
+        conta.setLinhaDigitavel(null);
+        conta.setCodigoBarrasBoleto(null);
         return ResponseEntity.status(HttpStatus.CREATED).body(receberRepo.save(conta));
+    }
+
+    /** Título novo nasce em aberto: id, pagamento e status nunca vêm do cliente. */
+    private static void prepararNovo(TituloFinanceiro t) {
+        if (t.getValorOriginal() == null || t.getValorOriginal().signum() <= 0) {
+            throw RegraNegocioException.invalida("Informe um valor maior que zero.");
+        }
+        t.setId(null);
+        t.setValorPago(java.math.BigDecimal.ZERO);
+        t.setDataPagamento(null);
+        t.setFormaPagamento(null);
+        t.setStatusFinanceiro(null); // recalculado no @PrePersist (ABERTO ou ATRASADO)
     }
 
     /** Baixa (quitação) de um título — registra pagamento total ou parcial. */
     @PatchMapping("/{id}/baixar")
     public ResponseEntity<TituloFinanceiro> baixar(@PathVariable Long id, @RequestBody Map<String, Object> body) {
         return tituloRepo.findById(id).map(titulo -> {
+            if (titulo.getStatusFinanceiro() == EnumStatusFinanceiro.CANCELADO) {
+                throw RegraNegocioException.conflito("Título cancelado não pode receber baixa.");
+            }
             Object valorObj = body.get("valorPago");
             java.math.BigDecimal valorPago = valorObj != null
                     ? new java.math.BigDecimal(valorObj.toString())
                     : titulo.getValorOriginal();
+            if (valorPago.signum() <= 0 || valorPago.compareTo(titulo.getValorOriginal()) > 0) {
+                throw RegraNegocioException.invalida("O valor pago deve ser maior que zero e no máximo o valor do título.");
+            }
             titulo.setValorPago(valorPago);
             Object dataObj = body.get("dataPagamento");
             titulo.setDataPagamento(dataObj != null
@@ -80,9 +111,15 @@ public class FinanceiroController {
         }).orElse(ResponseEntity.notFound().build());
     }
 
+    /** Título com pagamento registrado não é apagado (perderia o histórico): estorne antes. */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletar(@PathVariable Long id) {
-        tituloRepo.deleteById(id);
+        TituloFinanceiro t = tituloRepo.findById(id)
+                .orElseThrow(() -> RegraNegocioException.naoEncontrada("Título " + id + " não encontrado."));
+        if (t.getValorPago() != null && t.getValorPago().signum() > 0) {
+            throw RegraNegocioException.conflito("Título com pagamento registrado: estorne a baixa antes de excluir.");
+        }
+        tituloRepo.delete(t);
         return ResponseEntity.noContent().build();
     }
 

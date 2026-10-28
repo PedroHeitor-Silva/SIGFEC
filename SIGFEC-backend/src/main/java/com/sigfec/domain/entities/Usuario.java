@@ -1,5 +1,6 @@
 package com.sigfec.domain.entities;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.sigfec.domain.enums.EnumPerfilAcesso;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -17,6 +18,8 @@ public class Usuario extends Pessoa {
     @Column(unique = true, nullable = false)
     private String login;
 
+    /** Aceita no cadastro, nunca sai em JSON (hash BCrypt não pode vazar por nenhuma entidade). */
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @Column(nullable = false)
     private String senha;
 

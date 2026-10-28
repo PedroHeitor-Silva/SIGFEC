@@ -1,6 +1,7 @@
 import {
   LayoutDashboard, Users, Weight, UserCircle, Beaker,
   DollarSign, Package, IdCard, Truck, UserCog, Boxes, ClipboardList, ShoppingCart,
+  ListChecks,
 } from 'lucide-react';
 
 /*
@@ -38,6 +39,7 @@ export const MODULES = {
   veiculos:    M('Veículos',      'Cadastros',   Truck,           'amber'),
   produtos:    M('Produtos',      'Cadastros',   Package,         'indigo'),
   usuarios:    M('Usuários',      'Cadastros',   UserCog,         'rose'),
+  fila:        M('Fila / Pátio',  'Operacional', ListChecks,      'cyan'),
   pesagem:     M('Pesagem',       'Operacional', Weight,          'amber'),
   romaneio:    M('Romaneio',      'Operacional', ClipboardList,   'slate'),
   laboratorio: M('Laboratório',   'Operacional', Beaker,          'violet'),
@@ -49,7 +51,7 @@ export const MODULES = {
 
 export const SECTIONS = [
   { label: 'Geral',       items: ['dashboard'] },
-  { label: 'Operacional', items: ['pesagem', 'romaneio', 'laboratorio', 'lotes'] },
+  { label: 'Operacional', items: ['fila', 'pesagem', 'romaneio', 'laboratorio', 'lotes'] },
   { label: 'Cadastros',   items: ['cadastros', 'parceiros', 'motoristas', 'veiculos', 'produtos', 'usuarios'] },
   { label: 'Gestão',      items: ['estoque', 'vendas', 'financeiro'] },
 ];
@@ -62,6 +64,7 @@ export const PATHS = {
   veiculos: '/veiculos',
   produtos: '/produtos',
   usuarios: '/usuarios',
+  fila: '/fila',
   pesagem: '/pesagem',
   romaneio: '/romaneio',
   laboratorio: '/laboratorio',

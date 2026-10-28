@@ -109,7 +109,7 @@ export default function FinanceiroListagem() {
       const { data } = await api.patch(`/financeiro/${t.id}/estornar`);
       setTitulos((prev) => prev.map((x) => x.id === t.id ? data : x));
       toast.success('Baixa estornada.');
-    } catch { toast.error('Falha ao estornar.'); }
+    } catch (err) { toast.error(err?.response?.data?.error || 'Falha ao estornar.'); }
   };
 
   const handleDelete = async (id) => {
@@ -127,9 +127,9 @@ export default function FinanceiroListagem() {
     });
     if (!undone) {
       try { await api.delete(`/financeiro/${id}`); }
-      catch {
+      catch (err) {
         if (backup) setTitulos((prev) => [backup, ...prev]);
-        toast.error('Falha ao excluir no servidor.');
+        toast.error(err?.response?.data?.error || 'Falha ao excluir no servidor.');
       }
     }
   };
@@ -366,7 +366,7 @@ export default function FinanceiroListagem() {
             await aplicarBaixa(baixando.id, body);
             toast.success('Título quitado.');
             setBaixando(null);
-          } catch { toast.error('Falha ao dar baixa.'); }
+          } catch (err) { toast.error(err?.response?.data?.error || 'Falha ao dar baixa.'); }
         }}
       />
     </div>

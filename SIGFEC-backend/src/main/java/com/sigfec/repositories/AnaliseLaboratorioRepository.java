@@ -6,4 +6,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface AnaliseLaboratorioRepository extends JpaRepository<AnaliseLaboratorio, Long> {
+
+    /** Pesagem já tem laudo? (bloqueia exclusão da pesagem) */
+    boolean existsByPesagemId(Long pesagemId);
 }

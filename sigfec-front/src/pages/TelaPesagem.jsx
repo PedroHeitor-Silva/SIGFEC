@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   ArrowLeft, Save, Scale, Truck, Package, User, FileText,
   Gauge, Crosshair, Wifi, Activity,
@@ -30,6 +30,30 @@ export default function TelaPesagem() {
   const [proximoNum, setProximoNum] = useState(1);
   const [saving, setSaving] = useState(false);
   const navigate = useNavigate();
+
+  // Pesagem vinda da fila (/pesagem/novo?entrada=ID): veículo e produtor vêm da senha.
+  const [params] = useSearchParams();
+  const entradaId = params.get('entrada');
+  const [entrada, setEntrada] = useState(null);
+  const entradaInvalida = !!entrada && entrada.status !== 'EM_ATENDIMENTO';
+
+  useEffect(() => {
+    if (!entradaId) return;
+    api.get(`/fila/${entradaId}`)
+      .then((r) => setEntrada(r.data))
+      .catch((e) => toast.error(e?.response?.data?.error || 'Senha da fila não encontrada.'));
+  }, [entradaId]);
+
+  // Preenche veículo/tara/produtor da senha assim que as listas carregarem.
+  useEffect(() => {
+    if (!entrada) return;
+    const v = veiculos.find((o) => o.value === entrada.veiculo?.id);
+    if (v) { setSelVeiculo(v); if (v.tara != null) setTara(String(v.tara)); }
+    if (entrada.produtor) {
+      setSelProdutor(produtores.find((o) => o.value === entrada.produtor.id)
+        || { value: entrada.produtor.id, label: entrada.produtor.nome });
+    }
+  }, [entrada, veiculos, produtores]);
 
   const agora = useMemo(() => new Date().toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }), []);
   const selectStyles = useMemo(() => getSelectStyles(), []);
@@ -91,8 +115,9 @@ export default function TelaPesagem() {
     if (brutoNum > 0 && taraNum > 0 && brutoNum <= taraNum) e.push('Peso bruto deve ser maior que a tara.');
     if (Number.isNaN(i) || i < 0) e.push('Impureza inválida.');
     if (pesoFinal < 0) e.push('Peso final não pode ser negativo.');
+    if (entradaInvalida) e.push('A senha da fila precisa estar em atendimento na balança.');
     return e;
-  }, [selProdutor, brutoNum, taraNum, impureza, pesoFinal]);
+  }, [selProdutor, brutoNum, taraNum, impureza, pesoFinal, entradaInvalida]);
 
   const valido = erros.length === 0;
 
@@ -101,7 +126,7 @@ export default function TelaPesagem() {
     if (!valido) { toast.error(erros[0]); return; }
     setSaving(true);
     try {
-      await api.post('/pesagens', {
+      await api.post(`/pesagens${entradaId ? `?entradaFila=${entradaId}` : ''}`, {
         produtor: { id: selProdutor.value },
         veiculo: selVeiculo ? { id: selVeiculo.value } : null,
         produto: selProduto ? { id: selProduto.value } : null,
@@ -110,10 +135,10 @@ export default function TelaPesagem() {
         percentualImpureza: parseFloat(impureza) || 0,
         dataHoraEntrada: new Date().toISOString(),
       });
-      toast.success('Pesagem registrada com sucesso.');
-      navigate('/pesagem');
-    } catch {
-      toast.error('Não foi possível salvar a pesagem.');
+      toast.success(entradaId ? 'Pesagem registrada — senha finalizada na fila.' : 'Pesagem registrada com sucesso.');
+      navigate(entradaId ? '/fila' : '/pesagem');
+    } catch (err) {
+      toast.error(err?.response?.data?.error || 'Não foi possível salvar a pesagem.');
     } finally { setSaving(false); }
   };
 
@@ -138,11 +163,26 @@ export default function TelaPesagem() {
             <p className="text-[11px] text-slate-500 mt-0.5">{agora}</p>
           </div>
         </div>
-        <button type="button" onClick={() => navigate('/pesagem')}
+        <button type="button" onClick={() => navigate(entradaId ? '/fila' : '/pesagem')}
           className="inline-flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-800 px-4 py-2.5 text-sm font-semibold text-slate-300 hover:bg-slate-700 transition">
           <ArrowLeft size={15} /> Voltar
         </button>
       </div>
+
+      {entrada && (
+        <div className={`flex flex-wrap items-center gap-x-4 gap-y-1 rounded-xl border p-4 text-sm ${entradaInvalida
+          ? 'border-rose-500/40 bg-rose-500/10 text-rose-300'
+          : 'border-emerald-500/40 bg-emerald-500/10 text-emerald-300'}`}>
+          <span className="font-mono font-bold">Senha #{String(entrada.senhaDiaria ?? 0).padStart(3, '0')}</span>
+          <span>{maskPlaca(entrada.veiculo?.placa)} · {entrada.motorista?.nome}</span>
+          {entrada.localChamada && <span>{entrada.localChamada}</span>}
+          <span className="font-semibold">
+            {entradaInvalida
+              ? `Não é possível pesar: a senha está ${entrada.status.toLowerCase().replace('_', ' ')}.`
+              : 'Ao salvar, a senha é finalizada na fila.'}
+          </span>
+        </div>
+      )}
 
       {/* Bloco BALANÇA */}
       <div className="rounded-xl border border-slate-800 bg-gradient-to-br from-slate-900 to-slate-950 p-6">
@@ -183,7 +223,7 @@ export default function TelaPesagem() {
               <label className="block">
                 <span className={labelCls}><User size={11} className="inline mr-1" />Produtor Rural *</span>
                 <div className="mt-2">
-                  <Select value={selProdutor} onChange={setSelProdutor} options={produtores}
+                  <Select value={selProdutor} onChange={setSelProdutor} options={produtores} isDisabled={!!entrada?.produtor}
                     styles={selectStyles} {...selectMenuProps} placeholder="Pesquisar produtor..." />
                 </div>
               </label>
@@ -197,7 +237,7 @@ export default function TelaPesagem() {
               <label className="block">
                 <span className={labelCls}><Truck size={11} className="inline mr-1" />Veículo</span>
                 <div className="mt-2">
-                  <Select value={selVeiculo} onChange={handleVeiculo} options={veiculos}
+                  <Select value={selVeiculo} onChange={handleVeiculo} options={veiculos} isDisabled={!!entrada}
                     styles={selectStyles} {...selectMenuProps} isClearable placeholder="Selecione (preenche a tara)..." />
                 </div>
               </label>

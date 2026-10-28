@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { animate } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import {
-  Scale, Truck, Warehouse, DollarSign, TrendingUp, Package,
+  Scale, Warehouse, DollarSign, TrendingUp, Package,
   ArrowUpRight, Activity, AlertCircle, CheckCircle2, Beaker, Users,
   Gauge, ClipboardList, IdCard, AlertTriangle, Boxes, XCircle, Wifi, WifiOff,
 } from 'lucide-react';
@@ -16,7 +16,7 @@ import DonutChart from '../components/charts/DonutChart';
 const KPIS = [
   { key: 'entradaHoje', title: 'Entrada Hoje', unit: 't', icon: Scale, accent: 'amber', desc: 'Mandioca recebida hoje' },
   { key: 'pesagensHoje', title: 'Pesagens Hoje', unit: '', icon: ClipboardList, accent: 'sky', desc: 'Cargas pesadas no dia' },
-  { key: 'caminhoesPatio', title: 'Caminhões no Pátio', unit: '', icon: Truck, accent: 'cyan', desc: 'Aguardando descarga' },
+  { key: 'pesagensPendentes', title: 'Aguardando Análise', unit: '', icon: Beaker, accent: 'cyan', desc: 'Pesagens sem laudo' },
   { key: 'producaoHoje', title: 'Produção Hoje', unit: 'kg', icon: Boxes, accent: 'emerald', desc: 'Total produzido no dia' },
   { key: 'saldoEstoque', title: 'Estoque', unit: 'un', icon: Warehouse, accent: 'violet', desc: 'Saldo disponível' },
   { key: 'lotesAtivos', title: 'Lotes Ativos', unit: '', icon: Package, accent: 'fuchsia', desc: 'Em produção' },
@@ -92,6 +92,9 @@ export default function Home() {
       .filter((p) => isHoje(p.dataHoraEntrada))
       .reduce((s, p) => s + Number(p.pesoLiquido || 0), 0);
     const pesagensHoje = pesagens.filter((p) => isHoje(p.dataHoraEntrada)).length;
+    // Pesagens sem análise vinculada (aguardando laudo) e ainda não consumidas
+    const comAnalise = new Set(analises.map((a) => a.pesagem?.id).filter(Boolean));
+    const pesagensPendentes = pesagens.filter((p) => !p.consumida && !comAnalise.has(p.id)).length;
     const saldoEstoque = estoque.reduce((s, l) => s + Number(l.quantidadeAtual || l.quantidadeTotal || 0), 0);
     const totalReceber = financeiro
       .filter((t) => t.cliente && t.statusFinanceiro !== 'PAGO' && t.statusFinanceiro !== 'CANCELADO')
@@ -100,14 +103,14 @@ export default function Home() {
     const producaoHoje = lotes
       .filter((l) => isHoje(l.dataFabricacao) || isHoje(l.dataCriacao))
       .reduce((s, l) => s + Number(l.quantidadeProduzida || 0), 0);
-    const lotesAtivos = lotes.filter((l) => l.statusLote === 'EM_PRODUCAO').length || estoque.length;
+    const lotesAtivos = lotes.filter((l) => l.statusLote === 'EM_PRODUCAO').length;
     const rendimentos = lotes.map((l) => Number(l.rendimentoReal)).filter((r) => r > 0);
     const rendimentoMedio = rendimentos.length
       ? rendimentos.reduce((s, r) => s + r, 0) / rendimentos.length : 0;
     return {
       entradaHoje: Math.round(entradaHoje / 1000),
       pesagensHoje,
-      caminhoesPatio: pesagens.filter((p) => !p.finalizado && !p.consumida).length,
+      pesagensPendentes,
       producaoHoje: Math.round(producaoHoje),
       saldoEstoque,
       lotesAtivos,
@@ -115,7 +118,7 @@ export default function Home() {
       pagamentosPendentes,
       totalReceber,
     };
-  }, [pesagens, estoque, financeiro, lotes]);
+  }, [pesagens, estoque, financeiro, lotes, analises]);
 
   const entradasPorDia = useMemo(() => {
     const dias = [];

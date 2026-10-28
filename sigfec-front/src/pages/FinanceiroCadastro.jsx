@@ -37,7 +37,6 @@ export default function FinanceiroCadastro() {
       valorOriginal: unmaskMoeda(form.valorOriginal),
       dataEmissao: form.dataEmissao || null,
       dataVencimento: form.dataVencimento,
-      statusFinanceiro: form.statusFinanceiro,
       descricao: form.descricao,
       ...(tipo === 'PAGAR' ? { fornecedor: parceiroRef } : { cliente: parceiroRef }),
     };
@@ -46,8 +45,8 @@ export default function FinanceiroCadastro() {
       await api.post(`/financeiro/${tipo === 'PAGAR' ? 'pagar' : 'receber'}`, body);
       toast.success('Lançamento salvo.');
       navigate('/financeiro');
-    } catch {
-      toast.error('Falha ao salvar.');
+    } catch (err) {
+      toast.error(err?.response?.data?.error || 'Falha ao salvar.');
     } finally {
       setSaving(false);
     }
@@ -127,15 +126,12 @@ export default function FinanceiroCadastro() {
                   className="w-full rounded-lg border border-slate-700 bg-slate-800 py-3 pl-10 pr-4 text-white placeholder:text-slate-500 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/20 transition" required />
               </div>
             </label>
-            <label className="block">
+            <div className="block">
               <span className={labelCls}>Status</span>
-              <select name="statusFinanceiro" value={form.statusFinanceiro} onChange={handleChange} className={inputCls}>
-                <option value="ABERTO">Aberto</option>
-                <option value="PAGO">Pago</option>
-                <option value="ATRASADO">Atrasado</option>
-                <option value="CANCELADO">Cancelado</option>
-              </select>
-            </label>
+              <p className="mt-2 text-sm text-slate-400">
+                Todo título novo entra <b>em aberto</b> (ou atrasado, se já vencido). A quitação é registrada pela ação <b>Baixa</b> na listagem.
+              </p>
+            </div>
           </div>
 
           <div className="grid gap-5 sm:grid-cols-2">

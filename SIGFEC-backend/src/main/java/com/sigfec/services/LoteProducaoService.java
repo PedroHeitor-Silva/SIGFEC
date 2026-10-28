@@ -45,11 +45,20 @@ public class LoteProducaoService {
     /** Cria lote, gera código se faltar e marca as pesagens informadas como consumidas. */
     @Transactional
     public LoteProducao criar(LoteProducao lote) {
+        // Todo lote nasce EM_PRODUCAO: aceitar FINALIZADO aqui pularia a entrada no estoque.
+        lote.setId(null);
+        lote.setStatusLote(EnumStatusLote.EM_PRODUCAO);
         if (lote.getCodigoLote() == null || lote.getCodigoLote().isBlank()) {
+            // count()+1 colide depois de uma exclusão; avança até achar um código livre.
             long seq = loteRepository.count() + 1;
-            lote.setCodigoLote(String.format("LOT-%d-%05d", LocalDate.now().getYear(), seq));
+            String codigo;
+            do {
+                codigo = String.format("LOT-%d-%05d", LocalDate.now().getYear(), seq++);
+            } while (loteRepository.findByCodigoLote(codigo).isPresent());
+            lote.setCodigoLote(codigo);
+        } else if (loteRepository.findByCodigoLote(lote.getCodigoLote().trim()).isPresent()) {
+            throw RegraNegocioException.conflito("Já existe um lote com o código " + lote.getCodigoLote().trim() + ".");
         }
-        if (lote.getStatusLote() == null) lote.setStatusLote(EnumStatusLote.EM_PRODUCAO);
 
         Set<Pesagem> hidratadas = new HashSet<>();
         if (lote.getPesagensConsumidas() != null) {

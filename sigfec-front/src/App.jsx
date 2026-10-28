@@ -7,6 +7,9 @@ import CadastroParceiro from './pages/CadastroParceiro';
 import ListaParceiros from './pages/ListaParceiros';
 import PesagemLista from './pages/PesagemLista';
 import TelaPesagem from './pages/TelaPesagem';
+import FilaPatio from './pages/FilaPatio';
+import ChecklistCargaForm from './pages/ChecklistCargaForm';
+import PainelChamadas from './pages/PainelChamadas';
 import LaboratorioLista from './pages/LaboratorioLista';
 import LaboratorioForm from './pages/LaboratorioForm';
 import FinanceiroListagem from './pages/FinanceiroListagem';
@@ -69,6 +72,7 @@ function AppRoutes() {
   const location = useLocation();
   const isLogin = location.pathname === '/login';
   const isExpress = location.pathname === '/balanca';
+  const isPainel = location.pathname === '/painel-fila';
   const isMockup = location.pathname === '/mockup';
   const [user, setUser] = useState(null);
   const [collapsed, setCollapsed] = useState(false);
@@ -110,6 +114,9 @@ function AppRoutes() {
   }
   if (isExpress) {
     return <Routes><Route path="/balanca" element={<BalancaExpress />} /></Routes>;
+  }
+  if (isPainel) {
+    return <Routes><Route path="/painel-fila" element={<PainelChamadas />} /></Routes>;
   }
   if (isMockup) {
     return <Routes><Route path="/mockup" element={<MockupShowcase />} /></Routes>;
@@ -298,6 +305,8 @@ function AppRoutes() {
                 <Route path="/produtos/novo" element={<CadastroPage tipo="PRODUTO" />} />
                 <Route path="/usuarios" element={<UsuarioLista />} />
                 <Route path="/usuarios/novo" element={<CadastroPage tipo="USUARIO" />} />
+                <Route path="/fila" element={<FilaPatio />} />
+                <Route path="/fila/checklist/:entradaId" element={<ChecklistCargaForm />} />
                 <Route path="/pesagem" element={<PesagemLista />} />
                 <Route path="/pesagem/novo" element={<TelaPesagem />} />
                 <Route path="/pesagem/mandioca" element={<TelaPesagem />} />

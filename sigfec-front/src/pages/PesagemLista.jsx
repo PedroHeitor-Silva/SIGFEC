@@ -98,9 +98,9 @@ export default function PesagemLista() {
     });
     if (!undone) {
       try { await api.delete(`/pesagens/${id}`); }
-      catch {
+      catch (err) {
         if (backup) setPesagens((prev) => [backup, ...prev]);
-        toast.error('Falha ao excluir no servidor.');
+        toast.error(err?.response?.data?.error || 'Falha ao excluir no servidor.');
       }
     }
     setDeletingId(null);

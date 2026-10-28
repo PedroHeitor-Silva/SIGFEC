@@ -1,6 +1,7 @@
 package com.sigfec.config;
 
 import com.sigfec.services.AsaasException;
+import com.sigfec.services.RegraNegocioException;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -27,6 +28,11 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, Object>> asaas(AsaasException e) {
         log.warn("Asaas: {}", e.getMessage());
         return body(HttpStatus.BAD_REQUEST, e.getMessage());
+    }
+
+    @ExceptionHandler(RegraNegocioException.class)
+    public ResponseEntity<Map<String, Object>> regraNegocio(RegraNegocioException e) {
+        return body(e.getStatus(), e.getMessage());
     }
 
     @ExceptionHandler(EntityNotFoundException.class)

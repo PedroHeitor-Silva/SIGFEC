@@ -7,9 +7,9 @@
 
 const PERMISSIONS = {
   ADMIN: '*', // tudo
-  BALANCA: ['dashboard', 'pesagem', 'romaneio', 'parceiros'],
+  BALANCA: ['dashboard', 'fila', 'pesagem', 'romaneio', 'parceiros'],
   LABORATORIO: ['dashboard', 'laboratorio', 'pesagem', 'romaneio'],
-  PRODUCAO: ['dashboard', 'estoque', 'pesagem', 'romaneio', 'laboratorio', 'lotes'],
+  PRODUCAO: ['dashboard', 'fila', 'estoque', 'pesagem', 'romaneio', 'laboratorio', 'lotes'],
   FINANCEIRO: ['dashboard', 'financeiro', 'vendas', 'parceiros', 'cadastros'],
 };
 
@@ -21,6 +21,8 @@ const PATH_TO_MODULE = {
   '/veiculos': 'cadastros',
   '/produtos': 'cadastros',
   '/usuarios': 'cadastros',
+  '/fila': 'fila',
+  '/painel-fila': 'fila',
   '/pesagem': 'pesagem',
   '/balanca': 'pesagem',
   '/romaneio': 'romaneio',
@@ -41,6 +43,7 @@ export const ACOES = [
 
 /** Lista de módulos pra exibir na matriz de permissões. */
 export const MODULOS_PERMISSAO = [
+  { key: 'fila',        label: 'Fila / Pátio' },
   { key: 'parceiros',   label: 'Parceiros' },
   { key: 'cadastros',   label: 'Cadastros (Motorista/Veículo/Produto)' },
   { key: 'pesagem',     label: 'Pesagem' },

@@ -4,6 +4,7 @@ import com.sigfec.domain.entities.ContaReceber;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -14,4 +15,7 @@ public interface ContaReceberRepository extends JpaRepository<ContaReceber, Long
 
     /** Verifica vínculo com cliente — usado antes de excluir parceiro. */
     boolean existsByCliente_Id(Long clienteId);
+
+    /** Conta gerada na confirmação de uma venda (descrição "Venda #id"). */
+    List<ContaReceber> findByDescricao(String descricao);
 }

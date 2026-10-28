@@ -77,20 +77,24 @@ export default function VendaLista() {
       const { data } = await api.patch(`/vendas/${v.id}/faturar`);
       toast.success(`Nota fiscal #${data.numeroNota} emitida.`);
       carregar();
-    } catch { toast.error('Falha ao faturar.'); }
+    } catch (err) { toast.error(err?.response?.data?.error || 'Falha ao faturar.'); }
   };
 
   const cancelar = async (v) => {
+    const confirmada = v.statusVenda === 'CONFIRMADA';
     const ok = await confirm({
-      title: 'Cancelar venda', message: `Cancelar venda #${v.id}?`,
+      title: 'Cancelar venda',
+      message: confirmada
+        ? `Cancelar venda #${v.id}? O estoque baixado volta (devolução no Kardex) e a conta a receber é cancelada.`
+        : `Cancelar venda #${v.id}?`,
       confirmLabel: 'Cancelar venda', tone: 'danger',
     });
     if (!ok) return;
     try {
       await api.patch(`/vendas/${v.id}/cancelar`);
-      toast.success('Venda cancelada.');
+      toast.success(confirmada ? 'Venda cancelada — estoque devolvido e conta cancelada.' : 'Venda cancelada.');
       carregar();
-    } catch { toast.error('Falha ao cancelar.'); }
+    } catch (err) { toast.error(err?.response?.data?.error || 'Falha ao cancelar.'); }
   };
 
   const excluir = async (v) => {
@@ -103,7 +107,7 @@ export default function VendaLista() {
       await api.delete(`/vendas/${v.id}`);
       setVendas((prev) => prev.filter((x) => x.id !== v.id));
       toast.success('Venda removida.');
-    } catch { toast.error('Falha ao excluir.'); }
+    } catch (err) { toast.error(err?.response?.data?.error || 'Falha ao excluir.'); }
   };
 
   return (
@@ -225,12 +229,14 @@ export default function VendaLista() {
                               </button>
                             </Tooltip>
                           )}
-                          <Tooltip label="Excluir">
-                            <button type="button" onClick={() => excluir(v)}
-                              className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition">
-                              <Trash2 size={14} />
-                            </button>
-                          </Tooltip>
+                          {(st === 'ORCAMENTO' || st === 'CANCELADA') && (
+                            <Tooltip label="Excluir">
+                              <button type="button" onClick={() => excluir(v)}
+                                className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition">
+                                <Trash2 size={14} />
+                              </button>
+                            </Tooltip>
+                          )}
                         </div>
                       </td>
                     </tr>

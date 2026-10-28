@@ -30,9 +30,11 @@ public class PesagemController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    /** Registra a pesagem. Com ?entradaFila={id}, vincula à senha da fila e a finaliza. */
     @PostMapping
-    public ResponseEntity<Pesagem> salvar(@RequestBody Pesagem pesagem) {
-        Pesagem salva = service.salvar(pesagem);
+    public ResponseEntity<Pesagem> salvar(@RequestBody Pesagem pesagem,
+                                          @RequestParam(value = "entradaFila", required = false) Long entradaFilaId) {
+        Pesagem salva = service.salvar(pesagem, entradaFilaId);
         return ResponseEntity.status(HttpStatus.CREATED).body(salva);
     }
 

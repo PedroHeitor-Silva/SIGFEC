@@ -34,9 +34,31 @@ public class VendaService {
         return vendaRepository.findById(id);
     }
 
-    /** Cria/atualiza venda. Hidrata produtos dos itens e religa a referência pai. */
+    /** Cria a venda sempre como ORÇAMENTO: status e nota nunca vêm do cliente. */
     @Transactional
-    public Venda salvar(Venda venda) {
+    public Venda criar(Venda venda) {
+        venda.setId(null);
+        venda.setStatusVenda(EnumStatusVenda.ORCAMENTO);
+        venda.setNumeroNota(null);
+        return montarESalvar(venda);
+    }
+
+    /** Só orçamentos podem ser alterados (depois de confirmada, estoque e conta já foram gerados). */
+    @Transactional
+    public Venda atualizar(Long id, Venda venda) {
+        Venda atual = carregar(id);
+        if (atual.getStatusVenda() != EnumStatusVenda.ORCAMENTO) {
+            throw RegraNegocioException.conflito("Só orçamentos podem ser alterados: a venda #" + id
+                    + " está " + atual.getStatusVenda().name().toLowerCase() + ".");
+        }
+        venda.setId(id);
+        venda.setStatusVenda(EnumStatusVenda.ORCAMENTO);
+        venda.setNumeroNota(null);
+        return montarESalvar(venda);
+    }
+
+    /** Hidrata produtos dos itens, religa a referência pai e recalcula os totais. */
+    private Venda montarESalvar(Venda venda) {
         if (venda.getItens() != null) {
             for (ItemVenda item : venda.getItens()) {
                 item.setVenda(venda);
@@ -54,11 +76,16 @@ public class VendaService {
     /** Confirma a venda — gera Conta a Receber e baixa o estoque dos produtos vendidos. */
     @Transactional
     public Venda confirmar(Long id) {
-        Venda venda = vendaRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Venda não encontrada"));
+        Venda venda = carregar(id);
         if (venda.getStatusVenda() == EnumStatusVenda.CONFIRMADA
                 || venda.getStatusVenda() == EnumStatusVenda.FATURADA) {
-            return venda; // já processada
+            return venda; // já processada (idempotente: duplo clique não baixa estoque duas vezes)
+        }
+        if (venda.getStatusVenda() == EnumStatusVenda.CANCELADA) {
+            throw RegraNegocioException.conflito("A venda #" + id + " está cancelada e não pode ser confirmada.");
+        }
+        if (venda.getItens() == null || venda.getItens().isEmpty()) {
+            throw RegraNegocioException.invalida("A venda #" + id + " não tem itens.");
         }
 
         // 1. VALIDA estoque suficiente antes de baixar qualquer item
@@ -112,11 +139,15 @@ public class VendaService {
         return salva;
     }
 
-    /** Fatura a venda — gera número de nota sequencial. */
+    /** Fatura a venda — gera número de nota sequencial. Exige venda CONFIRMADA. */
     @Transactional
     public Venda faturar(Long id) {
-        Venda venda = vendaRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Venda não encontrada"));
+        Venda venda = carregar(id);
+        if (venda.getStatusVenda() == EnumStatusVenda.FATURADA) return venda;
+        if (venda.getStatusVenda() != EnumStatusVenda.CONFIRMADA) {
+            throw RegraNegocioException.conflito("Confirme a venda #" + id + " antes de emitir a nota (situação atual: "
+                    + venda.getStatusVenda().name().toLowerCase() + ").");
+        }
         if (venda.getNumeroNota() == null) {
             Venda ultima = vendaRepository.findTopByNumeroNotaNotNullOrderByNumeroNotaDesc();
             int proximo = (ultima != null && ultima.getNumeroNota() != null)
@@ -127,16 +158,63 @@ public class VendaService {
         return vendaRepository.save(venda);
     }
 
+    /**
+     * Cancela a venda. Se já estava CONFIRMADA, desfaz os efeitos: devolve o estoque (Kardex DEVOLUCAO)
+     * e cancela a conta a receber gerada. Venda faturada (nota emitida) não pode ser cancelada.
+     */
     @Transactional
     public Venda cancelar(Long id) {
-        Venda venda = vendaRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Venda não encontrada"));
+        Venda venda = carregar(id);
+        switch (venda.getStatusVenda()) {
+            case CANCELADA -> { return venda; }
+            case FATURADA -> throw RegraNegocioException.conflito(
+                    "A venda #" + id + " já tem nota fiscal emitida e não pode ser cancelada.");
+            case CONFIRMADA -> desfazerConfirmacao(venda);
+            case ORCAMENTO -> { /* nada a desfazer */ }
+        }
         venda.setStatusVenda(EnumStatusVenda.CANCELADA);
-        return vendaRepository.save(venda);
+        Venda salva = vendaRepository.save(venda);
+        auditService.log("VENDA_CANCELADA", "Venda", id, "total=" + venda.getValorTotal());
+        return salva;
     }
 
+    /** Exclusão só de orçamento ou venda cancelada (as demais têm estoque e conta vinculados). */
     @Transactional
     public void deletar(Long id) {
-        vendaRepository.deleteById(id);
+        Venda venda = carregar(id);
+        if (venda.getStatusVenda() != EnumStatusVenda.ORCAMENTO && venda.getStatusVenda() != EnumStatusVenda.CANCELADA) {
+            throw RegraNegocioException.conflito("A venda #" + id + " está " + venda.getStatusVenda().name().toLowerCase()
+                    + ": cancele antes de excluir.");
+        }
+        vendaRepository.delete(venda);
+    }
+
+    private void desfazerConfirmacao(Venda venda) {
+        List<ContaReceber> contas = contaReceberRepository.findByDescricao("Venda #" + venda.getId());
+        // valida tudo antes de alterar qualquer coisa
+        for (ContaReceber c : contas) {
+            if (c.getValorPago() != null && c.getValorPago().signum() > 0) {
+                throw RegraNegocioException.conflito("A conta a receber da venda #" + venda.getId()
+                        + " já tem recebimento: estorne o recebimento antes de cancelar.");
+            }
+        }
+        for (ItemVenda item : venda.getItens()) {
+            if (item.getProduto() == null || item.getQuantidade() == null || item.getQuantidade().signum() <= 0) continue;
+            movEstoqueService.aplicar(item.getProduto(), com.sigfec.domain.enums.EnumTipoMovEstoque.DEVOLUCAO,
+                    item.getQuantidade().doubleValue(), "Cancelamento da venda #" + venda.getId(), "VENDA", venda.getId());
+        }
+        for (ContaReceber c : contas) {
+            c.setStatusFinanceiro(EnumStatusFinanceiro.CANCELADO);
+            contaReceberRepository.save(c);
+            if (c.getAsaasPaymentId() != null) {
+                auditService.log("COBRANCA_PENDENTE_CANCELAR", "ContaReceber", c.getId(),
+                        "Venda cancelada; cancelar também a cobrança Asaas " + c.getAsaasPaymentId());
+            }
+        }
+    }
+
+    private Venda carregar(Long id) {
+        return vendaRepository.findById(id)
+                .orElseThrow(() -> RegraNegocioException.naoEncontrada("Venda #" + id + " não encontrada."));
     }
 }
