@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
-  User, Lock, ArrowRight, Eye, EyeOff, KeyRound,
+  User, Lock, ArrowRight, Eye, EyeOff,
   ShieldCheck, MapPin,
 } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
@@ -31,23 +31,13 @@ export default function Login({ setUser }) {
       navigate('/');
     } catch (error) {
       const status = error?.response?.status;
-      const isOffline = !error.response || error.code === 'ERR_NETWORK';
-      const isServerBroken = status === 500 || status === 404;
-      if ((isOffline || isServerBroken) && login === 'admin' && senha === 'admin') {
-        const mock = { id: 1, login: 'admin', nome: 'Administrador', perfilAcesso: 'ADMIN' };
-        localStorage.setItem('@sigfec:user', JSON.stringify(mock));
-        if (setUser) setUser(mock);
-        toast.success(isServerBroken ? `Login (mock — backend ${status})` : 'Login (modo dev)');
-        navigate('/');
-        return;
-      }
-      toast.error(status === 401 ? 'Credenciais inválidas.' : `Erro ao conectar (${status || 'rede'}).`);
+      toast.error(status === 401 ? 'Login ou senha inválidos.'
+        : status ? (error.response.data?.error || `Erro no servidor (${status}).`)
+        : 'Não foi possível conectar ao servidor. Verifique se o sistema está no ar.');
     } finally {
       setLoading(false);
     }
   };
-
-  const usarDev = () => { setLogin('admin'); setSenha('admin'); };
 
   return (
     <div className="min-h-screen flex" style={{ background: '#f5f7fa' }}>
@@ -270,21 +260,6 @@ export default function Login({ setUser }) {
               )}
             </button>
           </form>
-
-          <div className="my-6 flex items-center gap-3">
-            <div className="flex-1 h-px bg-gray-200" />
-            <span className="text-[10px] uppercase tracking-widest text-gray-400 font-semibold">OU</span>
-            <div className="flex-1 h-px bg-gray-200" />
-          </div>
-
-          <button
-            type="button"
-            onClick={usarDev}
-            className="w-full inline-flex items-center justify-center gap-2.5 rounded-lg h-12 text-sm font-semibold text-gray-700 border border-gray-300 bg-white hover:bg-gray-50 hover:border-[#1ABB9C]/40 transition"
-          >
-            <KeyRound size={16} className="text-[#1ABB9C]" />
-            Preencher credenciais de desenvolvimento
-          </button>
 
           <p className="mt-10 text-center text-xs text-gray-400">
             SIGFEC <span className="font-mono">v1.0</span> · Sistema de gestão para fecularia

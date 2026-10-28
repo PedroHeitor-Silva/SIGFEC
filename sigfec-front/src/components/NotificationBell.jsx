@@ -46,11 +46,12 @@ export default function NotificationBell() {
       api.get('/estoque'),
       api.get('/motoristas'),
     ]).then(([fin, lab, pes, est, mot]) => {
-      const titulos = fin.status === 'fulfilled' ? (fin.value.data || []) : [];
-      const analises = lab.status === 'fulfilled' ? (lab.value.data || []) : [];
-      const pesagens = pes.status === 'fulfilled' ? (pes.value.data || []) : [];
-      const estoques = est.status === 'fulfilled' ? (est.value.data || []) : [];
-      const motoristas = mot.status === 'fulfilled' ? (mot.value.data || []) : [];
+      const lista = (r) => (r.status === 'fulfilled' && Array.isArray(r.value.data) ? r.value.data : []);
+      const titulos = lista(fin);
+      const analises = lista(lab);
+      const pesagens = lista(pes);
+      const estoques = lista(est);
+      const motoristas = lista(mot);
 
       const alerts = [];
 

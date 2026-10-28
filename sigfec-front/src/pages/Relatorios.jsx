@@ -31,6 +31,7 @@ const PERIODOS = [
   { key: 'mes',   label: 'Este mês',   range: () => [isoInicioMes(), isoHoje()] },
   { key: '30d',   label: '30 dias',    range: () => [isoMenosDias(29), isoHoje()] },
   { key: '1a',    label: '12 meses',   range: () => [isoMenosDias(364), isoHoje()] },
+  { key: 'tudo',  label: 'Tudo',       range: () => ['2000-01-01', isoHoje()] },
 ];
 
 const inputCls = 'rounded-lg border border-slate-700 bg-slate-800 py-2 px-3 text-sm text-white outline-none focus:border-emerald-500 transition';
@@ -40,23 +41,30 @@ export default function Relatorios() {
   const [catalogo, setCatalogo] = useState([]);
   const [parceiros, setParceiros] = useState([]);
   const [chave, setChave] = useState(params.get('tipo') || '');
-  const [periodo, setPeriodo] = useState('mes');
-  const [inicio, setInicio] = useState(isoInicioMes());
+  // padrão: últimos 12 meses (com 'Este mês' o relatório costuma abrir vazio)
+  const [periodo, setPeriodo] = useState('1a');
+  const [inicio, setInicio] = useState(isoMenosDias(364));
   const [fim, setFim] = useState(isoHoje());
   const [parceiroId, setParceiroId] = useState('');
   const [rel, setRel] = useState(null);
   const [loading, setLoading] = useState(false);
   const [erro, setErro] = useState('');
 
-  useEffect(() => {
+  const [erroCatalogo, setErroCatalogo] = useState(false);
+
+  const carregarCatalogo = () => {
+    setErroCatalogo(false);
     api.get('/relatorios')
       .then(({ data }) => {
-        setCatalogo(data || []);
-        setChave((atual) => (data || []).some((r) => r.chave === atual) ? atual : data?.[0]?.chave || '');
+        if (!Array.isArray(data)) throw new Error('resposta inválida');
+        setCatalogo(data);
+        setChave((atual) => data.some((r) => r.chave === atual) ? atual : data[0]?.chave || '');
       })
-      .catch(() => toast.error('Falha ao carregar os relatórios.'));
-    api.get('/parceiros').then(({ data }) => setParceiros(data || [])).catch(() => {});
-  }, []);
+      .catch(() => { setErroCatalogo(true); toast.error('Falha ao carregar os relatórios.'); });
+    api.get('/parceiros').then(({ data }) => setParceiros(Array.isArray(data) ? data : [])).catch(() => {});
+  };
+
+  useEffect(() => { carregarCatalogo(); }, []);
 
   const info = catalogo.find((r) => r.chave === chave);
   const meta = META[chave] || {};
@@ -75,6 +83,7 @@ export default function Relatorios() {
       const query = { inicio, fim };
       if (parceiroId && meta.parceiro) query.parceiroId = parceiroId;
       const { data } = await api.get(`/relatorios/${chave}`, { params: query });
+      if (!data || !Array.isArray(data.linhas) || !Array.isArray(data.colunas)) throw new Error('resposta inválida');
       setRel(data);
     } catch (err) {
       setRel(null);
@@ -152,7 +161,13 @@ export default function Relatorios() {
             </button>
           );
         })}
-        {!catalogo.length && <p className="text-sm text-slate-500">Carregando relatórios...</p>}
+        {!catalogo.length && !erroCatalogo && <p className="text-sm text-slate-500">Carregando relatórios...</p>}
+        {erroCatalogo && (
+          <div className="sm:col-span-2 lg:col-span-3 rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-400 flex items-center gap-3">
+            <AlertCircle size={16} /> Não foi possível carregar os relatórios. Verifique se o servidor está no ar.
+            <button type="button" onClick={carregarCatalogo} className="ml-auto rounded-md border border-red-500/40 px-3 py-1.5 text-xs font-bold hover:bg-red-500/10">Tentar de novo</button>
+          </div>
+        )}
       </div>
 
       {/* Filtros */}
