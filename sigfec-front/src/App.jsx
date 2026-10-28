@@ -41,6 +41,7 @@ import ProgressBar from './components/ProgressBar';
 import CommandPalette from './components/CommandPalette';
 import KeyboardShortcuts from './components/KeyboardShortcuts';
 import NotificationBell from './components/NotificationBell';
+import InstallAppButton from './components/InstallAppButton';
 import { Toaster } from 'react-hot-toast';
 
 export default function App() {
@@ -137,7 +138,7 @@ function AppRoutes() {
             ${collapsed ? 'lg:w-28' : 'lg:w-96'}
             ${mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
             fixed lg:sticky top-0 left-0 z-50
-            w-96 lg:w-auto h-screen flex flex-col
+            w-[85vw] max-w-96 lg:max-w-none lg:w-auto h-screen flex flex-col
             transition-all duration-200
           `}
         >
@@ -269,6 +270,7 @@ function AppRoutes() {
               </div>
 
               <div className="flex items-center gap-2">
+                <InstallAppButton theme={theme} />
                 {/* Toggle dark/light */}
                 <button
                   type="button"

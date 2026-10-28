@@ -61,6 +61,12 @@ public abstract class TituloFinanceiro {
         atualizarStatus();
     }
 
+    /** Ao ler do banco: um título que venceu desde o último salvamento já aparece como ATRASADO. */
+    @PostLoad
+    public void postLoad() {
+        atualizarStatus();
+    }
+
     /** Saldo restante = valorOriginal - valorPago */
     @Transient
     public BigDecimal getSaldo() {

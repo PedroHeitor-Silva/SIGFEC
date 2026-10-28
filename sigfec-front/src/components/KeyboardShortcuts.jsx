@@ -98,7 +98,7 @@ export default function KeyboardShortcuts() {
         type="button"
         onClick={() => setHelp(true)}
         title="Atalhos (?)"
-        className="fixed bottom-4 right-4 z-40 flex h-9 w-9 items-center justify-center rounded-lg border border-slate-800 bg-slate-900/80 backdrop-blur text-slate-500 hover:text-emerald-400 hover:border-emerald-500/30 transition"
+        className="fixed bottom-4 right-4 z-40 hidden lg:flex h-9 w-9 items-center justify-center rounded-lg border border-slate-800 bg-slate-900/80 backdrop-blur text-slate-500 hover:text-emerald-400 hover:border-emerald-500/30 transition"
       >
         <Keyboard size={14} />
       </button>

@@ -4,8 +4,24 @@
     {
       "name": "sigfec-front",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["--prefix", "sigfec-front", "run", "dev"],
+      "runtimeArgs": [
+        "--prefix",
+        "sigfec-front",
+        "run",
+        "dev"
+      ],
       "port": 5173
+    },
+    {
+      "name": "sigfec-app",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "--prefix",
+        "sigfec-front",
+        "run",
+        "preview"
+      ],
+      "port": 4173
     }
   ]
 }

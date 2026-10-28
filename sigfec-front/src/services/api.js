@@ -1,11 +1,10 @@
 import axios from 'axios';
 
-// baseURL dinâmico: usa o mesmo host que abriu o front.
-// PC → localhost:8080. Celular na rede → IP-do-PC:8080.
-const host = typeof window !== 'undefined' ? window.location.hostname : 'localhost';
-
+// A API é acessada pela MESMA origem do front (/api): o Vite repassa para o backend (proxy em
+// vite.config.js). Assim funciona igual no PC, no celular pela rede e por HTTPS (PWA instalado).
+// VITE_API_URL sobrescreve, ex.: http://servidor:8080/api.
 const api = axios.create({
-  baseURL: `http://${host}:8080/api`,
+  baseURL: import.meta.env.VITE_API_URL || '/api',
   timeout: 8000,
 });
 

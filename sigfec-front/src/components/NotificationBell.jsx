@@ -99,7 +99,7 @@ export default function NotificationBell() {
       }
 
       // Vencimentos próximos (<=7 dias) e atrasados
-      titulos.filter((t) => t.statusFinanceiro === 'ABERTO').forEach((t) => {
+      titulos.filter((t) => t.statusFinanceiro === 'ABERTO' || t.statusFinanceiro === 'ATRASADO').forEach((t) => {
         const days = daysUntil(t.dataVencimento);
         if (days < 0) {
           alerts.push({
@@ -134,7 +134,7 @@ export default function NotificationBell() {
         alerts.push({
           type: 'reprovado', icon: AlertCircle, accent: 'rose',
           title: 'Análise reprovada',
-          desc: `Análise #${a.id} — teor ${Number(a.percentualAmido || 0).toFixed(1)}%`,
+          desc: `Análise #${a.id} — renda média ${Number(a.rendaMedia || 0).toFixed(0)} g`,
           date: a.dataCriacao, link: '/laboratorio',
         });
       });
