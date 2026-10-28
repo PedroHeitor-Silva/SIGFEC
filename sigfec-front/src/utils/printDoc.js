@@ -482,3 +482,63 @@ export function printLaudoLaboratorio(analise) {
   `;
   printDocument(html, `Laudo-${analise.id || ''}`);
 }
+
+const escHtml = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+/**
+ * Relatório gerencial genérico (vindo de /api/relatorios/{chave}).
+ * Tabelas largas saem em A4 paisagem.
+ */
+export function printRelatorio(rel, { inicio, fim, parceiro, usuario, fmtValor }) {
+  const numerico = (t) => ['moeda', 'peso', 'percentual', 'numero'].includes(t);
+  const paisagem = rel.colunas.length > 7;
+  const fmtD = (iso) => (iso ? new Date(`${iso}T00:00:00`).toLocaleDateString('pt-BR') : '—');
+  const head = rel.colunas.map((c) =>
+    `<th style="padding:6px;text-align:${numerico(c.tipo) ? 'right' : 'left'};">${escHtml(c.rotulo)}</th>`).join('');
+  const body = rel.linhas.map((l, i) => `<tr style="background:${i % 2 ? '#f8fafc' : 'white'};">${rel.colunas.map((c) =>
+    `<td style="padding:5px 6px;border-bottom:1px solid #e2e8f0;text-align:${numerico(c.tipo) ? 'right' : 'left'};${numerico(c.tipo) ? 'font-family:monospace;' : ''}">${escHtml(fmtValor(l[c.chave], c.tipo))}</td>`).join('')}</tr>`).join('');
+  const totais = rel.totais && Object.keys(rel.totais).length
+    ? `<tr style="background:#f0fdf4;border-top:2px solid #10b981;font-weight:800;">${rel.colunas.map((c) => {
+        const v = rel.totais[c.chave];
+        return `<td style="padding:6px;text-align:${numerico(c.tipo) ? 'right' : 'left'};${numerico(c.tipo) ? 'font-family:monospace;' : ''}">${v == null ? '' : escHtml(typeof v === 'string' ? v : fmtValor(v, c.tipo))}</td>`;
+      }).join('')}</tr>` : '';
+  const indicadores = (rel.indicadores || []).map((i) => `
+    <div style="flex:1;min-width:140px;border:1px solid #d1fae5;background:#f0fdf4;border-radius:6px;padding:8px 10px;">
+      <div style="font-size:9px;text-transform:uppercase;letter-spacing:1.2px;color:#64748b;font-weight:700;">${escHtml(i.rotulo)}</div>
+      <div style="font-size:15px;font-weight:800;color:#047857;font-family:monospace;margin-top:2px;">${escHtml(fmtValor(i.valor, i.tipo))}</div>
+    </div>`).join('');
+  const periodo = rel.chave === 'estoque' ? 'Posição atual' : `${fmtD(inicio)} a ${fmtD(fim)}`;
+
+  const html = `
+    <style>
+      @media print { @page { size: A4 ${paisagem ? 'landscape' : 'portrait'}; margin: 10mm; } }
+      thead { display: table-header-group; }
+      tr { page-break-inside: avoid; }
+    </style>
+    <div class="doc" style="max-width:${paisagem ? '1100px' : '800px'};">
+      <div class="header">
+        <div class="brand">
+          ${SIGFEC_LOGO_SVG}
+          <div class="brand-text">
+            <strong>SIGFEC</strong>
+            <small>Fecularia Loanda • Relatório gerencial</small>
+          </div>
+        </div>
+        <div class="doc-id">
+          <strong style="font-size:18px;font-family:inherit;">${escHtml(rel.titulo)}</strong>
+          <small>${escHtml(periodo)}${parceiro ? ' • ' + escHtml(parceiro) : ''}</small>
+        </div>
+      </div>
+      <p style="font-size:11px;color:#475569;margin:0 0 12px;">${escHtml(rel.descricao)}</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">${indicadores}</div>
+      <table style="width:100%;border-collapse:collapse;font-size:10px;">
+        <thead><tr style="background:#f0fdf4;border-bottom:2px solid #10b981;">${head}</tr></thead>
+        <tbody>${body || `<tr><td colspan="${rel.colunas.length}" style="padding:16px;text-align:center;color:#64748b;">Nenhum registro no período.</td></tr>`}${totais}</tbody>
+      </table>
+      <div class="footer">
+        ${rel.linhas.length} registro(s) • Emitido por ${escHtml(usuario || '—')} em ${new Date().toLocaleString('pt-BR')} • SIGFEC
+      </div>
+    </div>
+  `;
+  printDocument(html, `Relatorio-${rel.chave}-${inicio || ''}`);
+}

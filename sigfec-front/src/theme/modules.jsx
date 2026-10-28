@@ -1,7 +1,7 @@
 import {
   LayoutDashboard, Users, Weight, UserCircle, Beaker,
   DollarSign, Package, IdCard, Truck, UserCog, Boxes, ClipboardList, ShoppingCart,
-  ListChecks,
+  ListChecks, FileChartColumn,
 } from 'lucide-react';
 
 /*
@@ -47,13 +47,14 @@ export const MODULES = {
   estoque:     M('Estoque',       'Gestão',      Package,         'sky'),
   vendas:      M('Vendas',        'Gestão',      ShoppingCart,    'brand'),
   financeiro:  M('Financeiro',    'Gestão',      DollarSign,      'amber'),
+  relatorios:  M('Relatórios',    'Gestão',      FileChartColumn, 'indigo'),
 };
 
 export const SECTIONS = [
   { label: 'Geral',       items: ['dashboard'] },
   { label: 'Operacional', items: ['fila', 'pesagem', 'romaneio', 'laboratorio', 'lotes'] },
   { label: 'Cadastros',   items: ['cadastros', 'parceiros', 'motoristas', 'veiculos', 'produtos', 'usuarios'] },
-  { label: 'Gestão',      items: ['estoque', 'vendas', 'financeiro'] },
+  { label: 'Gestão',      items: ['estoque', 'vendas', 'financeiro', 'relatorios'] },
 ];
 
 export const PATHS = {
@@ -72,6 +73,7 @@ export const PATHS = {
   estoque: '/estoque',
   vendas: '/vendas',
   financeiro: '/financeiro',
+  relatorios: '/relatorios',
 };
 
 export function moduleFromPath(pathname) {
@@ -93,7 +95,7 @@ export function ModuleHeader({ moduleKey, title, subtitle, action }) {
           {m.section} <span className="mx-1.5 text-slate-300">/</span>
           <span className="text-slate-500">{m.label}</span>
         </p>
-        <h1 className="mt-1 text-2xl sm:text-3xl font-bold text-gray-800 tracking-tight">{title}</h1>
+        <h1 className="mt-1 text-2xl sm:text-3xl font-bold text-white tracking-tight">{title}</h1>
         {subtitle && <p className="mt-1 text-sm text-slate-500">{subtitle}</p>}
       </div>
       {action && <div className="flex items-center gap-2">{action}</div>}

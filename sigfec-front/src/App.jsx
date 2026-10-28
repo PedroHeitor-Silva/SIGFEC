@@ -14,6 +14,7 @@ import LaboratorioLista from './pages/LaboratorioLista';
 import LaboratorioForm from './pages/LaboratorioForm';
 import FinanceiroListagem from './pages/FinanceiroListagem';
 import FinanceiroCadastro from './pages/FinanceiroCadastro';
+import Relatorios from './pages/Relatorios';
 import EstoqueListagem from './pages/EstoqueListagem';
 import EstoqueCadastro from './pages/EstoqueCadastro';
 import Home from './pages/Home';
@@ -318,6 +319,7 @@ function AppRoutes() {
                 <Route path="/produtos/precos" element={<TabelaPrecos />} />
                 <Route path="/financeiro" element={<FinanceiroListagem />} />
                 <Route path="/financeiro/novo" element={<FinanceiroCadastro />} />
+                <Route path="/relatorios" element={<Relatorios />} />
                 <Route path="/estoque" element={<EstoqueListagem />} />
                 <Route path="/estoque/novo" element={<EstoqueCadastro />} />
                 <Route path="/vendas" element={<VendaLista />} />

@@ -7,10 +7,10 @@
 
 const PERMISSIONS = {
   ADMIN: '*', // tudo
-  BALANCA: ['dashboard', 'fila', 'pesagem', 'romaneio', 'parceiros'],
-  LABORATORIO: ['dashboard', 'laboratorio', 'pesagem', 'romaneio'],
-  PRODUCAO: ['dashboard', 'fila', 'estoque', 'pesagem', 'romaneio', 'laboratorio', 'lotes'],
-  FINANCEIRO: ['dashboard', 'financeiro', 'vendas', 'parceiros', 'cadastros'],
+  BALANCA: ['dashboard', 'fila', 'pesagem', 'romaneio', 'parceiros', 'relatorios'],
+  LABORATORIO: ['dashboard', 'laboratorio', 'pesagem', 'romaneio', 'relatorios'],
+  PRODUCAO: ['dashboard', 'fila', 'estoque', 'pesagem', 'romaneio', 'laboratorio', 'lotes', 'relatorios'],
+  FINANCEIRO: ['dashboard', 'financeiro', 'vendas', 'parceiros', 'cadastros', 'relatorios'],
 };
 
 const PATH_TO_MODULE = {
@@ -31,6 +31,7 @@ const PATH_TO_MODULE = {
   '/estoque': 'estoque',
   '/vendas': 'vendas',
   '/financeiro': 'financeiro',
+  '/relatorios': 'relatorios', // cada relatório ainda exige o módulo de origem (checado na API)
 };
 
 /** Ações granulares disponíveis por módulo. */
