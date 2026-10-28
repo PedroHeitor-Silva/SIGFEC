@@ -38,7 +38,7 @@ public class MovimentacaoEstoqueController {
         double qtd = Double.parseDouble(body.get("quantidade").toString());
         String motivo = body.get("motivo") != null ? body.get("motivo").toString() : null;
         Produto p = produtoRepository.findById(produtoId)
-                .orElseThrow(() -> new RuntimeException("Produto não encontrado."));
+                .orElseThrow(() -> com.sigfec.services.RegraNegocioException.naoEncontrada("Produto não encontrado."));
         var mov = service.aplicar(p, tipo, qtd, motivo, "AJUSTE_MANUAL", null);
         return ResponseEntity.status(HttpStatus.CREATED).body(mov);
     }

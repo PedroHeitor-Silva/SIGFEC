@@ -27,7 +27,7 @@ export default function LaboratorioForm() {
 
   useEffect(() => {
     api.get('/pesagens')
-      .then(({ data }) => setPesagens(data || []))
+      .then(({ data }) => setPesagens((data || []).filter((p) => p.gramasAmido == null))) // só cargas sem laudo
       .catch(() => toast.error('Falha ao carregar pesagens.'))
       .finally(() => setLoading(false));
   }, []);
@@ -89,10 +89,10 @@ export default function LaboratorioForm() {
         metodoSecagem: form.metodoSecagem || null,
         observacao: form.observacao || null,
       });
-      toast.success('Laudo finalizado. Pagamento calculado.');
+      toast.success('Laudo finalizado. Conta a pagar do produtor gerada no financeiro.');
       navigate('/laboratorio');
-    } catch {
-      toast.error('Não foi possível finalizar o laudo.');
+    } catch (err) {
+      toast.error(err?.response?.data?.error || 'Não foi possível finalizar o laudo.');
     } finally {
       setSaving(false);
     }
@@ -128,7 +128,7 @@ export default function LaboratorioForm() {
                 <option value="">{loading ? 'Carregando...' : 'Selecione a carga'}</option>
                 {pesagens.map((p) => (
                   <option key={p.id} value={p.id}>
-                    #{p.id} • {p.produtorNome || 'Produtor não informado'} • {Number(p.pesoLiquido || 0).toLocaleString('pt-BR')} kg
+                    #{p.id} • {p.produtorNome || 'Produtor não informado'} • {Number(p.pesoFinal ?? p.pesoLiquido ?? 0).toLocaleString('pt-BR')} kg
                   </option>
                 ))}
               </select>

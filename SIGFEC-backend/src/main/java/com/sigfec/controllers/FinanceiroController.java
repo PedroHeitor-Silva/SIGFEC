@@ -73,21 +73,29 @@ public class FinanceiroController {
         t.setStatusFinanceiro(null); // recalculado no @PrePersist (ABERTO ou ATRASADO)
     }
 
-    /** Baixa (quitação) de um título — registra pagamento total ou parcial. */
+    /**
+     * Baixa de um título — registra um pagamento total ou parcial. O valor informado é o desta baixa
+     * e SOMA ao já pago (duas baixas parciais quitam o título); nunca passa do saldo.
+     */
     @PatchMapping("/{id}/baixar")
     public ResponseEntity<TituloFinanceiro> baixar(@PathVariable Long id, @RequestBody Map<String, Object> body) {
         return tituloRepo.findById(id).map(titulo -> {
             if (titulo.getStatusFinanceiro() == EnumStatusFinanceiro.CANCELADO) {
                 throw RegraNegocioException.conflito("Título cancelado não pode receber baixa.");
             }
-            Object valorObj = body.get("valorPago");
-            java.math.BigDecimal valorPago = valorObj != null
-                    ? new java.math.BigDecimal(valorObj.toString())
-                    : titulo.getValorOriginal();
-            if (valorPago.signum() <= 0 || valorPago.compareTo(titulo.getValorOriginal()) > 0) {
-                throw RegraNegocioException.invalida("O valor pago deve ser maior que zero e no máximo o valor do título.");
+            if (titulo.getStatusFinanceiro() == EnumStatusFinanceiro.PAGO) {
+                throw RegraNegocioException.conflito("Título já está quitado.");
             }
-            titulo.setValorPago(valorPago);
+            java.math.BigDecimal saldo = titulo.getSaldo();
+            Object valorObj = body.get("valorPago");
+            java.math.BigDecimal valorBaixa = valorObj != null
+                    ? new java.math.BigDecimal(valorObj.toString())
+                    : saldo;
+            if (valorBaixa.signum() <= 0 || valorBaixa.compareTo(saldo) > 0) {
+                throw RegraNegocioException.invalida("O valor da baixa deve ser maior que zero e no máximo o saldo (R$ " + saldo + ").");
+            }
+            java.math.BigDecimal jaPago = titulo.getValorPago() != null ? titulo.getValorPago() : java.math.BigDecimal.ZERO;
+            titulo.setValorPago(jaPago.add(valorBaixa));
             Object dataObj = body.get("dataPagamento");
             titulo.setDataPagamento(dataObj != null
                     ? java.time.LocalDate.parse(dataObj.toString())

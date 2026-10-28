@@ -96,11 +96,11 @@ public class VendaService {
             String nomeProduto = item.getProduto().getNome() != null
                     ? item.getProduto().getNome() : "produto #" + item.getProduto().getId();
             if (estoque == null) {
-                throw new RuntimeException("Sem estoque cadastrado para " + nomeProduto + ".");
+                throw RegraNegocioException.conflito("Sem estoque cadastrado para " + nomeProduto + ".");
             }
             double disponivel = estoque.getQuantidadeAtual() != null ? estoque.getQuantidadeAtual() : 0.0;
             if (pedido > disponivel) {
-                throw new RuntimeException(
+                throw RegraNegocioException.conflito(
                         "Estoque insuficiente de " + nomeProduto
                         + " — disponível: " + disponivel + ", pedido: " + pedido + ".");
             }

@@ -26,8 +26,8 @@ public class MovimentacaoEstoqueService {
     @Transactional
     public MovimentacaoEstoque aplicar(Produto produto, EnumTipoMovEstoque tipo, double qtd,
                                         String motivo, String origemTipo, Long origemId) {
-        if (produto == null) throw new RuntimeException("Produto obrigatório.");
-        if (qtd <= 0) throw new RuntimeException("Quantidade deve ser maior que zero.");
+        if (produto == null) throw RegraNegocioException.invalida("Produto obrigatório.");
+        if (qtd <= 0) throw RegraNegocioException.invalida("Quantidade deve ser maior que zero.");
 
         Estoque estoque = estoqueRepository.findByProduto_Id(produto.getId())
                 .orElseGet(() -> {
@@ -41,7 +41,7 @@ public class MovimentacaoEstoqueService {
         double atual = estoque.getQuantidadeAtual() != null ? estoque.getQuantidadeAtual() : 0.0;
         double novoSaldo = isEntrada(tipo) ? atual + qtd : atual - qtd;
         if (novoSaldo < 0) {
-            throw new RuntimeException("Saldo ficaria negativo (" + novoSaldo + "). Operação bloqueada.");
+            throw RegraNegocioException.conflito("Saldo ficaria negativo (" + novoSaldo + "). Operação bloqueada.");
         }
         estoque.setQuantidadeAtual(novoSaldo);
         estoqueRepository.save(estoque);

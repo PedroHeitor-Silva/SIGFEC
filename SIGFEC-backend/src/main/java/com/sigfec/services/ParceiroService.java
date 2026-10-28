@@ -45,7 +45,7 @@ public class ParceiroService {
             parceiro.setRg(parceiroAtualizado.getRg());
             parceiro.setLimiteCredito(parceiroAtualizado.getLimiteCredito());
             return repository.save(parceiro);
-        }).orElseThrow(() -> new RuntimeException("Parceiro não encontrado"));
+        }).orElseThrow(() -> RegraNegocioException.naoEncontrada("Parceiro não encontrado"));
     }
 
     public void deletar(Long id) {

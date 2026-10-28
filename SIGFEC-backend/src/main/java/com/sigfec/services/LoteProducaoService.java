@@ -39,7 +39,7 @@ public class LoteProducaoService {
 
     public LoteProducao buscar(Long id) {
         return loteRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Lote não encontrado."));
+                .orElseThrow(() -> RegraNegocioException.naoEncontrada("Lote não encontrado."));
     }
 
     /** Cria lote, gera código se faltar e marca as pesagens informadas como consumidas. */
@@ -65,9 +65,9 @@ public class LoteProducaoService {
             for (Pesagem stub : lote.getPesagensConsumidas()) {
                 if (stub.getId() == null) continue;
                 Pesagem p = pesagemRepository.findById(stub.getId())
-                        .orElseThrow(() -> new RuntimeException("Pesagem #" + stub.getId() + " não encontrada."));
+                        .orElseThrow(() -> RegraNegocioException.naoEncontrada("Pesagem #" + stub.getId() + " não encontrada."));
                 if (p.isConsumida()) {
-                    throw new RuntimeException("Pesagem #" + p.getId()
+                    throw RegraNegocioException.conflito("Pesagem #" + p.getId()
                             + " já foi consumida por outro lote.");
                 }
                 p.setConsumida(true);
@@ -115,7 +115,7 @@ public class LoteProducaoService {
         LoteProducao lote = buscar(id);
         if (lote.getStatusLote() == EnumStatusLote.FINALIZADO
                 || lote.getStatusLote() == EnumStatusLote.EXPEDIDO) {
-            throw new RuntimeException(
+            throw RegraNegocioException.conflito(
                     "Não é possível excluir lote já FINALIZADO/EXPEDIDO — cancele antes (libera pesagens).");
         }
         liberarPesagens(lote);
@@ -131,18 +131,18 @@ public class LoteProducaoService {
             case EXPEDIDO, CANCELADO -> false;
         };
         if (!ok) {
-            throw new RuntimeException("Transição de status inválida: " + atual + " → " + novo);
+            throw RegraNegocioException.conflito("Transição de status inválida: " + atual + " → " + novo);
         }
     }
 
     /** Soma a quantidade produzida no estoque via Kardex (cria estoque se não houver). */
     private void entrarEstoque(LoteProducao lote) {
         if (lote.getProduto() == null) {
-            throw new RuntimeException("Lote sem produto vinculado — não dá pra entrar no estoque.");
+            throw RegraNegocioException.invalida("Lote sem produto vinculado — não dá pra entrar no estoque.");
         }
         if (lote.getQuantidadeProduzida() == null
                 || lote.getQuantidadeProduzida().doubleValue() <= 0) {
-            throw new RuntimeException("Quantidade produzida do lote é inválida.");
+            throw RegraNegocioException.invalida("Quantidade produzida do lote é inválida.");
         }
         double qtd = lote.getQuantidadeProduzida().doubleValue();
         movEstoqueService.aplicar(
