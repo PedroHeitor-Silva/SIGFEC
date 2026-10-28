@@ -44,7 +44,7 @@ export default function RomaneioDiario() {
   const doDia = useMemo(() => {
     return pesagens.filter((p) => {
       if (!p.dataHoraEntrada) return false;
-      return new Date(p.dataHoraEntrada).toISOString().slice(0, 10) === data;
+      return String(p.dataHoraEntrada).slice(0, 10) === data; // LocalDateTime do servidor (sem fuso)
     }).sort((a, b) => new Date(a.dataHoraEntrada) - new Date(b.dataHoraEntrada));
   }, [pesagens, data]);
 

@@ -17,6 +17,7 @@ import { toastUndo } from '../utils/undoToast';
 import { printReciboFinanceiro } from '../utils/printDoc';
 import { maskMoeda, unmaskMoeda, moedaFromNumber } from '../utils/masks';
 import CobrancaModal from '../components/CobrancaModal';
+import { isoHoje } from '../utils/relatorio';
 
 const STATUS_BADGE = {
   ABERTO: 'bg-amber-500/10 text-amber-400 border border-amber-500/20',
@@ -32,7 +33,7 @@ const fmtMoeda = (v) =>
     ? new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(v))
     : '-';
 const fmtData = (v) => v ? new Date(v + 'T00:00:00').toLocaleDateString('pt-BR') : '-';
-const todayIso = () => new Date().toISOString().slice(0, 10);
+const todayIso = () => isoHoje();
 
 export default function FinanceiroListagem() {
   const [titulos, setTitulos] = useState([]);

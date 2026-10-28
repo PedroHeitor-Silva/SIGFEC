@@ -36,6 +36,9 @@ export function csvValor(v, tipo) {
 
 export const isNumerico = (tipo) => ['moeda', 'peso', 'percentual', 'numero'].includes(tipo);
 
+/** Data local AAAA-MM-DD (toISOString usa UTC: depois das 21h no Brasil já seria o dia seguinte). */
+export const isoLocal = (d) => new Date(d - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+
 export const isoHoje = () => {
   const d = new Date();
   return new Date(d - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);

@@ -10,13 +10,14 @@ import { ModuleHeader } from '../theme/modules.jsx';
 import { confirm } from '../components/ConfirmDialog';
 import Tooltip from '../components/Tooltip';
 import EmptyState from '../components/EmptyState';
+import { isoHoje } from '../utils/relatorio';
 
 const fmtDate = (v) => v ? new Date(v + 'T00:00:00').toLocaleDateString('pt-BR') : '—';
 const fmtMoney = (v) => v != null
   ? new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', minimumFractionDigits: 2, maximumFractionDigits: 4 }).format(Number(v))
   : '—';
 
-const todayIso = () => new Date().toISOString().slice(0, 10);
+const todayIso = () => isoHoje();
 
 const isVigente = (t) => {
   const hoje = todayIso();

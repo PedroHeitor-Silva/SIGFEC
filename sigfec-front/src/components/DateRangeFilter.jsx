@@ -1,5 +1,6 @@
 /* eslint-disable react/prop-types */
 import { Calendar, X } from 'lucide-react';
+import { isoLocal } from '../utils/relatorio';
 
 const PRESETS = [
   { label: 'Hoje', days: 0 },
@@ -13,7 +14,7 @@ export default function DateRangeFilter({ from, to, onChange }) {
     const t = new Date();
     const f = new Date();
     f.setDate(f.getDate() - days);
-    onChange({ from: f.toISOString().slice(0, 10), to: t.toISOString().slice(0, 10) });
+    onChange({ from: isoLocal(f), to: isoLocal(t) });
   };
 
   const clear = () => onChange({ from: '', to: '' });

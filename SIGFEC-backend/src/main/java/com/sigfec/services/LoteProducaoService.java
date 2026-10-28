@@ -7,6 +7,7 @@ import com.sigfec.domain.enums.EnumStatusLote;
 import com.sigfec.repositories.EstoqueRepository;
 import com.sigfec.repositories.LoteProducaoRepository;
 import com.sigfec.repositories.PesagemRepository;
+import com.sigfec.repositories.ProdutoRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -29,6 +30,7 @@ public class LoteProducaoService {
 
     private final LoteProducaoRepository loteRepository;
     private final PesagemRepository pesagemRepository;
+    private final ProdutoRepository produtoRepository;
     private final EstoqueRepository estoqueRepository;
     private final MovimentacaoEstoqueService movEstoqueService;
     private final AuditService auditService;
@@ -48,6 +50,12 @@ public class LoteProducaoService {
         // Todo lote nasce EM_PRODUCAO: aceitar FINALIZADO aqui pularia a entrada no estoque.
         lote.setId(null);
         lote.setStatusLote(EnumStatusLote.EM_PRODUCAO);
+        // Produto completo (unidade de medida): sem isso o rendimento trata sacos como kg.
+        if (lote.getProduto() == null || lote.getProduto().getId() == null) {
+            throw RegraNegocioException.invalida("Informe o produto do lote.");
+        }
+        lote.setProduto(produtoRepository.findById(lote.getProduto().getId())
+                .orElseThrow(() -> RegraNegocioException.naoEncontrada("Produto #" + lote.getProduto().getId() + " não encontrado.")));
         if (lote.getCodigoLote() == null || lote.getCodigoLote().isBlank()) {
             // count()+1 colide depois de uma exclusão; avança até achar um código livre.
             long seq = loteRepository.count() + 1;

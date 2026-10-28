@@ -5,6 +5,7 @@ import toast from 'react-hot-toast';
 import api from '../services/api';
 import { ModuleHeader } from '../theme/modules.jsx';
 import { UNIDADES, unidadeNome, unidadeLabel } from '../utils/unidades';
+import { isoHoje } from '../utils/relatorio';
 
 const inputCls = 'mt-2 w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-3 text-white placeholder:text-slate-500 outline-none focus:border-emerald-500 transition';
 const labelCls = 'text-xs font-bold uppercase tracking-wider text-slate-400';
@@ -17,7 +18,7 @@ export default function LoteForm() {
   const [form, setForm] = useState({
     codigoLote: '',
     produtoId: '',
-    dataFabricacao: new Date().toISOString().slice(0, 10),
+    dataFabricacao: isoHoje(),
     validade: '',
     quantidadeProduzida: '',
     observacao: '',
