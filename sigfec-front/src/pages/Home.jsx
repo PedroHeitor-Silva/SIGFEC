@@ -269,7 +269,7 @@ export default function Home() {
                 <p className="text-[11px] font-bold uppercase tracking-[0.1em] text-slate-400 leading-tight">{card.title}</p>
               </div>
               <div className={`flex items-baseline gap-1.5 ${principal ? 'mt-4' : 'mt-3'}`}>
-                <span className={`font-extrabold text-white tracking-tight leading-none tabular-nums ${principal ? 'text-3xl' : 'text-2xl'}`}>{valorDe(card, i)}</span>
+                <span className={`font-extrabold text-white tracking-tight leading-none tabular-nums ${principal ? 'text-2xl sm:text-3xl' : 'text-xl sm:text-2xl'} break-all`}>{valorDe(card, i)}</span>
                 {!card.money && !card.pct && card.unit && (
                   <span className="text-sm font-semibold text-slate-400">{card.unit}</span>
                 )}

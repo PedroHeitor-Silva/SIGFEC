@@ -211,6 +211,7 @@ input:-webkit-autofill, input:-webkit-autofill:hover, input:-webkit-autofill:foc
   --sg-thead-texto: #556274;
   --sg-linha: #e8edf3;
   --sg-foco: rgba(26, 187, 156, 0.35);
+  --sg-opcao-hover: #effcf8;
 }
 :root[data-theme="dark"] {
   --sg-texto: #f1f5f9;
@@ -225,6 +226,7 @@ input:-webkit-autofill, input:-webkit-autofill:hover, input:-webkit-autofill:foc
   --sg-thead-texto: #94a3b8;
   --sg-linha: #1c2638;
   --sg-foco: rgba(52, 211, 153, 0.35);
+  --sg-opcao-hover: #12352f;
 }
 
 /* ---------- Campos de formulário: um único padrão ---------- */
@@ -288,3 +290,11 @@ table tbody tr + tr td { border-top-color: var(--sg-linha); }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }
+
+/* ---------- Campo obrigatório: "*" no rótulo de todo campo com required (segue a validação existente) ---------- */
+label:has(:required) > span:first-child:not(:has(*))::after {
+  content: " *";
+  color: #e11d48;
+  font-weight: 800;
+}
+:root[data-theme="dark"] label:has(:required) > span:first-child:not(:has(*))::after { color: #fb7185; }

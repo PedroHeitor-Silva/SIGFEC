@@ -280,7 +280,7 @@ function DetalheModal({ pesagem, onClose, onImprimir }) {
                   <p className="text-[11px] text-slate-500">{fmtDataHora(pesagem.dataHoraEntrada)}</p>
                 </div>
               </div>
-              <button onClick={onClose} className="p-1.5 rounded-lg text-slate-500 hover:text-white hover:bg-slate-800 transition"><X size={14} /></button>
+              <button type="button" aria-label="Fechar" title="Fechar" onClick={onClose} className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition"><X size={16} /></button>
             </div>
             <div className="p-6">
               {linha(User, 'Produtor', pesagem.produtorNome || '—')}

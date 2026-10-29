@@ -16,7 +16,7 @@ const LOCAL_KEY = '@sigfec:fila-local';
 const STATUS = {
   AGUARDANDO:     { label: 'Aguardando',     cls: 'bg-amber-500/15 text-amber-400 border-amber-500/30' },
   CHAMADO:        { label: 'Chamado',        cls: 'bg-sky-500/15 text-sky-400 border-sky-500/30' },
-  EM_ATENDIMENTO: { label: 'Em atendimento', cls: 'bg-cyan-500/15 text-cyan-300 border-cyan-500/30' },
+  EM_ATENDIMENTO: { label: 'Em atendimento', cls: 'bg-cyan-500/15 text-cyan-400 border-cyan-500/40' },
   FINALIZADO:     { label: 'Finalizado',     cls: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30' },
   CANCELADO:      { label: 'Cancelado',      cls: 'bg-rose-500/15 text-rose-400 border-rose-500/30' },
 };
@@ -160,12 +160,12 @@ export default function FilaPatio() {
     const encerrado = e.status === 'FINALIZADO' || e.status === 'CANCELADO';
     const ocupadoAqui = ocupado === e.id;
     const podeChamar = e.checklistStatus === 'APROVADO';
-    const btn = 'inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-semibold transition disabled:opacity-40 disabled:cursor-not-allowed';
+    const btn = 'inline-flex h-8 items-center gap-1.5 rounded-lg px-3 text-xs font-semibold transition disabled:opacity-40 disabled:cursor-not-allowed';
 
     return (
       <div className={`flex flex-col gap-3 rounded-xl border border-slate-800 p-4 sm:flex-row sm:items-center sm:justify-between ${encerrado ? 'bg-slate-800/20 opacity-70' : 'bg-slate-800/40'}`}>
         <div className="flex items-center gap-4">
-          <div className="flex h-12 w-14 shrink-0 flex-col items-center justify-center rounded-lg bg-slate-800 font-mono text-sm font-bold text-emerald-400">
+          <div className="flex h-14 w-16 shrink-0 flex-col items-center justify-center rounded-lg border border-slate-700 bg-slate-900 font-mono text-lg font-extrabold text-emerald-400" title="Senha do dia">
             {senhaFmt(e.senhaDiaria)}
             {e.dataReferencia && e.dataReferencia !== hoje && (
               <span className="text-[11px] font-semibold text-amber-400">
@@ -174,8 +174,8 @@ export default function FilaPatio() {
             )}
           </div>
           <div>
-            <p className="font-bold text-white">{maskPlaca(e.veiculo?.placa) || '—'}</p>
-            <p className="text-xs text-slate-400">
+            <p className="text-lg font-bold tracking-wide text-white leading-tight">{maskPlaca(e.veiculo?.placa) || '—'}</p>
+            <p className="text-sm text-slate-400">
               {e.motorista?.nome || 'Sem motorista'}{e.produtor?.nome ? ` · ${e.produtor.nome}` : ''}
             </p>
             <div className="mt-1 flex flex-wrap items-center gap-2 text-[11px]">
@@ -229,9 +229,9 @@ export default function FilaPatio() {
             </button>
           )}
           {!encerrado && (
-            <button onClick={() => cancelar(e)} disabled={ocupadoAqui} title="Cancelar senha"
-              className={`${btn} border border-rose-500/30 text-rose-400 hover:bg-rose-500/10`}>
-              <XCircle size={14} />
+            <button onClick={() => cancelar(e)} disabled={ocupadoAqui} title="Cancelar senha" aria-label="Cancelar senha"
+              className={`${btn} w-8 justify-center px-0 border border-rose-500/40 bg-rose-500/10 text-rose-400 hover:bg-rose-500/20`}>
+              <XCircle size={17} />
             </button>
           )}
         </div>
@@ -251,13 +251,10 @@ export default function FilaPatio() {
       <Toaster position="top-right" toastOptions={{ style: { background: '#1e293b', color: '#fff' } }} />
 
       <div className="mx-auto max-w-7xl">
-        <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <div className="mb-6 pb-5 border-b border-slate-800 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-slate-500">
-              Operacional <span className="mx-1.5 text-slate-700">/</span><span className="text-slate-400">Fila / Pátio</span>
-            </p>
-            <h1 className="mt-1 text-2xl font-bold tracking-tight text-white sm:text-3xl">Fila de Descarga</h1>
-            <p className="mt-1 text-sm text-slate-500">Chegada → checklist aprovado → chamada para a balança → pesagem.</p>
+            <h1 className="text-xl font-bold tracking-tight text-white sm:text-2xl leading-tight">Fila de Descarga</h1>
+            <p className="mt-1 text-sm text-slate-400">Chegada → checklist aprovado → chamada para a balança → pesagem.</p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <a href="/painel-fila" target="_blank" rel="noreferrer"

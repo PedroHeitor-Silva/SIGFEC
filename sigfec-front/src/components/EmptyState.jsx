@@ -11,20 +11,20 @@ export default function EmptyState({ icon: Icon, title, description, action, acc
     sky: { bg: 'bg-sky-500/10', border: 'border-sky-500/20', text: 'text-sky-400' },
     lime: { bg: 'bg-lime-500/10', border: 'border-lime-500/20', text: 'text-lime-400' },
   };
-  const a = accentMap[accent];
+  const a = accentMap[accent] || accentMap.slate;
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-      className="flex flex-col items-center justify-center px-6 py-16 text-center"
+      className="flex flex-col items-center justify-center px-6 py-12 text-center"
     >
       {Icon && (
-        <div className={`flex h-20 w-20 items-center justify-center rounded-2xl ${a.bg} border ${a.border} mb-5`}>
-          <Icon size={36} className={a.text} strokeWidth={1.5} />
+        <div className={`flex h-14 w-14 items-center justify-center rounded-xl ${a.bg} border ${a.border} mb-4`}>
+          <Icon size={26} className={a.text} strokeWidth={1.75} aria-hidden="true" />
         </div>
       )}
       <h3 className="text-base font-bold text-white">{title}</h3>
-      {description && <p className="mt-2 text-sm text-slate-500 max-w-sm leading-relaxed">{description}</p>}
+      {description && <p className="mt-1.5 text-sm text-slate-400 max-w-sm leading-relaxed">{description}</p>}
       {action && <div className="mt-6">{action}</div>}
     </motion.div>
   );

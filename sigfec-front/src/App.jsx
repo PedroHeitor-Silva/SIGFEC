@@ -55,8 +55,10 @@ export default function App() {
             background: '#fff',
             color: '#1f2937',
             border: '1px solid #e5e7eb',
-            boxShadow: '0 4px 14px rgba(0,0,0,0.08)',
-            fontSize: '13px',
+            boxShadow: '0 6px 20px rgba(15,23,42,0.14)',
+            fontSize: '14px',
+            borderRadius: '10px',
+            maxWidth: '420px',
           },
         }}
       />
@@ -150,6 +152,7 @@ function AppRoutes() {
             <button
               type="button"
               onClick={() => setMobileOpen(false)}
+              aria-label="Fechar menu"
               className="lg:hidden p-2 rounded-md"
               style={{ color: '#94a3b8' }}
             ><X size={22} /></button>
@@ -232,7 +235,7 @@ function AppRoutes() {
             <div className="flex items-center justify-between gap-4 px-4 sm:px-6 lg:px-8 h-16">
               <div className="flex items-center gap-4 min-w-0 flex-1">
                 <button
-                  type="button" onClick={() => setMobileOpen(true)}
+                  type="button" onClick={() => setMobileOpen(true)} aria-label="Abrir menu"
                   className="lg:hidden p-2 -ml-1 rounded-md"
                   style={{ color: theme === 'dark' ? '#cbd5e1' : '#4b5563' }}
                 ><Menu size={22} /></button>

@@ -38,7 +38,7 @@ export default function DateRangeFilter({ from, to, onChange }) {
           className="bg-transparent text-xs text-white outline-none"
         />
         {active && (
-          <button type="button" onClick={clear}
+          <button type="button" onClick={clear} aria-label="Limpar período" title="Limpar período"
             className="ml-1 p-0.5 rounded text-slate-500 hover:text-red-400 transition">
             <X size={12} />
           </button>

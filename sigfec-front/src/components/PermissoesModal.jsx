@@ -80,6 +80,7 @@ export default function PermissoesModal({ open, usuario, onClose, onSaved }) {
             initial={{ scale: 0.96, y: 8 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.96, y: 8 }}
             transition={{ duration: 0.15 }}
             onClick={(e) => e.stopPropagation()}
+            role="dialog" aria-modal="true"
             className="w-full max-w-4xl rounded-xl border border-slate-800 bg-slate-900 shadow-2xl max-h-[90vh] overflow-hidden flex flex-col"
           >
             {/* Header */}
@@ -95,8 +96,8 @@ export default function PermissoesModal({ open, usuario, onClose, onSaved }) {
                   </p>
                 </div>
               </div>
-              <button onClick={onClose} className="p-1.5 rounded-lg text-slate-500 hover:text-white hover:bg-slate-800 transition">
-                <X size={14} />
+              <button type="button" aria-label="Fechar" title="Fechar" onClick={onClose} className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition">
+                <X size={16} />
               </button>
             </div>
 

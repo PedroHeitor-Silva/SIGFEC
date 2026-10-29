@@ -58,7 +58,7 @@ export default function FinanceiroCadastro() {
 
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <div className="h-10 w-1 rounded-full bg-lime-500" />
+          <div className="h-10 w-1 rounded-full bg-emerald-500" />
           <div>
             <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Financeiro</p>
             <h1 className="text-2xl font-bold text-white">Novo Lançamento</h1>

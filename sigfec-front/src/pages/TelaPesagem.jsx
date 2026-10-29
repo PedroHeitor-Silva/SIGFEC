@@ -155,7 +155,7 @@ export default function TelaPesagem() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <div className="h-10 w-1 rounded-full bg-amber-500" />
+          <div className="h-10 w-1 rounded-full bg-emerald-500" />
           <div>
             <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Módulo Balança · {numPesagem(proximoNum)}</p>
             <h1 className="text-2xl font-bold text-white">Nova Pesagem de Carga</h1>
@@ -170,8 +170,8 @@ export default function TelaPesagem() {
 
       {entrada && (
         <div className={`flex flex-wrap items-center gap-x-4 gap-y-1 rounded-xl border p-4 text-sm ${entradaInvalida
-          ? 'border-rose-500/40 bg-rose-500/10 text-rose-300'
-          : 'border-emerald-500/40 bg-emerald-500/10 text-emerald-300'}`}>
+          ? 'border-rose-500/40 bg-rose-500/10 text-rose-400'
+          : 'border-emerald-500/40 bg-emerald-500/10 text-emerald-400'}`}>
           <span className="font-mono font-bold">Senha #{String(entrada.senhaDiaria ?? 0).padStart(3, '0')}</span>
           <span>{maskPlaca(entrada.veiculo?.placa)} · {entrada.motorista?.nome}</span>
           {entrada.localChamada && <span>{entrada.localChamada}</span>}

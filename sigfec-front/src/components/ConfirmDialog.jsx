@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import { AlertTriangle, X } from 'lucide-react';
+import { AlertTriangle, Info, X } from 'lucide-react';
 
 let resolver = null;
 let setStateRef = null;
@@ -24,7 +24,7 @@ export function confirm(options) {
 const TONES = {
   danger: { icon: AlertTriangle, accent: 'text-red-400 bg-red-500/10 border-red-500/20', button: 'bg-red-600 hover:bg-red-500' },
   warning: { icon: AlertTriangle, accent: 'text-amber-400 bg-amber-500/10 border-amber-500/20', button: 'bg-amber-600 hover:bg-amber-500' },
-  info: { icon: AlertTriangle, accent: 'text-sky-400 bg-sky-500/10 border-sky-500/20', button: 'bg-sky-600 hover:bg-sky-500' },
+  info: { icon: Info, accent: 'text-sky-400 bg-sky-500/10 border-sky-500/20', button: 'bg-sky-600 hover:bg-sky-500' },
 };
 
 export default function ConfirmDialog() {
@@ -69,17 +69,18 @@ export default function ConfirmDialog() {
             initial={{ scale: 0.95, y: 8 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 8 }}
             transition={{ duration: 0.15 }}
             onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-md mx-4 rounded-xl border border-slate-800 bg-slate-900 shadow-2xl"
+            role="alertdialog" aria-modal="true" aria-labelledby="sigfec-confirm-titulo" aria-describedby="sigfec-confirm-texto"
+            className="w-full max-w-md mx-4 rounded-xl border border-slate-700 bg-slate-900 shadow-2xl"
           >
             <div className="flex items-start gap-4 p-6">
               <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border ${tone.accent}`}>
                 <Icon size={22} />
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="text-base font-bold text-white">{state.title}</h3>
-                <p className="mt-1.5 text-sm text-slate-400 leading-relaxed">{state.message}</p>
+                <h3 id="sigfec-confirm-titulo" className="text-base font-bold text-white">{state.title}</h3>
+                <p id="sigfec-confirm-texto" className="mt-1.5 text-sm text-slate-300 leading-relaxed whitespace-pre-line">{state.message}</p>
               </div>
-              <button onClick={() => close(false)} className="p-1.5 rounded-lg text-slate-500 hover:text-white hover:bg-slate-800 transition">
+              <button type="button" aria-label="Fechar" title="Fechar" onClick={() => close(false)} className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition">
                 <X size={16} />
               </button>
             </div>
@@ -87,14 +88,14 @@ export default function ConfirmDialog() {
               <button
                 type="button"
                 onClick={() => close(false)}
-                className="rounded-lg border border-slate-700 bg-slate-800 px-5 py-2.5 text-sm font-semibold text-slate-300 hover:bg-slate-700 transition"
+                className="h-10 rounded-lg border border-slate-700 bg-slate-800 px-5 text-sm font-semibold text-slate-200 hover:bg-slate-700 transition"
               >
                 {state.cancelLabel}
               </button>
               <button
                 type="button"
                 onClick={() => close(true)}
-                className={`rounded-lg px-5 py-2.5 text-sm font-bold text-white transition ${tone.button}`}
+                className={`h-10 rounded-lg px-5 text-sm font-bold text-white transition ${tone.button}`}
               >
                 {state.confirmLabel}
               </button>

@@ -126,8 +126,8 @@ export default function KeyboardShortcuts() {
                     <p className="text-[11px] text-slate-500">Pressione fora de campos de texto</p>
                   </div>
                 </div>
-                <button onClick={() => setHelp(false)} className="p-1.5 rounded-lg text-slate-500 hover:text-white hover:bg-slate-800 transition">
-                  <X size={14} />
+                <button type="button" aria-label="Fechar" title="Fechar" onClick={() => setHelp(false)} className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition">
+                  <X size={16} />
                 </button>
               </div>
 

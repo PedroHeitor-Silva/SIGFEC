@@ -135,7 +135,7 @@ export default function ChecklistCargaForm() {
         </div>
 
         {bloqueado && (
-          <div className="mb-4 flex items-center gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-300">
+          <div className="mb-4 flex items-center gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-400">
             <Lock size={16} /> O veículo já saiu da fila de espera ({entrada.status.toLowerCase().replace('_', ' ')}): o checklist está somente para consulta.
           </div>
         )}
