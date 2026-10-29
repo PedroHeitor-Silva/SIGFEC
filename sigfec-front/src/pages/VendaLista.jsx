@@ -8,7 +8,7 @@ import api from '../services/api';
 import { ModuleHeader } from '../theme/modules.jsx';
 import { confirm } from '../components/ConfirmDialog';
 import EmptyState from '../components/EmptyState';
-import Tooltip from '../components/Tooltip';
+import BotaoAcao from '../components/BotaoAcao';
 import { TableSkeleton } from '../components/Skeleton';
 import { printNotaFiscal } from '../utils/printDoc';
 
@@ -186,7 +186,7 @@ export default function VendaLista() {
                       <td className="px-4 py-3 font-mono text-white font-bold">
                         {v.numeroNota ? String(v.numeroNota).padStart(6, '0') : '—'}
                       </td>
-                      <td className="px-4 py-3 font-medium text-white">{v.cliente?.nome || '—'}</td>
+                      <td className="px-4 py-3 font-medium text-white min-w-[220px]">{v.cliente?.nome || '—'}</td>
                       <td className="px-4 py-3 text-slate-400">{fmtData(v.dataVenda)}</td>
                       <td className="px-4 py-3 text-slate-400 font-mono">{(v.itens || []).length}</td>
                       <td className="px-4 py-3 text-emerald-400 font-mono font-bold">{fmtMoeda(v.valorTotal)}</td>
@@ -196,47 +196,14 @@ export default function VendaLista() {
                         </span>
                       </td>
                       <td className="px-4 py-3">
-                        <div className="flex gap-1">
-                          {st === 'ORCAMENTO' && (
-                            <Tooltip label="Confirmar venda">
-                              <button type="button" onClick={() => confirmar(v)}
-                                className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:text-sky-400 hover:bg-sky-500/10 transition">
-                                <CheckCircle2 size={14} />
-                              </button>
-                            </Tooltip>
+                        <div className="flex flex-nowrap items-center gap-1.5">
+                          {st === 'ORCAMENTO' && <BotaoAcao icon={CheckCircle2} label="Confirmar" cor="verde" onClick={() => confirmar(v)} />}
+                          {st === 'CONFIRMADA' && <BotaoAcao icon={FileText} label="Emitir nota" cor="verde" onClick={() => faturar(v)} />}
+                          {st !== 'CANCELADA' && (
+                            <BotaoAcao icon={Printer} label={st === 'FATURADA' ? 'Imprimir nota' : 'Imprimir pedido'} cor="azul" soIcone={st !== 'FATURADA'} onClick={() => printNotaFiscal(v)} />
                           )}
-                          {st === 'CONFIRMADA' && (
-                            <Tooltip label="Emitir nota fiscal">
-                              <button type="button" onClick={() => faturar(v)}
-                                className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:text-emerald-400 hover:bg-emerald-500/10 transition">
-                                <FileText size={14} />
-                              </button>
-                            </Tooltip>
-                          )}
-                          {st === 'FATURADA' && (
-                            <Tooltip label="Imprimir nota fiscal">
-                              <button type="button" onClick={() => printNotaFiscal(v)}
-                                className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:text-emerald-400 hover:bg-emerald-500/10 transition">
-                                <Printer size={14} />
-                              </button>
-                            </Tooltip>
-                          )}
-                          {st !== 'CANCELADA' && st !== 'FATURADA' && (
-                            <Tooltip label="Cancelar venda">
-                              <button type="button" onClick={() => cancelar(v)}
-                                className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:text-amber-400 hover:bg-amber-500/10 transition">
-                                <XCircle size={14} />
-                              </button>
-                            </Tooltip>
-                          )}
-                          {(st === 'ORCAMENTO' || st === 'CANCELADA') && (
-                            <Tooltip label="Excluir">
-                              <button type="button" onClick={() => excluir(v)}
-                                className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition">
-                                <Trash2 size={14} />
-                              </button>
-                            </Tooltip>
-                          )}
+                          {st !== 'CANCELADA' && st !== 'FATURADA' && <BotaoAcao icon={XCircle} label="Cancelar venda" cor="ambar" soIcone onClick={() => cancelar(v)} />}
+                          {(st === 'ORCAMENTO' || st === 'CANCELADA') && <BotaoAcao icon={Trash2} label="Excluir venda" cor="vermelho" soIcone onClick={() => excluir(v)} />}
                         </div>
                       </td>
                     </tr>

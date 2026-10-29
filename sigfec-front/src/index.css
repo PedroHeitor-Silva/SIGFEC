@@ -61,6 +61,17 @@
   --color-slate-950: #020617;
   --color-white: #ffffff;
   --color-black: #000000;
+
+  /* Acentos -400: no tema claro foram escurecidos (contraste no branco); no escuro voltam a ser claros,
+     senão botões, ícones e textos coloridos somem no fundo navy. */
+  --color-sky-400:     #38bdf8;
+  --color-cyan-400:    #22d3ee;
+  --color-amber-400:   #fbbf24;
+  --color-violet-400:  #a78bfa;
+  --color-fuchsia-400: #e879f9;
+  --color-rose-400:    #fb7185;
+  --color-lime-400:    #a3e635;
+  --color-emerald-400: #34d399;
 }
 
 /* === Base === */

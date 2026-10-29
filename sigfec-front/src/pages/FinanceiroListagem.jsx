@@ -11,7 +11,7 @@ import api from '../services/api';
 import { ModuleHeader } from '../theme/modules.jsx';
 import { confirm } from '../components/ConfirmDialog';
 import EmptyState from '../components/EmptyState';
-import Tooltip from '../components/Tooltip';
+import BotaoAcao from '../components/BotaoAcao';
 import { TableSkeleton } from '../components/Skeleton';
 import { toastUndo } from '../utils/undoToast';
 import { printReciboFinanceiro } from '../utils/printDoc';
@@ -204,7 +204,7 @@ export default function FinanceiroListagem() {
               className="w-full rounded-lg border border-slate-700 bg-slate-800 py-2.5 pl-9 pr-4 text-sm text-white placeholder:text-slate-500 outline-none focus:border-emerald-500 transition"
             />
           </div>
-          <div className="flex flex-wrap gap-1.5">
+          <div className="flex flex-nowrap items-center gap-1.5">
             {['TODOS', 'RECEBER', 'PAGAR'].map((t) => (
               <button key={t} type="button" onClick={() => setFiltroTipo(t)}
                 className={`px-3 py-1.5 rounded-md text-xs font-bold uppercase tracking-wider transition ${
@@ -276,7 +276,7 @@ export default function FinanceiroListagem() {
                           {tipo}
                         </span>
                       </td>
-                      <td className="px-4 py-3 font-medium text-white">{parceiroDe(t)}</td>
+                      <td className="px-4 py-3 font-medium text-white min-w-[220px]">{parceiroDe(t)}</td>
                       <td className="px-4 py-3 text-white font-mono">{fmtMoeda(t.valorOriginal)}</td>
                       <td className="px-4 py-3 font-mono text-emerald-400">{fmtMoeda(t.valorPago)}</td>
                       {aba === 'HISTORICO' ? (
@@ -302,45 +302,18 @@ export default function FinanceiroListagem() {
                         </>
                       )}
                       <td className="px-4 py-3">
-                        <div className="flex gap-1">
-                          {!quitado && t.statusFinanceiro !== 'CANCELADO' && tipo === 'RECEBER' && (
-                            <Tooltip label="Gerar cobrança (PIX / Boleto)">
-                              <button type="button" onClick={() => setCobrancaTitulo(t)}
-                                className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:text-emerald-400 hover:bg-emerald-500/10 transition">
-                                <QrCode size={14} />
-                              </button>
-                            </Tooltip>
-                          )}
+                        <div className="flex flex-nowrap items-center gap-1.5">
                           {!quitado && t.statusFinanceiro !== 'CANCELADO' && (
-                            <Tooltip label="Dar baixa / Quitar">
-                              <button type="button" onClick={() => setBaixando(t)}
-                                className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:text-sky-400 hover:bg-sky-500/10 transition">
-                                <CheckCircle2 size={14} />
-                              </button>
-                            </Tooltip>
+                            <BotaoAcao icon={CheckCircle2} label={tipo === 'RECEBER' ? 'Receber' : 'Pagar'} cor="verde" onClick={() => setBaixando(t)} />
                           )}
-                          {quitado && (
-                            <>
-                              <Tooltip label="Imprimir comprovante">
-                                <button type="button" onClick={() => printReciboFinanceiro(t)}
-                                  className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:text-sky-400 hover:bg-sky-500/10 transition">
-                                  <Printer size={14} />
-                                </button>
-                              </Tooltip>
-                              <Tooltip label="Estornar baixa">
-                                <button type="button" onClick={() => estornar(t)}
-                                  className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:text-amber-400 hover:bg-amber-500/10 transition">
-                                  <RotateCcw size={14} />
-                                </button>
-                              </Tooltip>
-                            </>
+                          {!quitado && t.statusFinanceiro !== 'CANCELADO' && tipo === 'RECEBER' && (
+                            <BotaoAcao icon={QrCode} label="Gerar cobrança PIX / Boleto" cor="roxo" soIcone onClick={() => setCobrancaTitulo(t)} />
                           )}
-                          <Tooltip label="Excluir">
-                            <button type="button" onClick={() => handleDelete(t.id)}
-                              className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition">
-                              <Trash2 size={14} />
-                            </button>
-                          </Tooltip>
+                          {(quitado || Number(t.valorPago) > 0) && (
+                            <BotaoAcao icon={Printer} label="Imprimir comprovante" cor="azul" soIcone={!quitado} onClick={() => printReciboFinanceiro(t)} />
+                          )}
+                          {quitado && <BotaoAcao icon={RotateCcw} label="Estornar baixa" cor="ambar" soIcone onClick={() => estornar(t)} />}
+                          <BotaoAcao icon={Trash2} label="Excluir título" cor="vermelho" soIcone onClick={() => handleDelete(t.id)} />
                         </div>
                       </td>
                     </tr>
