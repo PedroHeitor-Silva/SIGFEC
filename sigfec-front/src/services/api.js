@@ -14,6 +14,12 @@ api.interceptors.request.use((config) => {
     const raw = localStorage.getItem('@sigfec:user');
     if (raw) {
       const user = JSON.parse(raw);
+      // sessão antiga sem token (ex.: login simulado de versões anteriores): força novo login
+      if (!user?.token) {
+        localStorage.removeItem('@sigfec:user');
+        if (window.location.pathname !== '/login') window.location.href = '/login';
+        return config;
+      }
       if (user?.token) {
         config.headers = config.headers || {};
         config.headers.Authorization = `Bearer ${user.token}`;

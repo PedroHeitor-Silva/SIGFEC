@@ -5,7 +5,7 @@ Fluxo do negócio: fila do pátio → checklist → pesagem → laudo do laborat
 
 ## Rodar
 - Banco: PostgreSQL local `sigfec_db` na 5432. `ddl-auto=update` (sem migrations).
-- Backend (máquina tem só JDK 17; o pom pede 21): `cd SIGFEC-backend && ./mvnw -o spring-boot:run -Dmaven.compiler.release=17` → porta 8080.
+- Backend (máquina tem só JDK 17; o pom pede 21): `cd SIGFEC-backend && ./mvnw -o spring-boot:run -Dmaven.compiler.release=17 -Dspring-boot.run.jvmArguments="-Dspring.devtools.restart.enabled=false"` → porta 8080. Sem esse flag o devtools reinicia (e às vezes quebra com `NoClassDefFoundError`) a cada `mvn test`/compile, derrubando a API enquanto o usuário usa o sistema; com ele, reinicie o backend à mão após mudar código Java.
 - Testes: `./mvnw -o -q test -Dmaven.compiler.release=17` (JUnit 5 + Mockito, sem banco).
 - Front dev: `npm --prefix sigfec-front run dev` → 5173. Build de produção/PWA: `npm --prefix sigfec-front run app` → 4173.
 - Login de desenvolvimento: semeado pelo `DataInitializer` (usuário admin).

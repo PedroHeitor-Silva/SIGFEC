@@ -60,7 +60,11 @@ export default function Relatorios() {
         setCatalogo(data);
         setChave((atual) => data.some((r) => r.chave === atual) ? atual : data[0]?.chave || '');
       })
-      .catch(() => { setErroCatalogo(true); toast.error('Falha ao carregar os relatórios.'); });
+      .catch((err) => {
+        const msg = err?.response?.data?.error || (err?.response ? `Erro ${err.response.status} no servidor.` : 'Servidor fora do ar.');
+        setErroCatalogo(msg);
+        toast.error('Falha ao carregar os relatórios: ' + msg);
+      });
     api.get('/parceiros').then(({ data }) => setParceiros(Array.isArray(data) ? data : [])).catch(() => {});
   };
 
@@ -175,7 +179,7 @@ export default function Relatorios() {
         {!catalogo.length && !erroCatalogo && <p className="text-sm text-slate-500">Carregando relatórios...</p>}
         {erroCatalogo && (
           <div className="sm:col-span-2 lg:col-span-3 rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-400 flex items-center gap-3">
-            <AlertCircle size={16} /> Não foi possível carregar os relatórios. Verifique se o servidor está no ar.
+            <AlertCircle size={16} /> Não foi possível carregar os relatórios ({erroCatalogo}).
             <button type="button" onClick={carregarCatalogo} className="ml-auto rounded-md border border-red-500/40 px-3 py-1.5 text-xs font-bold hover:bg-red-500/10">Tentar de novo</button>
           </div>
         )}

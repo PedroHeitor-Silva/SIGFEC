@@ -63,9 +63,22 @@ public class RelatorioController {
         return service.gerar(chave, inicio, fim, parceiroId);
     }
 
+    /**
+     * Usuário logado com as permissões do cadastro. Se o login não existir mais no banco (ex.: base
+     * repopulada com o navegador ainda logado), usa o perfil gravado no token, sem permissões extras.
+     */
     private Usuario usuario(Authentication auth) {
-        return usuarioRepository.findByLogin(auth.getName())
-                .orElseThrow(() -> new RegraNegocioException(HttpStatus.UNAUTHORIZED, "Usuário não encontrado."));
+        return usuarioRepository.findByLogin(auth.getName()).orElseGet(() -> {
+            Usuario doToken = new Usuario();
+            doToken.setLogin(auth.getName());
+            doToken.setPerfilAcesso(auth.getAuthorities().stream()
+                    .map(a -> a.getAuthority().replaceFirst("^ROLE_", ""))
+                    .filter(p -> Arrays.stream(EnumPerfilAcesso.values()).anyMatch(e -> e.name().equals(p)))
+                    .map(EnumPerfilAcesso::valueOf)
+                    .findFirst()
+                    .orElseThrow(() -> new RegraNegocioException(HttpStatus.UNAUTHORIZED, "Sessão inválida: entre novamente.")));
+            return doToken;
+        });
     }
 
     /** ADMIN vê tudo; negadas > extras > padrão do perfil (igual a canDo(user, modulo, 'ver') no front). */
