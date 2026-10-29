@@ -263,12 +263,16 @@ export default function Relatorios() {
                 {nomeParceiro ? ` • ${nomeParceiro}` : ''} • {rel.linhas.length} registro{rel.linhas.length === 1 ? '' : 's'}
               </span>
             </div>
-            <div className="overflow-x-auto">
-              <table className="min-w-full text-sm">
+            {rel.colunas.length > 5 && (
+              <p className="sm:hidden px-5 pt-3 text-[11px] font-semibold text-emerald-400">Arraste a tabela para o lado para ver todas as colunas →</p>
+            )}
+            {/* rolagem própria: cabeçalho e total ficam fixos enquanto a lista rola */}
+            <div className="overflow-auto max-h-[68vh]">
+              <table className="min-w-full text-sm border-separate border-spacing-0">
                 <thead>
-                  <tr className="border-b border-slate-800 bg-slate-800/50">
+                  <tr>
                     {rel.colunas.map((c) => (
-                      <th key={c.chave} className={`px-4 py-3 text-xs font-bold uppercase tracking-wider text-slate-500 whitespace-nowrap ${isNumerico(c.tipo) ? 'text-right' : 'text-left'}`}>
+                      <th key={c.chave} className={`sticky top-0 z-10 bg-slate-800 px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-slate-300 whitespace-nowrap border-b-2 border-emerald-500/60 ${isNumerico(c.tipo) ? 'text-right' : 'text-left'}`}>
                         {c.rotulo}
                       </th>
                     ))}
@@ -284,27 +288,29 @@ export default function Relatorios() {
                       </td>
                     </tr>
                   ) : rel.linhas.map((l, idx) => (
-                    <tr key={idx} className="border-b border-slate-800/60 hover:bg-slate-800/40 transition">
-                      {rel.colunas.map((c) => (
-                        <td key={c.chave} className={`px-4 py-2.5 whitespace-nowrap ${isNumerico(c.tipo) ? 'text-right font-mono text-slate-300' : 'text-slate-300'}`}>
+                    <tr key={idx} className={idx % 2 ? 'bg-slate-800/30' : ''}>
+                      {rel.colunas.map((c, ci) => (
+                        <td key={c.chave} className={`px-4 py-2.5 whitespace-nowrap border-b border-slate-800/70 tabular-nums ${isNumerico(c.tipo) ? 'text-right text-slate-200' : ci === 0 ? 'text-white font-medium' : 'text-slate-300'}`}>
                           {fmtValor(l[c.chave], c.tipo)}
                         </td>
                       ))}
                     </tr>
                   ))}
-                  {rel.linhas.length > 0 && rel.totais && Object.keys(rel.totais).length > 0 && (
-                    <tr className="bg-slate-800/50 font-bold">
+                </tbody>
+                {rel.linhas.length > 0 && rel.totais && Object.keys(rel.totais).length > 0 && (
+                  <tfoot>
+                    <tr>
                       {rel.colunas.map((c) => {
                         const v = rel.totais[c.chave];
                         return (
-                          <td key={c.chave} className={`px-4 py-3 whitespace-nowrap ${isNumerico(c.tipo) ? 'text-right font-mono text-emerald-400' : 'text-xs uppercase tracking-wider text-emerald-400'}`}>
+                          <td key={c.chave} className={`sticky bottom-0 bg-slate-800 px-4 py-3 font-bold whitespace-nowrap border-t-2 border-emerald-500/60 tabular-nums ${isNumerico(c.tipo) ? 'text-right text-emerald-400' : 'text-xs uppercase tracking-wider text-emerald-400'}`}>
                             {v == null ? '' : typeof v === 'string' ? v : fmtValor(v, c.tipo)}
                           </td>
                         );
                       })}
                     </tr>
-                  )}
-                </tbody>
+                  </tfoot>
+                )}
               </table>
             </div>
           </div>
