@@ -137,17 +137,17 @@ function AppRoutes() {
         <aside
           style={{ background: '#1e293b', color: '#e5e7eb' }}
           className={`
-            ${collapsed ? 'lg:w-20' : 'lg:w-64'}
+            ${collapsed ? 'lg:w-24' : 'lg:w-72'}
             ${mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
             fixed lg:sticky top-0 left-0 z-50
-            w-[82vw] max-w-72 lg:max-w-none lg:w-auto h-screen flex flex-col
+            w-[85vw] max-w-80 lg:max-w-none shrink-0 h-screen flex flex-col
             transition-all duration-200
           `}
         >
-          <div className="flex items-center justify-between px-5 h-16" style={{ borderBottom: '1px solid #334155' }}>
+          <div className="flex items-center justify-between px-6 h-[72px]" style={{ borderBottom: '1px solid #334155' }}>
             <div className="flex items-center gap-4 min-w-0">
-              <Logo size={34} />
-              {!collapsed && <span className="text-lg font-bold tracking-tight" style={{ color: '#fff' }}>SIGFEC</span>}
+              <Logo size={40} />
+              {!collapsed && <span className="text-xl font-bold tracking-tight" style={{ color: '#fff' }}>SIGFEC</span>}
             </div>
             <button
               type="button"
@@ -158,18 +158,18 @@ function AppRoutes() {
             ><X size={22} /></button>
           </div>
 
-          <nav className="flex-1 overflow-y-auto py-4 px-3" aria-label="Menu principal">
+          <nav className="flex-1 overflow-y-auto py-5 px-4" aria-label="Menu principal">
             {SECTIONS.map((sec) => {
               const itemsAllowed = sec.items.filter((key) => canAccessModule(user?.perfilAcesso, key));
               if (!itemsAllowed.length) return null;
               return (
-                <div key={sec.label} className="mb-5">
+                <div key={sec.label} className="mb-6">
                   {!collapsed && (
-                    <p className="px-3 mb-1.5 text-[11px] font-bold uppercase tracking-[0.12em]" style={{ color: '#7c8aa0' }}>
+                    <p className="px-3 mb-2 text-xs font-bold uppercase tracking-[0.12em]" style={{ color: '#7c8aa0' }}>
                       {sec.label}
                     </p>
                   )}
-                  <div className="space-y-0.5">
+                  <div className="space-y-1">
                     {itemsAllowed.map((key) => (
                       <NavItem key={key} to={PATHS[key]} moduleKey={key}
                         currentPath={location.pathname} collapsed={collapsed} />
@@ -181,15 +181,15 @@ function AppRoutes() {
           </nav>
 
           <div style={{ borderTop: '1px solid #334155' }}>
-            <div className={`flex items-center gap-3 px-4 py-3 ${collapsed ? 'justify-center' : ''}`}>
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-bold"
+            <div className={`flex items-center gap-3 px-5 py-4 ${collapsed ? 'justify-center' : ''}`}>
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-base font-bold"
                 style={{ background: 'rgba(26,187,156,0.18)', color: '#1ABB9C', border: '1px solid rgba(26,187,156,0.35)' }}>
                 {(user.nome || user.login || 'U').charAt(0).toUpperCase()}
               </div>
               {!collapsed && (
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold truncate" style={{ color: '#f1f5f9' }}>{user.login || user.nome}</p>
-                  <p className="text-[11px] uppercase tracking-wider truncate" style={{ color: '#94a3b8' }}>
+                  <p className="text-[15px] font-semibold truncate" style={{ color: '#f1f5f9' }}>{user.login || user.nome}</p>
+                  <p className="text-xs uppercase tracking-wider truncate mt-0.5" style={{ color: '#94a3b8' }}>
                     {PERFIS[user.perfilAcesso] ?? user.perfilAcesso ?? 'Usuário'}
                   </p>
                 </div>
@@ -198,23 +198,23 @@ function AppRoutes() {
             <div className="flex" style={{ borderTop: '1px solid #334155' }}>
               <button
                 type="button" onClick={handleLogout}
-                className="flex-1 inline-flex items-center justify-center gap-2 px-3 py-3 text-sm font-medium transition"
+                className="flex-1 inline-flex items-center justify-center gap-2 px-3 py-3.5 text-[15px] font-medium transition"
                 style={{ color: '#cbd5e1' }}
                 onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(244,63,94,0.12)'; e.currentTarget.style.color = '#fda4af'; }}
                 onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#cbd5e1'; }}
               >
-                <LogOut size={17} />
+                <LogOut size={19} />
                 {!collapsed && <span>Sair</span>}
               </button>
               <button
                 type="button" onClick={() => setCollapsed((c) => !c)}
-                className="hidden lg:inline-flex items-center justify-center w-12 transition"
+                className="hidden lg:inline-flex items-center justify-center w-14 transition"
                 style={{ borderLeft: '1px solid #334155', color: '#94a3b8' }}
                 onMouseEnter={(e) => { e.currentTarget.style.background = '#334155'; e.currentTarget.style.color = '#fff'; }}
                 onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = '#94a3b8'; }}
                 title={collapsed ? 'Expandir' : 'Recolher'}
               >
-                {collapsed ? <ChevronRight size={17} /> : <ChevronLeft size={17} />}
+                {collapsed ? <ChevronRight size={19} /> : <ChevronLeft size={19} />}
               </button>
             </div>
           </div>
@@ -232,7 +232,7 @@ function AppRoutes() {
               boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
             }}
           >
-            <div className="flex items-center justify-between gap-4 px-4 sm:px-6 lg:px-8 h-16">
+            <div className="flex items-center justify-between gap-4 px-4 sm:px-6 lg:px-8 h-[72px]">
               <div className="flex items-center gap-4 min-w-0 flex-1">
                 <button
                   type="button" onClick={() => setMobileOpen(true)} aria-label="Abrir menu"
@@ -345,9 +345,9 @@ function NavItem({ to, moduleKey, currentPath, collapsed }) {
   const isActive = to === '/' ? currentPath === '/' : currentPath === to || currentPath.startsWith(`${to}/`);
 
   const base = {
-    display: 'flex', alignItems: 'center', gap: 12,
-    padding: collapsed ? '11px 0' : '9px 12px',
-    borderRadius: 8, fontSize: 14, fontWeight: 500,
+    display: 'flex', alignItems: 'center', gap: 14,
+    padding: collapsed ? '13px 0' : '11px 14px',
+    borderRadius: 9, fontSize: 15.5, fontWeight: 500,
     justifyContent: collapsed ? 'center' : 'flex-start',
     position: 'relative', transition: 'background 140ms, color 140ms',
     textDecoration: 'none',
@@ -371,7 +371,7 @@ function NavItem({ to, moduleKey, currentPath, collapsed }) {
           borderRadius: '0 4px 4px 0', background: '#1ABB9C',
         }} />
       )}
-      <Icon size={19} aria-hidden="true" style={{ flexShrink: 0, color: isActive ? '#1ABB9C' : '#94a3b8' }} />
+      <Icon size={21} aria-hidden="true" style={{ flexShrink: 0, color: isActive ? '#1ABB9C' : '#94a3b8' }} />
       {!collapsed && <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{m.label}</span>}
     </Link>
   );
