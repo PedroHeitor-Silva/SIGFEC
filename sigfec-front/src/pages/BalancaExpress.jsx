@@ -114,7 +114,7 @@ export default function BalancaExpress() {
         <div className="flex items-center gap-3 min-w-0">
           <Logo size={28} />
           <div className="min-w-0">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-400">Modo Express</p>
+            <p className="text-[11px] font-bold uppercase tracking-widest text-emerald-400">Modo Express</p>
             <p className="text-sm font-bold text-white truncate">Balança</p>
           </div>
         </div>
@@ -124,12 +124,12 @@ export default function BalancaExpress() {
           {(balanca.connected || balanca.mockMode) ? (
             <div className="flex items-center gap-2 rounded-md border border-emerald-500/30 bg-emerald-500/10 px-2.5 py-1.5">
               <Radio size={12} className="text-emerald-400 animate-pulse" />
-              <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-400">
+              <span className="text-[11px] font-bold uppercase tracking-widest text-emerald-400">
                 {balanca.mockMode ? 'Simulação' : 'Balança Ativa'}
               </span>
               <button type="button"
                 onClick={balanca.mockMode ? balanca.stopMock : balanca.disconnect}
-                className="text-[10px] text-slate-500 hover:text-rose-400 transition">
+                className="text-[11px] text-slate-500 hover:text-rose-400 transition">
                 ×
               </button>
             </div>
@@ -137,24 +137,24 @@ export default function BalancaExpress() {
             <div className="hidden sm:flex items-center gap-1.5">
               {balanca.supported && (
                 <button type="button" onClick={() => balanca.connect()}
-                  className="inline-flex items-center gap-1.5 rounded-md border border-slate-700 bg-slate-800 px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-400 hover:border-emerald-500/30 hover:text-emerald-400 transition"
+                  className="inline-flex items-center gap-1.5 rounded-md border border-slate-700 bg-slate-800 px-2.5 py-1.5 text-[11px] font-bold uppercase tracking-widest text-slate-400 hover:border-emerald-500/30 hover:text-emerald-400 transition"
                   title="Conectar balança via porta serial (Web Serial API)">
                   <Plug size={12} /> Conectar Balança
                 </button>
               )}
               <button type="button" onClick={balanca.startMock}
-                className="inline-flex items-center gap-1.5 rounded-md border border-slate-700 bg-slate-800 px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-400 hover:border-amber-500/30 hover:text-amber-400 transition"
+                className="inline-flex items-center gap-1.5 rounded-md border border-slate-700 bg-slate-800 px-2.5 py-1.5 text-[11px] font-bold uppercase tracking-widest text-slate-400 hover:border-amber-500/30 hover:text-amber-400 transition"
                 title="Simular leitura para demonstração">
                 <Zap size={12} /> Mock
               </button>
             </div>
           )}
           <div className="text-right">
-            <p className="text-[9px] sm:text-[10px] uppercase tracking-widest text-slate-500">Pesagens</p>
+            <p className="text-[11px] sm:text-[11px] uppercase tracking-widest text-slate-500">Pesagens</p>
             <p className="text-lg sm:text-2xl font-bold font-mono text-emerald-400">{savedCount}</p>
           </div>
           <div className="hidden md:block text-right">
-            <p className="text-[10px] uppercase tracking-widest text-slate-500">Horário</p>
+            <p className="text-[11px] uppercase tracking-widest text-slate-500">Horário</p>
             <p className="text-2xl font-bold font-mono text-white tabular-nums">
               {now.toLocaleTimeString('pt-BR')}
             </p>
@@ -196,20 +196,20 @@ export default function BalancaExpress() {
           {(balanca.connected || balanca.mockMode) && (
             <div className="hidden md:block rounded-xl border border-emerald-500/30 bg-slate-900/80 backdrop-blur p-4 min-w-[240px]">
               <div className="flex items-center justify-between mb-2">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-400 flex items-center gap-1.5">
+                <p className="text-[11px] font-bold uppercase tracking-widest text-emerald-400 flex items-center gap-1.5">
                   <PlugZap size={11} /> Leitura ao vivo
                 </p>
                 <label className="flex items-center gap-1.5 cursor-pointer">
                   <input type="checkbox" checked={autoFill} onChange={(e) => setAutoFill(e.target.checked)}
                     className="h-3 w-3 rounded border-slate-700 bg-slate-800 accent-emerald-500" />
-                  <span className="text-[9px] uppercase tracking-widest text-slate-500">Auto-fill</span>
+                  <span className="text-[11px] uppercase tracking-widest text-slate-500">Auto-fill</span>
                 </label>
               </div>
               <p className="text-4xl font-bold font-mono text-emerald-400 tabular-nums">
                 {balanca.weight.toFixed(2)}
                 <span className="text-sm text-slate-500 ml-1">kg</span>
               </p>
-              <p className="mt-2 text-[10px] text-slate-600">
+              <p className="mt-2 text-[11px] text-slate-600">
                 Modo: <span className="text-slate-400">{balanca.mockMode ? 'Simulação' : 'Serial (USB/RS-232)'}</span>
               </p>
             </div>
@@ -233,7 +233,7 @@ export default function BalancaExpress() {
                 <label className="flex items-center justify-between text-xs font-bold uppercase tracking-widest text-amber-400 mb-2">
                   <span>Peso Bruto (kg)</span>
                   {(balanca.connected || balanca.mockMode) && autoFill && (
-                    <span className="inline-flex items-center gap-1 text-[9px] text-emerald-400">
+                    <span className="inline-flex items-center gap-1 text-[11px] text-emerald-400">
                       <Radio size={9} className="animate-pulse" /> via balança
                     </span>
                   )}

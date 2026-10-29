@@ -10,11 +10,12 @@
   --color-slate-50:  #1e293b;
   --color-slate-100: #334155;
   --color-slate-200: #475569;
-  --color-slate-300: #64748b;
-  --color-slate-400: #94a3b8;
-  --color-slate-500: #94a3b8;
-  --color-slate-600: #d1d5db;
-  --color-slate-700: #e5e7eb;
+  /* 300→600 são textos secundários: tons com contraste ≥ 4,5:1 (300–500) e ≥ 3:1 (600) sobre branco */
+  --color-slate-300: #475569;
+  --color-slate-400: #556274;
+  --color-slate-500: #64748b;
+  --color-slate-600: #8492a6;
+  --color-slate-700: #e2e8f0;
   --color-slate-800: #eef2f6;
   --color-slate-900: #ffffff;
   --color-slate-950: #f5f7fa;
@@ -24,7 +25,7 @@
   --color-black: #1f2937;
 
   /* Acentos -400 (usados em ícones/labels) — versões corporativas, sem neon */
-  --color-emerald-400: #1ABB9C;
+  --color-emerald-400: #0e8f75; /* texto/ícone: teal da marca escurecido para ler no branco */
   --color-emerald-500: #1ABB9C;
   --color-emerald-600: #16a085;
   --color-sky-400:     #0369a1;
@@ -53,8 +54,8 @@
   --color-slate-200: #e2e8f0;
   --color-slate-300: #cbd5e1;
   --color-slate-400: #94a3b8;
-  --color-slate-500: #64748b;
-  --color-slate-600: #475569;
+  --color-slate-500: #8391a7; /* contraste ≥ 4,5:1 no fundo navy */
+  --color-slate-600: #5b6b82;
   --color-slate-700: #334155;
   --color-slate-800: #1e293b;
   --color-slate-900: #0f172a;
@@ -133,9 +134,9 @@ table tbody tr:hover { background-color: #f8fafc; }
 
 /* Autofill claro */
 input:-webkit-autofill, input:-webkit-autofill:hover, input:-webkit-autofill:focus {
-  -webkit-box-shadow: 0 0 0 1000px #ffffff inset !important;
-  -webkit-text-fill-color: #1f2937 !important;
-  caret-color: #1f2937;
+  -webkit-box-shadow: 0 0 0 1000px var(--sg-campo, #ffffff) inset !important;
+  -webkit-text-fill-color: var(--sg-texto, #1f2937) !important;
+  caret-color: var(--sg-texto, #1f2937);
 }
 
 /* === Utilities customizadas — estilo do Dashboard de referência === */
@@ -188,4 +189,102 @@ input:-webkit-autofill, input:-webkit-autofill:hover, input:-webkit-autofill:foc
     font-weight: 500;
     margin-bottom: 6px;
   }
+}
+
+/* =====================================================================
+ * DESIGN SYSTEM — fundação visual (tokens + controles + tabelas + foco)
+ * Regras fora de @layer: vencem as utilitárias do Tailwind e uniformizam
+ * todas as telas sem alterar a marcação/lógica de cada página.
+ * ===================================================================== */
+:root {
+  --sg-primaria: #1ABB9C;
+  --sg-primaria-forte: #16a085;
+  --sg-texto: #1f2937;
+  --sg-texto-2: #475569;
+  --sg-texto-3: #64748b;
+  --sg-placeholder: #8a96a8;
+  --sg-campo: #ffffff;
+  --sg-campo-borda: #cfd8e3;
+  --sg-campo-borda-hover: #aab6c6;
+  --sg-campo-desab: #f1f4f8;
+  --sg-thead: #f6f8fb;
+  --sg-thead-texto: #556274;
+  --sg-linha: #e8edf3;
+  --sg-foco: rgba(26, 187, 156, 0.35);
+}
+:root[data-theme="dark"] {
+  --sg-texto: #f1f5f9;
+  --sg-texto-2: #cbd5e1;
+  --sg-texto-3: #94a3b8;
+  --sg-placeholder: #6b7a90;
+  --sg-campo: #0b1324;
+  --sg-campo-borda: #2c3a50;
+  --sg-campo-borda-hover: #3e4f69;
+  --sg-campo-desab: #141d2e;
+  --sg-thead: #131c2d;
+  --sg-thead-texto: #94a3b8;
+  --sg-linha: #1c2638;
+  --sg-foco: rgba(52, 211, 153, 0.35);
+}
+
+/* ---------- Campos de formulário: um único padrão ---------- */
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="color"]):not([type="hidden"]):not([id^="react-select"]):not(.bg-transparent):not(.sg-livre),
+select:not(.bg-transparent):not(.sg-livre),
+textarea:not(.bg-transparent):not(.sg-livre) {
+  background-color: var(--sg-campo);
+  border: 1px solid var(--sg-campo-borda);
+  color: var(--sg-texto);
+  border-radius: 8px;
+}
+input:not([type="checkbox"]):not([type="radio"]):not([id^="react-select"]):not(.bg-transparent):not(.sg-livre):hover:not(:disabled):not(:focus),
+select:not(.bg-transparent):not(.sg-livre):hover:not(:disabled):not(:focus),
+textarea:not(.bg-transparent):not(.sg-livre):hover:not(:disabled):not(:focus) {
+  border-color: var(--sg-campo-borda-hover);
+}
+input:not([type="checkbox"]):not([type="radio"]):not([id^="react-select"]):not(.bg-transparent):not(.sg-livre):focus,
+select:not(.bg-transparent):not(.sg-livre):focus,
+textarea:not(.bg-transparent):not(.sg-livre):focus {
+  border-color: var(--sg-primaria);
+  box-shadow: 0 0 0 3px var(--sg-foco);
+  outline: none;
+}
+input:disabled:not([type="checkbox"]):not([type="radio"]), select:disabled, textarea:disabled,
+input[readonly]:not([type="checkbox"]):not([type="radio"]) {
+  background-color: var(--sg-campo-desab);
+  color: var(--sg-texto-3);
+  cursor: not-allowed;
+}
+input::placeholder, textarea::placeholder { color: var(--sg-placeholder); opacity: 1; }
+:root[data-theme="dark"] input[type="date"], :root[data-theme="dark"] input[type="time"],
+:root[data-theme="dark"] input[type="datetime-local"] { color-scheme: dark; }
+:root[data-theme="dark"] select option { background: #0f172a; color: #f1f5f9; }
+input[type="checkbox"], input[type="radio"] { accent-color: var(--sg-primaria); width: 16px; height: 16px; }
+
+/* ---------- Foco de teclado sempre visível ---------- */
+:is(a, button, [role="button"], [tabindex]:not([tabindex="-1"]), summary):focus-visible {
+  outline: 2px solid var(--sg-primaria);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+/* ---------- Tabelas: cabeçalho legível e linhas com divisória discreta ---------- */
+table thead th {
+  background-color: var(--sg-thead);
+  color: var(--sg-thead-texto);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+table tbody td { border-color: var(--sg-linha); }
+table tbody tr + tr td { border-top-color: var(--sg-linha); }
+
+/* ---------- Barra de rolagem no tema escuro ---------- */
+:root[data-theme="dark"] ::-webkit-scrollbar-thumb { background: #334155; background-clip: padding-box; border: 2px solid transparent; }
+:root[data-theme="dark"] ::-webkit-scrollbar-thumb:hover { background: #475569; background-clip: padding-box; border: 2px solid transparent; }
+
+/* ---------- Movimento reduzido (acessibilidade) ---------- */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }

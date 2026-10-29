@@ -168,7 +168,7 @@ export default function FilaPatio() {
           <div className="flex h-12 w-14 shrink-0 flex-col items-center justify-center rounded-lg bg-slate-800 font-mono text-sm font-bold text-emerald-400">
             {senhaFmt(e.senhaDiaria)}
             {e.dataReferencia && e.dataReferencia !== hoje && (
-              <span className="text-[9px] font-semibold text-amber-400">
+              <span className="text-[11px] font-semibold text-amber-400">
                 {e.dataReferencia.split('-').reverse().slice(0, 2).join('/')}
               </span>
             )}

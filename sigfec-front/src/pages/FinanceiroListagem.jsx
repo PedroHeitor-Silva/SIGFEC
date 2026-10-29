@@ -148,7 +148,7 @@ export default function FinanceiroListagem() {
           <button
             type="button"
             onClick={() => navigate('/financeiro/novo')}
-            className="inline-flex items-center gap-2 rounded-lg bg-lime-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-lime-500 transition shadow-lg shadow-lime-900/40"
+            className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-500 transition"
           >
             <Plus size={15} /> Novo Lançamento
           </button>
@@ -255,7 +255,7 @@ export default function FinanceiroListagem() {
                       : 'Registre contas a pagar (fornecedores) ou a receber (clientes).'}
                     action={aba === 'ABERTO' && (
                       <button type="button" onClick={() => navigate('/financeiro/novo')}
-                        className="inline-flex items-center gap-2 rounded-lg bg-lime-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-lime-500 transition">
+                        className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-500 transition">
                         <Plus size={15} /> Novo Lançamento
                       </button>
                     )}
@@ -271,7 +271,7 @@ export default function FinanceiroListagem() {
                     <tr key={t.id} className="border-b border-slate-800/60 hover:bg-slate-800/40 transition">
                       <td className="px-4 py-3 text-slate-500 text-xs font-mono">#{t.id}</td>
                       <td className="px-4 py-3">
-                        <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${tipo === 'PAGAR' ? 'bg-rose-500/10 text-rose-400' : 'bg-emerald-500/10 text-emerald-400'}`}>
+                        <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-bold uppercase ${tipo === 'PAGAR' ? 'bg-rose-500/10 text-rose-400' : 'bg-emerald-500/10 text-emerald-400'}`}>
                           {tipo === 'PAGAR' ? <TrendingDown size={9} /> : <TrendingUp size={9} />}
                           {tipo}
                         </span>
@@ -283,7 +283,7 @@ export default function FinanceiroListagem() {
                         <>
                           <td className="px-4 py-3 text-slate-300 font-mono">{fmtData(t.dataPagamento)}</td>
                           <td className="px-4 py-3">
-                            <span className="inline-flex rounded-full bg-slate-800 border border-slate-700 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                            <span className="inline-flex rounded-full bg-slate-800 border border-slate-700 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">
                               {t.formaPagamento || '—'}
                             </span>
                           </td>

@@ -5,6 +5,7 @@ import api from '../services/api';
 import { ModuleHeader } from '../theme/modules.jsx';
 import EmptyState from '../components/EmptyState';
 import Tooltip from '../components/Tooltip';
+import BotaoAcao from '../components/BotaoAcao';
 import { TableSkeleton } from '../components/Skeleton';
 import { printLaudoLaboratorio } from '../utils/printDoc';
 import { exportCSV } from '../utils/csv';
@@ -66,7 +67,7 @@ export default function LaboratorioLista() {
             <button
               type="button"
               onClick={() => navigate('/laboratorio/novo')}
-              className="inline-flex items-center gap-2 rounded-lg bg-fuchsia-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-fuchsia-500 transition shadow-lg shadow-fuchsia-900/40"
+              className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-500 transition"
             >
               <Plus size={15} /> Nova Análise
             </button>
@@ -98,7 +99,7 @@ export default function LaboratorioLista() {
                     description="Emita o primeiro laudo após uma pesagem para medir a renda da carga."
                     action={
                       <button type="button" onClick={() => navigate('/laboratorio/novo')}
-                        className="inline-flex items-center gap-2 rounded-lg bg-fuchsia-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-fuchsia-500 transition">
+                        className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-500 transition">
                         <Plus size={15} /> Nova Análise
                       </button>
                     }
@@ -133,11 +134,8 @@ export default function LaboratorioLista() {
                       <td className="px-5 py-4 text-slate-500 font-mono">#{item.pesagem?.id || '—'}</td>
                       <td className="px-5 py-4">
                         <Tooltip label="Imprimir laudo">
-                          <button type="button" onClick={() => printLaudoLaboratorio(item)}
-                            className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:text-fuchsia-400 hover:bg-fuchsia-500/10 transition">
-                            <Printer size={14} />
-                          </button>
-                        </Tooltip>
+                              <BotaoAcao icon={Printer} label="Imprimir laudo" cor="roxo" soIcone dicaNativa={false} onClick={() => printLaudoLaboratorio(item)} />
+                            </Tooltip>
                       </td>
                     </tr>
                   );

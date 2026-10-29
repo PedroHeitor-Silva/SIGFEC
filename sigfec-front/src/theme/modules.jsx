@@ -89,16 +89,13 @@ export function moduleFromPath(pathname) {
 export function ModuleHeader({ moduleKey, title, subtitle, action }) {
   const m = MODULES[moduleKey] || MODULES.dashboard;
   return (
-    <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between mb-6">
-      <div>
-        <p className="text-[11px] font-semibold uppercase tracking-[0.15em] text-slate-400">
-          {m.section} <span className="mx-1.5 text-slate-300">/</span>
-          <span className="text-slate-500">{m.label}</span>
-        </p>
-        <h1 className="mt-1 text-2xl sm:text-3xl font-bold text-white tracking-tight">{title}</h1>
-        {subtitle && <p className="mt-1 text-sm text-slate-500">{subtitle}</p>}
+    // A seção/módulo já aparece no cabeçalho fixo; aqui fica só o título da página, a descrição e as ações.
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6 pb-5 border-b border-slate-800">
+      <div className="min-w-0">
+        <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight leading-tight" title={`${m.section} / ${m.label}`}>{title}</h1>
+        {subtitle && <p className="mt-1 text-sm text-slate-400 max-w-3xl">{subtitle}</p>}
       </div>
-      {action && <div className="flex items-center gap-2">{action}</div>}
+      {action && <div className="flex flex-wrap items-center gap-2 shrink-0">{action}</div>}
     </div>
   );
 }

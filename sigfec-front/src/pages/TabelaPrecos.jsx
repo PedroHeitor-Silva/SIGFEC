@@ -9,6 +9,7 @@ import api from '../services/api';
 import { ModuleHeader } from '../theme/modules.jsx';
 import { confirm } from '../components/ConfirmDialog';
 import Tooltip from '../components/Tooltip';
+import BotaoAcao from '../components/BotaoAcao';
 import EmptyState from '../components/EmptyState';
 import { isoHoje } from '../utils/relatorio';
 
@@ -143,18 +144,18 @@ export default function TabelaPrecos() {
         {selectedProduto && (
           <div className="mt-5 grid sm:grid-cols-3 gap-4">
             <div className="rounded-lg border border-slate-800 bg-slate-800/50 p-4">
-              <p className="text-[10px] uppercase tracking-widest text-slate-500">Preço Base (fallback)</p>
+              <p className="text-[11px] uppercase tracking-widest text-slate-500">Preço Base (fallback)</p>
               <p className="text-xl font-bold font-mono text-slate-300 mt-1">{fmtMoney(selectedProduto.precoBase)}</p>
             </div>
             <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-4">
-              <p className="text-[10px] uppercase tracking-widest text-emerald-400">Valor Vigente Hoje</p>
+              <p className="text-[11px] uppercase tracking-widest text-emerald-400">Valor Vigente Hoje</p>
               <p className="text-xl font-bold font-mono text-emerald-400 mt-1">{fmtMoney(valorVigente)}</p>
-              <p className="text-[10px] text-slate-500 mt-1">{tabelaVigente ? 'Da tabela' : 'Preço base do produto'}</p>
+              <p className="text-[11px] text-slate-500 mt-1">{tabelaVigente ? 'Da tabela' : 'Preço base do produto'}</p>
             </div>
             <div className="rounded-lg border border-slate-800 bg-slate-800/50 p-4">
-              <p className="text-[10px] uppercase tracking-widest text-slate-500">Histórico</p>
+              <p className="text-[11px] uppercase tracking-widest text-slate-500">Histórico</p>
               <p className="text-xl font-bold font-mono text-white mt-1">{tabelas.length}</p>
-              <p className="text-[10px] text-slate-500 mt-1">períodos cadastrados</p>
+              <p className="text-[11px] text-slate-500 mt-1">períodos cadastrados</p>
             </div>
           </div>
         )}
@@ -233,7 +234,7 @@ export default function TabelaPrecos() {
                           <div className="flex items-center gap-2 mb-1">
                             <p className="text-2xl font-bold font-mono text-white">{fmtMoney(t.valor)}</p>
                             {vigente && (
-                              <span className="rounded-full bg-emerald-500/20 text-emerald-400 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider">
+                              <span className="rounded-full bg-emerald-500/20 text-emerald-400 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider">
                                 Vigente
                               </span>
                             )}
@@ -249,11 +250,8 @@ export default function TabelaPrecos() {
                           )}
                         </div>
                         <Tooltip label="Excluir">
-                          <button type="button" onClick={() => handleDelete(t.id)}
-                            className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition">
-                            <Trash2 size={13} />
-                          </button>
-                        </Tooltip>
+                              <BotaoAcao icon={Trash2} label="Excluir" cor="vermelho" soIcone dicaNativa={false} onClick={() => handleDelete(t.id)} />
+                            </Tooltip>
                       </div>
                     </div>
                   );

@@ -10,7 +10,7 @@ import api from '../services/api';
 import { pesoFromNumber, maskPlaca, maskPeso, unmaskInteiro } from '../utils/masks';
 import { getSelectStyles, selectMenuProps } from '../theme/selectStyles';
 
-const inputCls = 'mt-2 w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-3 text-lg text-white placeholder:text-slate-500 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/20 transition font-mono';
+const inputCls = 'mt-2 w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-3 text-xl font-bold text-white tabular-nums placeholder:text-slate-500 placeholder:font-normal outline-none transition font-mono'; // pesos: grandes para conferência rápida
 const labelCls = 'text-xs font-bold uppercase tracking-wider text-slate-400';
 
 const numPesagem = (n) => `PES-${String(n).padStart(6, '0')}`;
@@ -202,7 +202,7 @@ export default function TelaPesagem() {
               <Activity size={12} /> Aguardando integração
             </span>
             <button type="button" onClick={capturarPeso}
-              className="inline-flex items-center gap-2 rounded-lg bg-amber-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-amber-500 active:scale-95 transition">
+              className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-emerald-500 active:scale-95 transition">
               <Crosshair size={15} /> Capturar Peso
             </button>
           </div>
@@ -296,7 +296,7 @@ export default function TelaPesagem() {
 
           {/* Peso Final destacado */}
           <div className="mt-4 rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-400">Peso Final</p>
+            <p className="text-[11px] font-bold uppercase tracking-widest text-emerald-400">Peso Final</p>
             <p className="text-3xl font-black text-white font-mono tracking-tight mt-1">{pesoFromNumber(pesoFinal)}</p>
           </div>
 

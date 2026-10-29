@@ -139,7 +139,7 @@ export default function CommandPalette() {
                 placeholder="Buscar páginas, ações, parceiros..."
                 className="flex-1 bg-transparent text-sm text-white placeholder:text-slate-500 outline-none"
               />
-              <kbd className="hidden sm:inline-flex items-center rounded border border-slate-700 bg-slate-800 px-1.5 py-0.5 text-[10px] font-mono text-slate-400">
+              <kbd className="hidden sm:inline-flex items-center rounded border border-slate-700 bg-slate-800 px-1.5 py-0.5 text-[11px] font-mono text-slate-400">
                 Esc
               </kbd>
             </div>
@@ -167,11 +167,11 @@ export default function CommandPalette() {
                         <p className="text-sm font-medium text-white truncate">{r.label}</p>
                         {r.sub && <p className="text-[11px] text-slate-500 font-mono truncate">{r.sub}</p>}
                       </div>
-                      <span className="text-[10px] uppercase tracking-wider text-slate-600">
+                      <span className="text-[11px] uppercase tracking-wider text-slate-600">
                         {r.type === 'parceiro' ? 'Parceiro' : r.type === 'action' ? 'Ação' : 'Página'}
                       </span>
                       {r.kbd && (
-                        <kbd className="rounded border border-slate-700 bg-slate-800 px-1.5 py-0.5 text-[10px] font-mono text-slate-400">
+                        <kbd className="rounded border border-slate-700 bg-slate-800 px-1.5 py-0.5 text-[11px] font-mono text-slate-400">
                           {r.kbd}
                         </kbd>
                       )}
@@ -182,7 +182,7 @@ export default function CommandPalette() {
               )}
             </div>
 
-            <div className="flex items-center justify-between px-4 py-2 border-t border-slate-800 bg-slate-950/50 text-[10px] text-slate-600">
+            <div className="flex items-center justify-between px-4 py-2 border-t border-slate-800 bg-slate-950/50 text-[11px] text-slate-600">
               <div className="flex items-center gap-3">
                 <span className="flex items-center gap-1">
                   <kbd className="rounded border border-slate-700 px-1">↑↓</kbd> navegar

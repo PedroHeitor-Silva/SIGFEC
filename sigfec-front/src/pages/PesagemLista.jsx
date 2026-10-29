@@ -12,6 +12,7 @@ import { ModuleHeader } from '../theme/modules.jsx';
 import { confirm } from '../components/ConfirmDialog';
 import EmptyState from '../components/EmptyState';
 import Tooltip from '../components/Tooltip';
+import BotaoAcao from '../components/BotaoAcao';
 import { TableSkeleton } from '../components/Skeleton';
 import { printTicketPesagem } from '../utils/printDoc';
 import { exportCSV } from '../utils/csv';
@@ -137,7 +138,7 @@ export default function PesagemLista() {
               <Download size={15} /> CSV
             </button>
             <button type="button" onClick={() => navigate('/pesagem/mandioca')}
-              className="inline-flex items-center gap-2 rounded-lg bg-amber-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-amber-500 transition shadow-lg shadow-amber-900/40">
+              className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-500 transition">
               <Plus size={15} /> Nova Pesagem
             </button>
           </div>
@@ -158,7 +159,7 @@ export default function PesagemLista() {
               {[['TODOS', 'Todos'], ['DISPONIVEL', 'Disponíveis'], ['CONSUMIDA', 'Consumidas']].map(([k, l]) => (
                 <button key={k} type="button" onClick={() => setFiltroSituacao(k)}
                   className={`px-3 py-1.5 rounded-md text-xs font-bold uppercase tracking-wider transition ${
-                    filtroSituacao === k ? 'bg-amber-600 text-white' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
+                    filtroSituacao === k ? 'bg-emerald-600 text-white' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
                   }`}>{l}</button>
               ))}
             </div>
@@ -194,7 +195,7 @@ export default function PesagemLista() {
                     description="Comece registrando a primeira carga que chega no pátio da fecularia."
                     action={
                       <button type="button" onClick={() => navigate('/pesagem/mandioca')}
-                        className="inline-flex items-center gap-2 rounded-lg bg-amber-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-amber-500 transition">
+                        className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-500 transition">
                         <Plus size={15} /> Nova Pesagem
                       </button>
                     }
@@ -214,28 +215,19 @@ export default function PesagemLista() {
                       <td className="px-4 py-3 text-slate-400 font-mono text-xs">{item.percentualImpureza != null ? `${item.percentualImpureza}%` : '—'}</td>
                       <td className="px-4 py-3 font-mono font-bold text-emerald-400">{fmtPeso(item.pesoFinal)}</td>
                       <td className="px-4 py-3">
-                        <span className={`inline-flex rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${sit.cls}`}>{sit.label}</span>
+                        <span className={`inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider ${sit.cls}`}>{sit.label}</span>
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex gap-1">
                           <Tooltip label="Ver detalhes">
-                            <button type="button" onClick={() => setDetalhe(item)}
-                              className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:text-sky-400 hover:bg-sky-500/10 transition">
-                              <Eye size={14} />
-                            </button>
-                          </Tooltip>
+                              <BotaoAcao icon={Eye} label="Ver detalhes" cor="azul" soIcone dicaNativa={false} onClick={() => setDetalhe(item)} />
+                            </Tooltip>
                           <Tooltip label="Imprimir comprovante">
-                            <button type="button" onClick={() => printTicketPesagem(item)}
-                              className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:text-emerald-400 hover:bg-emerald-500/10 transition">
-                              <Printer size={14} />
-                            </button>
-                          </Tooltip>
+                              <BotaoAcao icon={Printer} label="Imprimir comprovante" cor="verde" soIcone dicaNativa={false} onClick={() => printTicketPesagem(item)} />
+                            </Tooltip>
                           <Tooltip label="Excluir pesagem">
-                            <button type="button" onClick={() => handleDelete(item.id)} disabled={deletingId === item.id}
-                              className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:text-red-400 hover:bg-red-500/10 disabled:opacity-40 transition">
-                              <Trash2 size={14} />
-                            </button>
-                          </Tooltip>
+                              <BotaoAcao icon={Trash2} label="Excluir pesagem" cor="vermelho" soIcone dicaNativa={false} disabled={deletingId === item.id} onClick={() => handleDelete(item.id)} />
+                            </Tooltip>
                         </div>
                       </td>
                     </tr>

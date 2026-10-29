@@ -191,7 +191,7 @@ export default function VendaLista() {
                       <td className="px-4 py-3 text-slate-400 font-mono">{(v.itens || []).length}</td>
                       <td className="px-4 py-3 text-emerald-400 font-mono font-bold">{fmtMoeda(v.valorTotal)}</td>
                       <td className="px-4 py-3">
-                        <span className={`inline-flex rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${STATUS_BADGE[st]}`}>
+                        <span className={`inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider ${STATUS_BADGE[st]}`}>
                           {st}
                         </span>
                       </td>

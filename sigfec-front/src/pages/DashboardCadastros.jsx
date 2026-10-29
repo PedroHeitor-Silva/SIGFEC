@@ -10,31 +10,31 @@ const CARDS = [
     id: 'parceiros', label: 'Parceiros', icon: Users,
     desc: 'Produtores, fornecedores e clientes',
     listPath: '/parceiros', newPath: '/parceiros/novo', endpoint: '/parceiros',
-    accent: { bg: 'bg-cyan-500/10', border: 'border-cyan-500/30', text: 'text-cyan-400', button: 'bg-cyan-600 hover:bg-cyan-500' },
+    accent: { bg: 'bg-cyan-500/10', border: 'border-cyan-500/30', text: 'text-cyan-400', button: 'bg-emerald-600 hover:bg-emerald-500' },
   },
   {
     id: 'motoristas', label: 'Motoristas', icon: IdCard,
     desc: 'Condutores vinculados ao transporte',
     listPath: '/motoristas', newPath: '/motoristas/novo', endpoint: '/motoristas',
-    accent: { bg: 'bg-sky-500/10', border: 'border-sky-500/30', text: 'text-sky-400', button: 'bg-sky-600 hover:bg-sky-500' },
+    accent: { bg: 'bg-sky-500/10', border: 'border-sky-500/30', text: 'text-sky-400', button: 'bg-emerald-600 hover:bg-emerald-500' },
   },
   {
     id: 'veiculos', label: 'Veículos', icon: Truck,
     desc: 'Frota própria e de terceiros',
     listPath: '/veiculos', newPath: '/veiculos/novo', endpoint: '/veiculos',
-    accent: { bg: 'bg-amber-500/10', border: 'border-amber-500/30', text: 'text-amber-400', button: 'bg-amber-600 hover:bg-amber-500' },
+    accent: { bg: 'bg-amber-500/10', border: 'border-amber-500/30', text: 'text-amber-400', button: 'bg-emerald-600 hover:bg-emerald-500' },
   },
   {
     id: 'produtos', label: 'Produtos', icon: Package,
     desc: 'Amidos, derivados e matérias-primas',
     listPath: '/produtos', newPath: '/produtos/novo', endpoint: '/produtos',
-    accent: { bg: 'bg-fuchsia-500/10', border: 'border-fuchsia-500/30', text: 'text-fuchsia-400', button: 'bg-fuchsia-600 hover:bg-fuchsia-500' },
+    accent: { bg: 'bg-fuchsia-500/10', border: 'border-fuchsia-500/30', text: 'text-fuchsia-400', button: 'bg-emerald-600 hover:bg-emerald-500' },
   },
   {
     id: 'usuarios', label: 'Usuários', icon: UserCog,
     desc: 'Controle de acesso ao sistema',
     listPath: '/usuarios', newPath: '/usuarios/novo', endpoint: '/usuarios',
-    accent: { bg: 'bg-rose-500/10', border: 'border-rose-500/30', text: 'text-rose-400', button: 'bg-rose-600 hover:bg-rose-500' },
+    accent: { bg: 'bg-rose-500/10', border: 'border-rose-500/30', text: 'text-rose-400', button: 'bg-emerald-600 hover:bg-emerald-500' },
   },
 ];
 
@@ -82,7 +82,7 @@ export default function DashboardCadastros() {
                     <p className="text-3xl font-bold text-white tabular-nums">
                       {count === undefined ? '—' : count}
                     </p>
-                    <p className="text-[10px] uppercase tracking-widest text-slate-500">registros</p>
+                    <p className="text-[11px] uppercase tracking-widest text-slate-500">registros</p>
                   </div>
                 </div>
 

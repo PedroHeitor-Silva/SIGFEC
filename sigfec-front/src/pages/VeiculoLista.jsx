@@ -21,7 +21,7 @@ export default function VeiculoLista() {
         {
           label: 'Tipo',
           render: (v) => v.tipoVeiculo
-            ? <span className="inline-flex rounded-full bg-slate-800 border border-slate-700 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">{TIPO_LABEL[v.tipoVeiculo] || v.tipoVeiculo}</span>
+            ? <span className="inline-flex rounded-full bg-slate-800 border border-slate-700 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">{TIPO_LABEL[v.tipoVeiculo] || v.tipoVeiculo}</span>
             : <span className="text-slate-600">—</span>,
         },
         { label: 'Eixos', render: (v) => v.eixos ?? '—', mono: true, accent: 'text-slate-400' },

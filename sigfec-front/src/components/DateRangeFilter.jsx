@@ -51,7 +51,7 @@ export default function DateRangeFilter({ from, to, onChange }) {
             key={p.label}
             type="button"
             onClick={() => apply(p.days)}
-            className="px-2.5 py-1.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white transition"
+            className="px-2.5 py-1.5 rounded-md text-[11px] font-bold uppercase tracking-wider bg-slate-800 text-slate-400 hover:bg-slate-700 hover:text-white transition"
           >
             {p.label}
           </button>

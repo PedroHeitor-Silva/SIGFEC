@@ -36,7 +36,7 @@ export default function ProdutoLista() {
           render: (p) => {
             const c = CATEGORIAS[p.categoria] || { label: p.categoria || '-', badge: 'bg-slate-700 text-slate-400' };
             return (
-              <span className={`inline-flex rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${c.badge}`}>
+              <span className={`inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider ${c.badge}`}>
                 {c.label}
               </span>
             );
@@ -45,7 +45,7 @@ export default function ProdutoLista() {
         {
           label: 'Unidade',
           render: (p) => (
-            <span className="inline-flex rounded-md bg-slate-800 border border-slate-700 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+            <span className="inline-flex rounded-md bg-slate-800 border border-slate-700 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">
               {unidadeNome(p.unidadeMedida)}
             </span>
           ),

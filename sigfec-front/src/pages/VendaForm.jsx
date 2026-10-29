@@ -177,7 +177,7 @@ export default function VendaForm() {
                 </label>
                 <div className="sm:col-span-1">
                   <button type="button" onClick={addItem}
-                    className="w-full h-12 mt-2 inline-flex items-center justify-center rounded-lg bg-amber-600 text-white hover:bg-amber-500 transition"
+                    className="w-full h-12 mt-2 inline-flex items-center justify-center rounded-lg bg-emerald-600 text-white hover:bg-emerald-500 transition"
                     title="Adicionar item">
                     <Plus size={18} />
                   </button>
@@ -204,7 +204,7 @@ export default function VendaForm() {
                 <thead>
                   <tr className="border-b border-slate-800 bg-slate-800/50">
                     {['Produto', 'Qtd', 'Valor Unit.', 'Subtotal', ''].map((h) => (
-                      <th key={h} className="px-5 py-2.5 text-left text-[10px] font-bold uppercase tracking-wider text-slate-500">{h}</th>
+                      <th key={h} className="px-5 py-2.5 text-left text-[11px] font-bold uppercase tracking-wider text-slate-500">{h}</th>
                     ))}
                   </tr>
                 </thead>
@@ -245,7 +245,7 @@ export default function VendaForm() {
                 </span>
               </div>
               <div className="mt-4 rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-4">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-400 mb-1">Valor Total</p>
+                <p className="text-[11px] font-bold uppercase tracking-widest text-emerald-400 mb-1">Valor Total</p>
                 <p className="text-3xl font-bold font-mono text-white">{fmtMoeda(valorTotal)}</p>
               </div>
             </div>
@@ -253,7 +253,7 @@ export default function VendaForm() {
               className="mt-6 w-full inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-600 py-3 text-sm font-bold text-white hover:bg-emerald-500 disabled:opacity-50 transition shadow-lg shadow-emerald-900/40">
               <Save size={15} /> {saving ? 'Salvando...' : 'Registrar Venda'}
             </button>
-            <p className="mt-2 text-[10px] text-slate-600 text-center">
+            <p className="mt-2 text-[11px] text-slate-600 text-center">
               Salva como orçamento. Confirme depois para baixar estoque e gerar cobrança.
             </p>
           </div>

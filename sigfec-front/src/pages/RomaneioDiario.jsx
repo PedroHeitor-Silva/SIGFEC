@@ -119,7 +119,7 @@ export default function RomaneioDiario() {
               <Download size={15} /> CSV
             </button>
             <button type="button" onClick={handlePrint} disabled={!doDia.length}
-              className="inline-flex items-center gap-2 rounded-lg bg-amber-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-amber-500 disabled:opacity-50 transition shadow-lg shadow-amber-900/40">
+              className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-500 disabled:opacity-50 transition">
               <Printer size={15} /> Imprimir Romaneio
             </button>
           </div>
@@ -153,7 +153,7 @@ export default function RomaneioDiario() {
         </div>
 
         <div className="text-right">
-          <p className="text-[10px] uppercase tracking-widest text-slate-500">Cargas no dia</p>
+          <p className="text-[11px] uppercase tracking-widest text-slate-500">Cargas no dia</p>
           <p className="text-2xl font-bold font-mono text-amber-400">{loading ? '—' : doDia.length}</p>
         </div>
       </div>
@@ -278,13 +278,13 @@ function Kpi({ icon: Icon, accent, label, value, sub }) {
   return (
     <div className="rounded-xl border border-slate-800 bg-slate-900 p-5">
       <div className="flex items-start justify-between mb-3">
-        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">{label}</p>
+        <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500">{label}</p>
         <div className={`p-1.5 rounded-md border ${A}`}>
           <Icon size={13} />
         </div>
       </div>
       <p className="text-2xl font-bold text-white font-mono tabular-nums">{value}</p>
-      <p className="text-[10px] uppercase tracking-wider text-slate-600 mt-1">{sub}</p>
+      <p className="text-[11px] uppercase tracking-wider text-slate-600 mt-1">{sub}</p>
     </div>
   );
 }

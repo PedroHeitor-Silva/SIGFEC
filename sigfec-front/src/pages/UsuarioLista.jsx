@@ -9,6 +9,7 @@ import { ModuleHeader } from '../theme/modules.jsx';
 import { confirm } from '../components/ConfirmDialog';
 import EmptyState from '../components/EmptyState';
 import Tooltip from '../components/Tooltip';
+import BotaoAcao from '../components/BotaoAcao';
 import { TableSkeleton } from '../components/Skeleton';
 import EditModal from '../components/EditModal';
 import PermissoesModal from '../components/PermissoesModal';
@@ -108,7 +109,7 @@ export default function UsuarioLista() {
         subtitle={`${totais.total} usuário(s) — ${totais.ativos} ativo(s), ${totais.inativos} inativo(s)`}
         action={
           <button type="button" onClick={() => navigate('/usuarios/novo')}
-            className="inline-flex items-center gap-2 rounded-lg bg-rose-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-rose-500 transition shadow-lg shadow-rose-900/40">
+            className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-500 transition">
             <Plus size={15} /> Novo Usuário
           </button>
         }
@@ -168,7 +169,7 @@ export default function UsuarioLista() {
                       <td className="px-5 py-4 text-slate-400 text-xs">{u.email || '—'}</td>
                       <td className="px-5 py-4">
                         {perfil ? (
-                          <span className={`inline-flex rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${perfil.cls}`}>
+                          <span className={`inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider ${perfil.cls}`}>
                             {perfil.label}
                           </span>
                         ) : <span className="text-xs text-slate-600">—</span>}
@@ -190,33 +191,17 @@ export default function UsuarioLista() {
                       <td className="px-5 py-4">
                         <div className="flex gap-1">
                           <Tooltip label={u.statusAtivo ? 'Desativar' : 'Ativar'}>
-                            <button type="button" onClick={() => toggleAtivo(u)}
-                              className={`inline-flex h-8 w-8 items-center justify-center rounded-lg transition ${
-                                u.statusAtivo
-                                  ? 'text-amber-400 hover:bg-amber-500/10'
-                                  : 'text-emerald-400 hover:bg-emerald-500/10'
-                              }`}>
-                              <Power size={14} />
-                            </button>
-                          </Tooltip>
+                              <BotaoAcao icon={Power} label={u.statusAtivo ? 'Desativar' : 'Ativar'} cor="azul" soIcone dicaNativa={false} onClick={() => toggleAtivo(u)} />
+                            </Tooltip>
                           <Tooltip label="Editar (perfil, dados, senha)">
-                            <button type="button" onClick={() => setEditing(u)}
-                              className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition">
-                              <Edit2 size={14} />
-                            </button>
-                          </Tooltip>
+                              <BotaoAcao icon={Edit2} label="Editar (perfil, dados, senha)" cor="azul" soIcone dicaNativa={false} onClick={() => setEditing(u)} />
+                            </Tooltip>
                           <Tooltip label="Permissões granulares (liberar/negar ações)">
-                            <button type="button" onClick={() => setPermUser(u)}
-                              className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 transition">
-                              <Shield size={14} />
-                            </button>
-                          </Tooltip>
+                              <BotaoAcao icon={Shield} label="Permissões granulares (liberar/negar ações)" cor="roxo" soIcone dicaNativa={false} onClick={() => setPermUser(u)} />
+                            </Tooltip>
                           <Tooltip label="Excluir">
-                            <button type="button" onClick={() => handleDelete(u)}
-                              className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition">
-                              <Trash2 size={14} />
-                            </button>
-                          </Tooltip>
+                              <BotaoAcao icon={Trash2} label="Excluir" cor="vermelho" soIcone dicaNativa={false} onClick={() => handleDelete(u)} />
+                            </Tooltip>
                         </div>
                       </td>
                     </tr>

@@ -31,7 +31,7 @@ export default function MotoristaLista() {
         {
           label: 'Cat.',
           render: (m) => m.categoriaCnh
-            ? <span className="inline-flex rounded bg-slate-800 border border-slate-700 px-1.5 py-0.5 text-[10px] font-bold text-slate-300">{m.categoriaCnh}</span>
+            ? <span className="inline-flex rounded bg-slate-800 border border-slate-700 px-1.5 py-0.5 text-[11px] font-bold text-slate-300">{m.categoriaCnh}</span>
             : <span className="text-slate-600">—</span>,
         },
         {
@@ -42,7 +42,7 @@ export default function MotoristaLista() {
             return (
               <div className="flex items-center gap-2">
                 <span className="text-xs text-slate-400 font-mono">{fmtData(m.validadeCnh)}</span>
-                <span className={`inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold ${info.cls}`}>{info.texto}</span>
+                <span className={`inline-flex rounded-full px-2 py-0.5 text-[11px] font-bold ${info.cls}`}>{info.texto}</span>
               </div>
             );
           },

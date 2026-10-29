@@ -12,6 +12,7 @@ import { ModuleHeader } from '../theme/modules.jsx';
 import { confirm } from '../components/ConfirmDialog';
 import EmptyState from '../components/EmptyState';
 import Tooltip from '../components/Tooltip';
+import BotaoAcao from '../components/BotaoAcao';
 import { TableSkeleton } from '../components/Skeleton';
 import { formatarQtd } from '../utils/unidades';
 
@@ -181,48 +182,33 @@ export default function LoteLista() {
                         {r != null ? `${r.toFixed(2)}%` : '—'}
                       </td>
                       <td className="px-4 py-3">
-                        <span className={`inline-flex rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${STATUS_BADGE[status] || 'bg-slate-700 text-slate-400'}`}>
+                        <span className={`inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider ${STATUS_BADGE[status] || 'bg-slate-700 text-slate-400'}`}>
                           {status.replace(/_/g, ' ')}
                         </span>
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex gap-1">
                           <Tooltip label="Ver detalhes">
-                            <button type="button" onClick={() => setDetalhe(l)}
-                              className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:text-sky-400 hover:bg-sky-500/10 transition">
-                              <Eye size={14} />
-                            </button>
-                          </Tooltip>
+                              <BotaoAcao icon={Eye} label="Ver detalhes" cor="azul" soIcone dicaNativa={false} onClick={() => setDetalhe(l)} />
+                            </Tooltip>
                           {status === 'EM_PRODUCAO' && (
                             <>
                               <Tooltip label="Finalizar (entra no estoque)">
-                                <button type="button" onClick={() => handleFinalizar(l)}
-                                  className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:text-emerald-400 hover:bg-emerald-500/10 transition">
-                                  <CheckCircle2 size={14} />
-                                </button>
-                              </Tooltip>
+                              <BotaoAcao icon={CheckCircle2} label="Finalizar (entra no estoque)" cor="verde" soIcone dicaNativa={false} onClick={() => handleFinalizar(l)} />
+                            </Tooltip>
                               <Tooltip label="Cancelar lote">
-                                <button type="button" onClick={() => handleCancelar(l)}
-                                  className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:text-amber-400 hover:bg-amber-500/10 transition">
-                                  <XCircle size={14} />
-                                </button>
-                              </Tooltip>
+                              <BotaoAcao icon={XCircle} label="Cancelar lote" cor="ambar" soIcone dicaNativa={false} onClick={() => handleCancelar(l)} />
+                            </Tooltip>
                             </>
                           )}
                           {status === 'FINALIZADO' && (
                             <Tooltip label="Expedir">
-                              <button type="button" onClick={() => handleExpedir(l)}
-                                className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:text-sky-400 hover:bg-sky-500/10 transition">
-                                <Truck size={14} />
-                              </button>
+                              <BotaoAcao icon={Truck} label="Expedir" cor="azul" soIcone dicaNativa={false} onClick={() => handleExpedir(l)} />
                             </Tooltip>
                           )}
                           {(status === 'EM_PRODUCAO' || status === 'CANCELADO') && (
                             <Tooltip label="Excluir">
-                              <button type="button" onClick={() => handleDelete(l)}
-                                className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition">
-                                <Trash2 size={14} />
-                              </button>
+                              <BotaoAcao icon={Trash2} label="Excluir" cor="vermelho" soIcone dicaNativa={false} onClick={() => handleDelete(l)} />
                             </Tooltip>
                           )}
                         </div>
@@ -283,7 +269,7 @@ function LoteDetalheModal({ lote, onClose }) {
 
               {lote.observacao && (
                 <div className="rounded-lg border border-slate-700 bg-slate-800/50 p-3">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">Observação</p>
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">Observação</p>
                   <p className="text-sm text-slate-300">{lote.observacao}</p>
                 </div>
               )}
@@ -302,7 +288,7 @@ function LoteDetalheModal({ lote, onClose }) {
                           <span className="font-mono text-xs text-slate-500">#{p.id}</span>
                           <span className="ml-2 text-white">{p.produtor?.nome || 'Sem produtor'}</span>
                           {p.veiculo?.placa && (
-                            <span className="ml-2 text-[10px] font-mono uppercase text-slate-500">{p.veiculo.placa}</span>
+                            <span className="ml-2 text-[11px] font-mono uppercase text-slate-500">{p.veiculo.placa}</span>
                           )}
                         </div>
                         <span className="font-mono font-bold text-amber-400">
@@ -334,7 +320,7 @@ function LoteDetalheModal({ lote, onClose }) {
 function Box({ label, value, accent = 'text-white', icon: Icon }) {
   return (
     <div className="rounded-lg border border-slate-700 bg-slate-800/50 p-3">
-      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1">
+      <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1">
         {Icon && <Icon size={9} />} {label}
       </p>
       <p className={`mt-1 text-sm font-mono font-bold ${accent}`}>{value || '—'}</p>

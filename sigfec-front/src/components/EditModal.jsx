@@ -139,7 +139,7 @@ export default function EditModal({ open, onClose, onSaved, title, endpoint, ini
                       />
                     )}
 
-                    {f.hint && <p className="mt-1 text-[10px] text-slate-600">{f.hint}</p>}
+                    {f.hint && <p className="mt-1 text-[11px] text-slate-600">{f.hint}</p>}
                   </label>
                 ))}
               </div>

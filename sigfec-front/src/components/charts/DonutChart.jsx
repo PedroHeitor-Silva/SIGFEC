@@ -56,7 +56,7 @@ export default function DonutChart({ data = [], size = 180, label = '', sublabel
             {active ? active.label.toUpperCase() : (label || 'TOTAL').toUpperCase()}
           </text>
         </svg>
-        {sublabel && <p className="mt-2 text-center text-[10px] uppercase tracking-widest text-slate-500">{sublabel}</p>}
+        {sublabel && <p className="mt-2 text-center text-[11px] uppercase tracking-widest text-slate-500">{sublabel}</p>}
       </div>
 
       <div className="flex-1 space-y-2">

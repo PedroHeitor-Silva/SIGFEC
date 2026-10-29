@@ -206,7 +206,7 @@ export default function HistoricoParceiro() {
               <User size={28} className="text-cyan-400" />
             </div>
             <div>
-              <span className={`inline-flex rounded-full border px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-widest ${tipoCls}`}>
+              <span className={`inline-flex rounded-full border px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-widest ${tipoCls}`}>
                 {parceiro.tipoParceiro || 'Sem tipo'}
               </span>
               <h1 className="mt-2 text-2xl font-bold text-white">{parceiro.nome}</h1>
@@ -239,7 +239,7 @@ export default function HistoricoParceiro() {
         <div className="rounded-xl border border-slate-800 bg-slate-900 p-5">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-amber-400">Volume mensal</p>
+              <p className="text-[11px] font-bold uppercase tracking-widest text-amber-400">Volume mensal</p>
               <h3 className="text-sm font-bold text-white mt-0.5">Pesagens (últimos 6 meses)</h3>
             </div>
             <Scale size={14} className="text-amber-400" />
@@ -250,7 +250,7 @@ export default function HistoricoParceiro() {
         <div className="rounded-xl border border-slate-800 bg-slate-900 p-5">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-fuchsia-400">Qualidade</p>
+              <p className="text-[11px] font-bold uppercase tracking-widest text-fuchsia-400">Qualidade</p>
               <h3 className="text-sm font-bold text-white mt-0.5">Evolução da renda</h3>
             </div>
             <Beaker size={14} className="text-fuchsia-400" />
@@ -313,7 +313,7 @@ export default function HistoricoParceiro() {
                           </div>
                           <div className="text-right shrink-0">
                             {e.value && <p className="text-sm font-bold font-mono text-white">{e.value}</p>}
-                            <p className="text-[10px] uppercase tracking-wider text-slate-600 mt-0.5">{fmt(e.date)}</p>
+                            <p className="text-[11px] uppercase tracking-wider text-slate-600 mt-0.5">{fmt(e.date)}</p>
                           </div>
                         </div>
                       </div>
@@ -370,7 +370,7 @@ export default function HistoricoParceiro() {
                 <span className="text-slate-400">{fmt(a.dataCriacao)}</span>,
                 <span className="text-slate-400 font-mono">#{a.pesagem?.id || '-'}</span>,
                 <span className="text-fuchsia-400 font-mono font-bold">{Number(a.rendaMedia || 0).toFixed(2)} g</span>,
-                <span className={`inline-flex rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${statusBadge[a.statusQualidade] || 'bg-slate-700 text-slate-400'}`}>
+                <span className={`inline-flex rounded-full border px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider ${statusBadge[a.statusQualidade] || 'bg-slate-700 text-slate-400'}`}>
                   {(a.statusQualidade || 'AGUARDANDO').replace(/_/g, ' ')}
                 </span>,
                 <button onClick={() => printLaudoLaboratorio(a)}
@@ -390,18 +390,18 @@ export default function HistoricoParceiro() {
                 {/* KPIs eficiência */}
                 <div className="grid sm:grid-cols-3 gap-4">
                   <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-4">
-                    <p className="text-[10px] uppercase tracking-widest text-emerald-400">Rendimento Médio</p>
+                    <p className="text-[11px] uppercase tracking-widest text-emerald-400">Rendimento Médio</p>
                     <p className={`mt-1 text-3xl font-bold font-mono ${eficiencia.rendimentoMedio >= 25 ? 'text-emerald-400' : eficiencia.rendimentoMedio >= 18 ? 'text-amber-400' : 'text-rose-400'}`}>
                       {eficiencia.rendimentoMedio.toFixed(2)}%
                     </p>
-                    <p className="text-[10px] text-slate-500 mt-1">Conversão MP → produto</p>
+                    <p className="text-[11px] text-slate-500 mt-1">Conversão MP → produto</p>
                   </div>
                   <div className="rounded-lg border border-slate-800 bg-slate-800/50 p-4">
-                    <p className="text-[10px] uppercase tracking-widest text-slate-500">Lotes Participados</p>
+                    <p className="text-[11px] uppercase tracking-widest text-slate-500">Lotes Participados</p>
                     <p className="mt-1 text-3xl font-bold font-mono text-white">{eficiencia.lotesParticipados}</p>
                   </div>
                   <div className="rounded-lg border border-slate-800 bg-slate-800/50 p-4">
-                    <p className="text-[10px] uppercase tracking-widest text-slate-500">Peso Contribuído</p>
+                    <p className="text-[11px] uppercase tracking-widest text-slate-500">Peso Contribuído</p>
                     <p className="mt-1 text-3xl font-bold font-mono text-amber-400">{fmtKg(eficiencia.totalContribuido)}</p>
                   </div>
                 </div>
@@ -447,13 +447,13 @@ export default function HistoricoParceiro() {
               headers={['ID', 'Tipo', 'Vencimento', 'Valor', 'Status']}
               rows={titulos.map((t) => [
                 <span className="text-slate-500 font-mono text-xs">{t.id}</span>,
-                <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${t.fornecedor ? 'bg-rose-500/10 text-rose-400' : 'bg-emerald-500/10 text-emerald-400'}`}>
+                <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-bold uppercase ${t.fornecedor ? 'bg-rose-500/10 text-rose-400' : 'bg-emerald-500/10 text-emerald-400'}`}>
                   {t.fornecedor ? <TrendingDown size={9} /> : <TrendingUp size={9} />}
                   {t.fornecedor ? 'Pagar' : 'Receber'}
                 </span>,
                 <span className="text-slate-400">{fmt(t.dataVencimento)}</span>,
                 <span className="text-white font-mono font-bold">{fmtMoney(t.valorOriginal)}</span>,
-                <span className="text-[10px] uppercase tracking-wider text-slate-400">{t.statusFinanceiro || '-'}</span>,
+                <span className="text-[11px] uppercase tracking-wider text-slate-400">{t.statusFinanceiro || '-'}</span>,
               ])}
             />
           )}
@@ -468,7 +468,7 @@ function InfoCell({ icon: Icon, label, value }) {
     <div className="bg-slate-900 px-5 py-4 flex items-center gap-3">
       <Icon size={14} className="text-slate-500 shrink-0" />
       <div className="min-w-0">
-        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">{label}</p>
+        <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500">{label}</p>
         <p className="text-sm text-slate-300 truncate">{value || '-'}</p>
       </div>
     </div>
@@ -486,13 +486,13 @@ function Kpi({ icon: Icon, accent, label, value, sub }) {
   return (
     <div className="rounded-xl border border-slate-800 bg-slate-900 p-5">
       <div className="flex items-start justify-between mb-3">
-        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">{label}</p>
+        <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500">{label}</p>
         <div className={`p-1.5 rounded-md border ${A}`}>
           <Icon size={13} />
         </div>
       </div>
       <p className="text-xl font-bold text-white font-mono">{value}</p>
-      <p className="text-[10px] uppercase tracking-wider text-slate-600 mt-1">{sub}</p>
+      <p className="text-[11px] uppercase tracking-wider text-slate-600 mt-1">{sub}</p>
     </div>
   );
 }
@@ -514,7 +514,7 @@ function SubList({ empty, emptyIcon, emptyText, headers, rows, onExport }) {
           <thead>
             <tr className="border-b border-slate-800 bg-slate-800/50">
               {headers.map((h, i) => (
-                <th key={i} className="px-4 py-2.5 text-left text-[10px] font-bold uppercase tracking-wider text-slate-500">{h}</th>
+                <th key={i} className="px-4 py-2.5 text-left text-[11px] font-bold uppercase tracking-wider text-slate-500">{h}</th>
               ))}
             </tr>
           </thead>

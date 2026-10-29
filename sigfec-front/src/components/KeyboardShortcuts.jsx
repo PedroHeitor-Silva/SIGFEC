@@ -137,7 +137,7 @@ export default function KeyboardShortcuts() {
                     <span className="text-sm text-slate-300">{s.label}</span>
                     <span className="flex items-center gap-1 shrink-0">
                       {s.keys.map((k, j) => (
-                        <kbd key={j} className="rounded border border-slate-700 bg-slate-800 px-2 py-0.5 text-[10px] font-mono font-bold text-emerald-400 shadow-inner">
+                        <kbd key={j} className="rounded border border-slate-700 bg-slate-800 px-2 py-0.5 text-[11px] font-mono font-bold text-emerald-400 shadow-inner">
                           {k}
                         </kbd>
                       ))}

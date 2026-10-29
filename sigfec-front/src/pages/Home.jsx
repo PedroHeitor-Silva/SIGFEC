@@ -36,7 +36,6 @@ const ACCENT = {
   violet: { bg: 'bg-violet-500/10', border: 'border-violet-500/20', text: 'text-violet-400', stroke: '#8b5cf6' },
 };
 
-const MEDAL = ['🥇', '🥈', '🥉'];
 const MEDAL_COLOR = ['#f59e0b', '#94a3b8', '#b45309'];
 
 const fmtMoney = (v) =>
@@ -248,45 +247,55 @@ export default function Home() {
         }
       />
 
-      {/* === KPI Grid === */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {loading
-          ? KPIS.map((_, i) => <CardSkeleton key={i} />)
-          : KPIS.map((card, i) => {
-            const Icon = card.icon;
-            const a = ACCENT[card.accent];
-            const raw = counts[i];
-            const value = card.money ? fmtMoney(raw)
-              : card.pct ? `${raw.toFixed(1).replace('.', ',')}%`
-              : raw.toLocaleString('pt-BR');
-            return (
-              <div
-                key={card.key}
-                className="group relative rounded-2xl border border-slate-800 bg-slate-900 p-5 overflow-hidden transition-all duration-300 hover:border-slate-700 hover:shadow-lg hover:-translate-y-0.5"
-              >
-                <div className={`absolute -top-12 -right-12 h-28 w-28 rounded-full ${a.bg} blur-2xl opacity-30 group-hover:opacity-60 transition`} />
-                <div className="relative z-10">
-                  <div className="flex items-start justify-between">
-                    <div className={`inline-flex items-center justify-center h-11 w-11 rounded-xl ${a.bg} border ${a.border} group-hover:scale-110 transition-transform`}>
-                      <Icon size={20} className={a.text} />
-                    </div>
-                  </div>
-                  <p className="mt-4 text-[11px] font-bold uppercase tracking-[0.12em] text-slate-500">{card.title}</p>
-                  <div className="mt-1.5 flex items-baseline gap-1.5">
-                    <span className="text-3xl font-black text-white tracking-tight leading-none tabular-nums">{value}</span>
-                    {!card.money && !card.pct && card.unit && (
-                      <span className="text-sm font-semibold text-slate-500">{card.unit}</span>
-                    )}
-                  </div>
-                  <p className="mt-2 text-xs text-slate-600">{card.desc}</p>
-                  {card.key === 'entradaHoje' && sparkEntradas.some((v) => v > 0) && (
-                    <div className="mt-3"><Spark data={sparkEntradas} stroke={a.stroke} /></div>
-                  )}
-                </div>
+      {/* === KPIs: 4 principais (operação do dia e caixa) + 5 complementares === */}
+      {(() => {
+        const PRINCIPAIS = ['entradaHoje', 'pesagensHoje', 'pesagensPendentes', 'totalReceber'];
+        const itens = KPIS.map((card, i) => ({ card, i }));
+        const valorDe = (card, i) => {
+          const raw = counts[i];
+          return card.money ? fmtMoney(raw)
+            : card.pct ? `${raw.toFixed(1).replace('.', ',')}%`
+            : raw.toLocaleString('pt-BR');
+        };
+        const Cartao = ({ card, i, principal }) => {
+          const Icon = card.icon;
+          const a = ACCENT[card.accent];
+          return (
+            <div className={`rounded-xl border border-slate-800 bg-slate-900 ${principal ? 'p-5' : 'p-4'} transition-colors hover:border-slate-700`}>
+              <div className="flex items-center gap-2.5">
+                <span className={`inline-flex shrink-0 items-center justify-center rounded-lg ${a.bg} border ${a.border} ${principal ? 'h-9 w-9' : 'h-8 w-8'}`}>
+                  <Icon size={principal ? 18 : 16} className={a.text} aria-hidden="true" />
+                </span>
+                <p className="text-[11px] font-bold uppercase tracking-[0.1em] text-slate-400 leading-tight">{card.title}</p>
               </div>
-            );
-          })}
-      </div>
+              <div className={`flex items-baseline gap-1.5 ${principal ? 'mt-4' : 'mt-3'}`}>
+                <span className={`font-extrabold text-white tracking-tight leading-none tabular-nums ${principal ? 'text-3xl' : 'text-2xl'}`}>{valorDe(card, i)}</span>
+                {!card.money && !card.pct && card.unit && (
+                  <span className="text-sm font-semibold text-slate-400">{card.unit}</span>
+                )}
+              </div>
+              <p className="mt-1.5 text-xs text-slate-500">{card.desc}</p>
+              {card.key === 'entradaHoje' && sparkEntradas.some((v) => v > 0) && (
+                <div className="mt-3"><Spark data={sparkEntradas} stroke={a.stroke} /></div>
+              )}
+            </div>
+          );
+        };
+        return (
+          <div className="space-y-4">
+            <div className="grid gap-4 grid-cols-2 xl:grid-cols-4">
+              {loading
+                ? PRINCIPAIS.map((k) => <CardSkeleton key={k} />)
+                : itens.filter(({ card }) => PRINCIPAIS.includes(card.key)).map(({ card, i }) => <Cartao key={card.key} card={card} i={i} principal />)}
+            </div>
+            <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 xl:grid-cols-5">
+              {loading
+                ? [1, 2, 3, 4, 5].map((k) => <CardSkeleton key={k} />)
+                : itens.filter(({ card }) => !PRINCIPAIS.includes(card.key)).map(({ card, i }) => <Cartao key={card.key} card={card} i={i} />)}
+            </div>
+          </div>
+        );
+      })()}
 
       {/* === Gráficos === */}
       <div className="space-y-4">
@@ -313,7 +322,7 @@ export default function Home() {
                     <div key={p.label}>
                       <div className="flex items-center justify-between mb-1.5">
                         <span className="flex items-center gap-2 text-sm font-semibold text-white truncate">
-                          <span className="text-base w-6 text-center">{MEDAL[idx] || `${idx + 1}º`}</span>
+                          <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-bold tabular-nums border" style={{ borderColor: MEDAL_COLOR[idx] || '#64748b', color: MEDAL_COLOR[idx] || 'inherit' }}>{idx + 1}º</span>
                           <span className="truncate">{p.label}</span>
                         </span>
                         <span className="text-xs font-mono font-bold text-slate-400 shrink-0">
@@ -369,7 +378,7 @@ export default function Home() {
                   <div key={i} className={`flex items-center gap-3 rounded-lg border px-3 py-2.5 ${ALERT_CLS[al.cls]}`}>
                     <Icon size={15} className="shrink-0" />
                     <span className="text-xs font-medium flex-1">{al.texto}</span>
-                    <span className="text-[9px] font-bold uppercase tracking-wider opacity-60">{al.tipo}</span>
+                    <span className="text-[11px] font-bold uppercase tracking-wider opacity-60">{al.tipo}</span>
                   </div>
                 );
               })}
@@ -386,8 +395,8 @@ export default function Home() {
               const c = ACCENT[at.accent];
               return (
                 <Link key={at.to} to={at.to}
-                  className="group flex flex-col items-center gap-2.5 rounded-xl border border-slate-800 bg-slate-950/40 p-4 hover:border-slate-700 hover:bg-slate-800/60 active:scale-95 transition">
-                  <div className={`p-3 rounded-xl ${c.bg} border ${c.border} group-hover:scale-110 transition-transform`}>
+                  className="group flex flex-col items-center gap-2.5 rounded-xl border border-slate-800 bg-slate-950/40 p-4 hover:border-slate-700 hover:bg-slate-800/60 transition">
+                  <div className={`p-3 rounded-xl ${c.bg} border ${c.border} transition-colors`}>
                     <Icon size={22} className={c.text} />
                   </div>
                   <span className="text-sm font-semibold text-white text-center">{at.label}</span>
@@ -453,7 +462,7 @@ function ChartCard({ accent, tag, titulo, icon: Icon, children }) {
     <div className="rounded-xl border border-slate-800 bg-slate-900 p-5 transition hover:border-slate-700">
       <div className="flex items-center justify-between mb-5">
         <div>
-          <p className={`text-[10px] font-bold uppercase tracking-widest ${a.text}`}>{tag}</p>
+          <p className={`text-[11px] font-bold uppercase tracking-widest ${a.text}`}>{tag}</p>
           <h3 className="text-base font-bold text-white mt-0.5">{titulo}</h3>
         </div>
         <div className={`p-2 rounded-lg ${a.bg} border ${a.border}`}>

@@ -8,6 +8,7 @@ import { ModuleHeader, MODULES } from '../theme/modules.jsx';
 import { confirm } from './ConfirmDialog';
 import EmptyState from './EmptyState';
 import Tooltip from './Tooltip';
+import BotaoAcao from './BotaoAcao';
 import { TableSkeleton } from './Skeleton';
 import EditModal from './EditModal';
 
@@ -148,21 +149,12 @@ export default function GenericList({
                       <div className="flex gap-1">
                         {editFields && (
                           <Tooltip label="Editar">
-                            <button type="button" onClick={() => setEditing(item)}
-                              className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:text-emerald-400 hover:bg-emerald-500/10 transition">
-                              <Pencil size={13} />
-                            </button>
-                          </Tooltip>
+                              <BotaoAcao icon={Pencil} label="Editar" cor="verde" soIcone dicaNativa={false} onClick={() => setEditing(item)} />
+                            </Tooltip>
                         )}
                         <Tooltip label="Excluir">
-                          <button
-                            type="button"
-                            onClick={() => handleDelete(item.id)}
-                            className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition"
-                          >
-                            <Trash2 size={14} />
-                          </button>
-                        </Tooltip>
+                              <BotaoAcao icon={Trash2} label="Excluir" cor="vermelho" soIcone dicaNativa={false} onClick={() => handleDelete(item.id)} />
+                            </Tooltip>
                       </div>
                     </td>
                   </tr>

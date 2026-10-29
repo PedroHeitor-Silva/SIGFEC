@@ -149,7 +149,7 @@ export default function CobrancaModal({ open, onClose, conta, onUpdated }) {
                   {dados.copiaEColaPix && (
                     <div className="mt-2 w-full">
                       <div className="rounded-lg border border-slate-700 bg-slate-800 p-2.5">
-                        <p className="text-[10px] font-mono text-slate-400 break-all line-clamp-3">
+                        <p className="text-[11px] font-mono text-slate-400 break-all line-clamp-3">
                           {dados.copiaEColaPix}
                         </p>
                       </div>
@@ -195,7 +195,7 @@ export default function CobrancaModal({ open, onClose, conta, onUpdated }) {
               )}
 
               {(temPix || temBoleto) && dados.statusPagamento && (
-                <p className="mt-4 text-center text-[10px] uppercase tracking-widest text-slate-600">
+                <p className="mt-4 text-center text-[11px] uppercase tracking-widest text-slate-600">
                   Status Asaas: {dados.statusPagamento}
                 </p>
               )}

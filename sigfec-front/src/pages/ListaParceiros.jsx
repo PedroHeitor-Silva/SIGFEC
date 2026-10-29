@@ -7,6 +7,7 @@ import { ModuleHeader } from '../theme/modules.jsx';
 import { confirm } from '../components/ConfirmDialog';
 import EmptyState from '../components/EmptyState';
 import Tooltip from '../components/Tooltip';
+import BotaoAcao from '../components/BotaoAcao';
 import { TableSkeleton } from '../components/Skeleton';
 import EditModal from '../components/EditModal';
 import { exportCSV } from '../utils/csv';
@@ -124,7 +125,7 @@ export default function ListaParceiros() {
             <button
               type="button"
               onClick={() => navigate('/parceiros/novo')}
-              className="inline-flex items-center gap-2 rounded-lg bg-cyan-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-cyan-500 transition shadow-lg shadow-cyan-900/40"
+              className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-500 transition"
             >
               <Plus size={15} /> Novo Parceiro
             </button>
@@ -149,7 +150,7 @@ export default function ListaParceiros() {
             {['TODOS', 'PRODUTOR', 'CLIENTE', 'FORNECEDOR'].map((t) => (
               <button key={t} type="button" onClick={() => setTipoFiltro(t)}
                 className={`px-3 py-1.5 rounded-md text-xs font-bold uppercase tracking-wider transition ${
-                  tipoFiltro === t ? 'bg-cyan-600 text-white' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
+                  tipoFiltro === t ? 'bg-emerald-600 text-white' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'
                 }`}>
                 {t}
               </button>
@@ -182,7 +183,7 @@ export default function ListaParceiros() {
                     description={search || tipoFiltro !== 'TODOS' ? 'Ajuste a busca ou filtro.' : 'Cadastre produtores, fornecedores ou clientes pra começar.'}
                     action={!search && tipoFiltro === 'TODOS' && (
                       <button type="button" onClick={() => navigate('/parceiros/novo')}
-                        className="inline-flex items-center gap-2 rounded-lg bg-cyan-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-cyan-500 transition">
+                        className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-500 transition">
                         <Plus size={15} /> Novo Parceiro
                       </button>
                     )}
@@ -198,7 +199,7 @@ export default function ListaParceiros() {
                       <td className="px-5 py-4 font-medium text-white">{p.nome}</td>
                       <td className="px-5 py-4">
                         {tipo ? (
-                          <span className={`inline-flex rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${tipo.cls}`}>
+                          <span className={`inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider ${tipo.cls}`}>
                             {tipo.label}
                           </span>
                         ) : (
@@ -212,23 +213,14 @@ export default function ListaParceiros() {
                       <td className="px-5 py-4">
                         <div className="flex gap-1">
                           <Tooltip label="Ver histórico">
-                            <button type="button" onClick={() => navigate(`/parceiros/${p.id}`)}
-                              className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:text-cyan-400 hover:bg-cyan-500/10 transition">
-                              <FileText size={14} />
-                            </button>
-                          </Tooltip>
+                              <BotaoAcao icon={FileText} label="Ver histórico" cor="azul" soIcone dicaNativa={false} onClick={() => navigate(`/parceiros/${p.id}`)} />
+                            </Tooltip>
                           <Tooltip label="Editar parceiro">
-                            <button type="button" onClick={() => setEditing(p)}
-                              className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:text-white hover:bg-slate-700 transition">
-                              <Edit2 size={14} />
-                            </button>
-                          </Tooltip>
+                              <BotaoAcao icon={Edit2} label="Editar parceiro" cor="azul" soIcone dicaNativa={false} onClick={() => setEditing(p)} />
+                            </Tooltip>
                           <Tooltip label="Excluir parceiro">
-                            <button type="button" onClick={() => handleDelete(p)}
-                              className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition">
-                              <Trash2 size={14} />
-                            </button>
-                          </Tooltip>
+                              <BotaoAcao icon={Trash2} label="Excluir parceiro" cor="vermelho" soIcone dicaNativa={false} onClick={() => handleDelete(p)} />
+                            </Tooltip>
                         </div>
                       </td>
                     </tr>

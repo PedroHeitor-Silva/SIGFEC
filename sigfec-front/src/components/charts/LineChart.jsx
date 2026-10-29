@@ -76,7 +76,7 @@ export default function LineChart({ data = [], height = 200, color = '#10b981', 
       {/* Labels */}
       <div className="flex justify-between mt-2 px-1">
         {data.map((d, i) => (
-          <span key={i} className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+          <span key={i} className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
             {d.label}
           </span>
         ))}

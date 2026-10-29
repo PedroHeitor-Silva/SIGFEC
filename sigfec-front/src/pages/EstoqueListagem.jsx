@@ -7,6 +7,7 @@ import { ModuleHeader } from '../theme/modules.jsx';
 import { confirm } from '../components/ConfirmDialog';
 import EmptyState from '../components/EmptyState';
 import Tooltip from '../components/Tooltip';
+import BotaoAcao from '../components/BotaoAcao';
 import { TableSkeleton } from '../components/Skeleton';
 import { toastUndo } from '../utils/undoToast';
 import EditModal from '../components/EditModal';
@@ -79,7 +80,7 @@ export default function EstoqueListagem() {
         subtitle={`${estoques.length} ${estoques.length === 1 ? 'produto em estoque' : 'produtos em estoque'}`}
         action={
           <button type="button" onClick={() => navigate('/estoque/novo')}
-            className="inline-flex items-center gap-2 rounded-lg bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-sky-500 transition shadow-lg shadow-sky-900/40">
+            className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-500 transition">
             <Plus size={15} /> Novo Item
           </button>
         }
@@ -125,7 +126,7 @@ export default function EstoqueListagem() {
                     description="Registre o estoque de cada produto acabado (fécula, polvilho, tapioca)."
                     action={
                       <button type="button" onClick={() => navigate('/estoque/novo')}
-                        className="inline-flex items-center gap-2 rounded-lg bg-sky-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-sky-500 transition">
+                        className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-500 transition">
                         <Plus size={15} /> Novo Item
                       </button>
                     }
@@ -140,7 +141,7 @@ export default function EstoqueListagem() {
                     <tr key={e.id} className="border-b border-slate-800/60 hover:bg-slate-800/40 transition">
                       <td className="px-5 py-4 font-medium text-white">{e.produto?.nome || '—'}</td>
                       <td className="px-5 py-4">
-                        <span className="inline-flex rounded-full bg-slate-800 border border-slate-700 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                        <span className="inline-flex rounded-full bg-slate-800 border border-slate-700 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">
                           {CATEGORIA_LABEL[e.produto?.categoria] || e.produto?.categoria || '—'}
                         </span>
                       </td>
@@ -149,7 +150,7 @@ export default function EstoqueListagem() {
                           {formatarQtd(e.quantidadeAtual, un)}
                         </span>
                         {eqAtual && (
-                          <span className="block text-[10px] text-slate-600">≈ {eqAtual}</span>
+                          <span className="block text-[11px] text-slate-600">≈ {eqAtual}</span>
                         )}
                       </td>
                       <td className="px-5 py-4 font-mono text-slate-400">
@@ -170,18 +171,12 @@ export default function EstoqueListagem() {
                         <div className="flex gap-1">
                           {can('estoque', 'editar') && (
                             <Tooltip label="Ajustar quantidades">
-                              <button type="button" onClick={() => setEditing(e)}
-                                className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-400 hover:text-sky-400 hover:bg-sky-500/10 transition">
-                                <Pencil size={13} />
-                              </button>
+                              <BotaoAcao icon={Pencil} label="Ajustar quantidades" cor="azul" soIcone dicaNativa={false} onClick={() => setEditing(e)} />
                             </Tooltip>
                           )}
                           {can('estoque', 'excluir') && (
                             <Tooltip label="Excluir">
-                              <button type="button" onClick={() => handleDelete(e.id)}
-                                className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition">
-                                <Trash2 size={14} />
-                              </button>
+                              <BotaoAcao icon={Trash2} label="Excluir" cor="vermelho" soIcone dicaNativa={false} onClick={() => handleDelete(e.id)} />
                             </Tooltip>
                           )}
                         </div>

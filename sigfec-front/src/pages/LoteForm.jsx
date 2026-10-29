@@ -186,7 +186,7 @@ export default function LoteForm() {
                         <div className="flex items-center gap-2">
                           <span className="text-xs font-mono text-slate-500">#{p.id}</span>
                           <span className="text-sm font-medium text-white truncate">{p.produtorNome || p.produtor?.nome || 'Sem produtor'}</span>
-                          {p.veiculoPlaca && <span className="text-[10px] font-mono uppercase text-slate-500">{p.veiculoPlaca}</span>}
+                          {p.veiculoPlaca && <span className="text-[11px] font-mono uppercase text-slate-500">{p.veiculoPlaca}</span>}
                         </div>
                         <p className="text-[11px] text-slate-500 mt-0.5 flex items-center gap-2">
                           <Calendar size={9} /> {fmt(p.dataHoraEntrada)}
@@ -230,11 +230,11 @@ export default function LoteForm() {
 
               {/* Rendimento destacado */}
               <div className="mt-5 rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-4">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-400 mb-1">Rendimento Real</p>
+                <p className="text-[11px] font-bold uppercase tracking-widest text-emerald-400 mb-1">Rendimento Real</p>
                 <p className="text-3xl font-bold font-mono text-white">
                   {rendimentoPreview != null ? `${rendimentoPreview.toFixed(2)}%` : '—'}
                 </p>
-                <p className="text-[10px] text-slate-500 mt-1">
+                <p className="text-[11px] text-slate-500 mt-1">
                   Média Loanda: 25–28% (fécula)
                 </p>
               </div>

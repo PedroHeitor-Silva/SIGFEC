@@ -58,7 +58,7 @@ export default function BarChart({ data = [], height = 200, color = '#10b981', v
       {/* Labels */}
       <div className="flex gap-2 mt-2">
         {data.map((d, i) => (
-          <span key={i} className="flex-1 text-center text-[10px] font-semibold uppercase tracking-wide text-slate-500">
+          <span key={i} className="flex-1 text-center text-[11px] font-semibold uppercase tracking-wide text-slate-500">
             {d.label}
           </span>
         ))}

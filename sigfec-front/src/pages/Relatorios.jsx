@@ -151,7 +151,7 @@ export default function Relatorios() {
       {/* Catálogo — no celular vira uma lista de seleção para o relatório ficar logo abaixo */}
       {catalogo.length > 0 && (
         <label className="block sm:hidden">
-          <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Relatório</span>
+          <span className="text-[11px] font-bold uppercase tracking-widest text-slate-500">Relatório</span>
           <select value={chave} onChange={(e) => escolher(e.target.value)} className={`${inputCls} block mt-1.5 w-full`}>
             {catalogo.map((r) => <option key={r.chave} value={r.chave}>{r.titulo}</option>)}
           </select>
@@ -191,7 +191,7 @@ export default function Relatorios() {
           {!meta.semPeriodo ? (
             <>
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500 mb-1.5 flex items-center gap-1"><Calendar size={11} /> Período</p>
+                <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500 mb-1.5 flex items-center gap-1"><Calendar size={11} /> Período</p>
                 <div className="flex flex-wrap gap-1.5">
                   {PERIODOS.map((p) => (
                     <button key={p.key} type="button" onClick={() => aplicarPeriodo(p.key)}
@@ -204,11 +204,11 @@ export default function Relatorios() {
                 </div>
               </div>
               <label className="block">
-                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">De</span>
+                <span className="text-[11px] font-bold uppercase tracking-widest text-slate-500">De</span>
                 <input type="date" value={inicio} max={fim} onChange={(e) => { setInicio(e.target.value); setPeriodo(''); }} className={`${inputCls} block mt-1.5`} />
               </label>
               <label className="block">
-                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Até</span>
+                <span className="text-[11px] font-bold uppercase tracking-widest text-slate-500">Até</span>
                 <input type="date" value={fim} min={inicio} onChange={(e) => { setFim(e.target.value); setPeriodo(''); }} className={`${inputCls} block mt-1.5`} />
               </label>
             </>
@@ -217,7 +217,7 @@ export default function Relatorios() {
           )}
           {meta.parceiro && (
             <label className="block min-w-[220px]">
-              <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500 flex items-center gap-1">
+              <span className="text-[11px] font-bold uppercase tracking-widest text-slate-500 flex items-center gap-1">
                 <Users size={11} /> {meta.parceiro === 'CLIENTE' ? 'Cliente' : meta.parceiro === 'PRODUTOR' ? 'Produtor' : 'Parceiro'}
               </span>
               <select value={parceiroId} onChange={(e) => setParceiroId(e.target.value)} className={`${inputCls} block mt-1.5 w-full`}>
@@ -245,7 +245,7 @@ export default function Relatorios() {
           <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
             {rel.indicadores.map((i) => (
               <div key={i.rotulo} className="rounded-xl border border-slate-800 bg-slate-900 p-4">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">{i.rotulo}</p>
+                <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500">{i.rotulo}</p>
                 <p className="text-xl sm:text-2xl font-bold text-white font-mono tabular-nums mt-2">{fmtValor(i.valor, i.tipo)}</p>
               </div>
             ))}

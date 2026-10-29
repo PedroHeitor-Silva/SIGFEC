@@ -161,7 +161,7 @@ export default function PermissoesModal({ open, usuario, onClose, onSaved }) {
                   Cancelar
                 </button>
                 <button type="button" onClick={handleSave} disabled={saving}
-                  className="inline-flex items-center gap-2 rounded-lg bg-rose-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-rose-500 disabled:opacity-50 transition">
+                  className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-5 py-2.5 text-sm font-bold text-white hover:bg-emerald-500 disabled:opacity-50 transition">
                   <Save size={14} /> {saving ? 'Salvando...' : 'Salvar permissões'}
                 </button>
               </div>

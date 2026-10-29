@@ -148,7 +148,7 @@ export default function LaboratorioForm() {
           <div className="flex items-center gap-3 px-6 py-4 border-b border-slate-800 border-l-2 border-l-emerald-500">
             <Scale size={16} className="text-emerald-400" />
             <span className="text-sm font-bold text-white">Amostras — Balança Hidrostática</span>
-            <span className="ml-auto text-[10px] uppercase tracking-widest text-slate-600">Renda em gramas</span>
+            <span className="ml-auto text-[11px] uppercase tracking-widest text-slate-600">Renda em gramas</span>
           </div>
           <div className="p-6 space-y-3">
             {amostras.map((a, i) => (
@@ -189,7 +189,7 @@ export default function LaboratorioForm() {
           <div className="flex items-center gap-3 px-6 py-4 border-b border-slate-800 border-l-2 border-l-sky-500">
             <Droplets size={16} className="text-sky-400" />
             <span className="text-sm font-bold text-white">Análise Físico-Química</span>
-            <span className="ml-auto text-[10px] uppercase tracking-widest text-slate-600">Opcional</span>
+            <span className="ml-auto text-[11px] uppercase tracking-widest text-slate-600">Opcional</span>
           </div>
           <div className="p-6 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
             <label className="block">
@@ -260,7 +260,7 @@ export default function LaboratorioForm() {
             <Printer size={15} /> Imprimir Etiqueta
           </button>
           <button type="submit" disabled={saving}
-            className="inline-flex items-center justify-center gap-2 rounded-lg bg-fuchsia-600 px-6 py-3 text-sm font-bold text-white hover:bg-fuchsia-500 disabled:opacity-50 transition shadow-lg shadow-fuchsia-900/40">
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-600 px-6 py-3 text-sm font-bold text-white hover:bg-emerald-500 disabled:opacity-50 transition">
             <Save size={15} /> {saving ? 'Finalizando...' : 'Finalizar Laudo'}
           </button>
         </div>

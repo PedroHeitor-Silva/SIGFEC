@@ -166,7 +166,7 @@ export default function NotificationBell() {
       >
         <Bell size={15} />
         {unread > 0 && (
-          <span className="absolute -top-1 -right-1 inline-flex items-center justify-center h-4 min-w-4 rounded-full bg-rose-500 px-1 text-[9px] font-bold text-white">
+          <span className="absolute -top-1 -right-1 inline-flex items-center justify-center h-4 min-w-4 rounded-full bg-rose-500 px-1 text-[11px] font-bold text-white">
             {unread > 99 ? '99+' : unread}
           </span>
         )}
@@ -182,7 +182,7 @@ export default function NotificationBell() {
             <div className="flex items-center justify-between px-4 py-3 border-b border-slate-800">
               <div>
                 <p className="text-sm font-bold text-white">Notificações</p>
-                <p className="text-[10px] uppercase tracking-widest text-slate-500">{unread} {unread === 1 ? 'alerta' : 'alertas'} ativo{unread === 1 ? '' : 's'}</p>
+                <p className="text-[11px] uppercase tracking-widest text-slate-500">{unread} {unread === 1 ? 'alerta' : 'alertas'} ativo{unread === 1 ? '' : 's'}</p>
               </div>
               <Bell size={14} className="text-emerald-400" />
             </div>
@@ -213,7 +213,7 @@ export default function NotificationBell() {
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-semibold text-white">{n.title}</p>
                         <p className="text-xs text-slate-400 mt-0.5">{n.desc}</p>
-                        <p className="text-[10px] uppercase tracking-wider text-slate-600 mt-1">{fmtDate(n.date)}</p>
+                        <p className="text-[11px] uppercase tracking-wider text-slate-600 mt-1">{fmtDate(n.date)}</p>
                       </div>
                     </Link>
                   );
@@ -221,7 +221,7 @@ export default function NotificationBell() {
               )}
             </div>
 
-            <div className="border-t border-slate-800 px-4 py-2 bg-slate-950/50 text-[10px] text-slate-500 text-center">
+            <div className="border-t border-slate-800 px-4 py-2 bg-slate-950/50 text-[11px] text-slate-500 text-center">
               Atualiza a cada acesso
             </div>
           </motion.div>

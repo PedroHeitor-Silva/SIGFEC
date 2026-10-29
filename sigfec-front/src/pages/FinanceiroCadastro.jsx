@@ -84,7 +84,7 @@ export default function FinanceiroCadastro() {
           <TrendingUp size={18} />
           <div className="text-left">
             <p className="text-sm font-bold">Conta a Receber</p>
-            <p className="text-[10px] uppercase tracking-wider opacity-70">Cliente paga</p>
+            <p className="text-[11px] uppercase tracking-wider opacity-70">Cliente paga</p>
           </div>
         </button>
         <button
@@ -99,7 +99,7 @@ export default function FinanceiroCadastro() {
           <TrendingDown size={18} />
           <div className="text-left">
             <p className="text-sm font-bold">Conta a Pagar</p>
-            <p className="text-[10px] uppercase tracking-wider opacity-70">Pagar fornecedor</p>
+            <p className="text-[11px] uppercase tracking-wider opacity-70">Pagar fornecedor</p>
           </div>
         </button>
       </div>
