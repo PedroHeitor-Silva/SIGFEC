@@ -4,6 +4,7 @@ import com.sigfec.domain.dto.PesagemResponseDTO;
 import com.sigfec.domain.entities.EntradaFila;
 import com.sigfec.domain.entities.Parceiro;
 import com.sigfec.domain.entities.Pesagem;
+import com.sigfec.domain.enums.EnumStatusQualidade;
 import com.sigfec.domain.enums.EnumTipoParceiro;
 import com.sigfec.repositories.AnaliseLaboratorioRepository;
 import com.sigfec.repositories.EntradaFilaRepository;
@@ -34,9 +35,12 @@ public class PesagemService {
         return repository.findAll().stream().map(this::toDto).toList();
     }
 
-    /** Pesagens ainda não consumidas por nenhum lote — base p/ criação de lote. */
+    /** Pesagens que podem virar produção: sem lote, com laudo e não reprovadas no laboratório. */
     public List<PesagemResponseDTO> listarDisponiveis() {
-        return repository.findByConsumidaFalse().stream().map(this::toDto).toList();
+        return repository.findByConsumidaFalse().stream()
+                .filter(p -> analiseRepository.findByPesagemId(p.getId())
+                        .map(a -> a.getStatusQualidade() != EnumStatusQualidade.REPROVADO).orElse(false))
+                .map(this::toDto).toList();
     }
 
     public Optional<Pesagem> buscarPorId(Long id) {

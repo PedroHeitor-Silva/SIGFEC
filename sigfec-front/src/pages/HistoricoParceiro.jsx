@@ -12,7 +12,7 @@ import LineChart from '../components/charts/LineChart';
 import { printTicketPesagem, printLaudoLaboratorio } from '../utils/printDoc';
 import { exportCSV } from '../utils/csv';
 
-const fmt = (v) => v ? new Date(v).toLocaleDateString('pt-BR') : '-';
+const fmt = (v) => v ? new Date(/^\d{4}-\d{2}-\d{2}$/.test(v) ? v + 'T00:00:00' : v).toLocaleDateString('pt-BR') : '-'; // AAAA-MM-DD é data local
 const fmtMoney = (v) =>
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(v) || 0);
 const fmtKg = (v) => v != null ? `${Number(v).toLocaleString('pt-BR', { maximumFractionDigits: 2 })} kg` : '-';

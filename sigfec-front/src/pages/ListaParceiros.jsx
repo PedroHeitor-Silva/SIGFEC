@@ -21,7 +21,7 @@ const TIPO_BADGE = {
 
 const fmt = (v) => {
   if (!v) return '-';
-  const d = new Date(v);
+  const d = new Date(/^\d{4}-\d{2}-\d{2}$/.test(v) ? v + 'T00:00:00' : v); // AAAA-MM-DD é data local
   return Number.isNaN(d.getTime()) ? v : new Intl.DateTimeFormat('pt-BR').format(d);
 };
 

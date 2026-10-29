@@ -168,7 +168,7 @@ export function printTicketPesagem(pesagem) {
 }
 
 export function printRomaneio({ data, pesagens, totais }) {
-  const dataStr = new Date(data).toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
+  const dataStr = new Date(data + 'T00:00:00').toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
   const rows = pesagens.map((p) => `
     <tr>
       <td style="font-family:monospace;">${p.id}</td>

@@ -326,6 +326,7 @@ function AppRoutes() {
                 <Route path="/estoque/novo" element={<EstoqueCadastro />} />
                 <Route path="/vendas" element={<VendaLista />} />
                 <Route path="/vendas/nova" element={<VendaForm />} />
+                <Route path="*" element={<PaginaNaoEncontrada />} />
               </Routes>
             </div>
           </div>
@@ -368,5 +369,19 @@ function NavItem({ to, moduleKey, currentPath, collapsed }) {
       <Icon size={24} style={{ flexShrink: 0, color: isActive ? '#1ABB9C' : '#94a3b8' }} />
       {!collapsed && <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{m.label}</span>}
     </Link>
+  );
+}
+
+/** Endereço que não existe: em vez de tela vazia, explica e oferece o caminho de volta. */
+function PaginaNaoEncontrada() {
+  return (
+    <div className="flex flex-col items-center justify-center text-center py-24">
+      <p className="text-6xl font-bold text-slate-700 font-mono">404</p>
+      <h1 className="mt-4 text-xl font-bold text-white">Página não encontrada</h1>
+      <p className="mt-1 text-sm text-slate-500">O endereço digitado não existe no SIGFEC.</p>
+      <Link to="/" className="mt-6 inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-500 transition">
+        Voltar ao dashboard
+      </Link>
+    </div>
   );
 }

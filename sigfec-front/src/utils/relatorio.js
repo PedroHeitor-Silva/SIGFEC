@@ -50,6 +50,8 @@ export const isoMenosDias = (dias) => {
   return new Date(d - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
 };
 
+export const isoMaisDias = (dias) => isoMenosDias(-dias);
+
 export const isoInicioMes = () => isoHoje().slice(0, 8) + '01';
 
 export const fmtDataIso = (iso) => (iso ? new Date(`${iso}T00:00:00`).toLocaleDateString('pt-BR') : '—');

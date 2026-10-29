@@ -9,4 +9,6 @@ public interface AnaliseLaboratorioRepository extends JpaRepository<AnaliseLabor
 
     /** Pesagem já tem laudo? (bloqueia exclusão da pesagem) */
     boolean existsByPesagemId(Long pesagemId);
+
+    java.util.Optional<AnaliseLaboratorio> findByPesagemId(Long pesagemId);
 }

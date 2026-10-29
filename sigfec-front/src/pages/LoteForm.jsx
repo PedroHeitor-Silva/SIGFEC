@@ -9,7 +9,7 @@ import { isoHoje } from '../utils/relatorio';
 
 const inputCls = 'mt-2 w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-3 text-white placeholder:text-slate-500 outline-none focus:border-emerald-500 transition';
 const labelCls = 'text-xs font-bold uppercase tracking-wider text-slate-400';
-const fmt = (v) => v ? new Date(v).toLocaleDateString('pt-BR') : '-';
+const fmt = (v) => v ? new Date(/^\d{4}-\d{2}-\d{2}$/.test(v) ? v + 'T00:00:00' : v).toLocaleDateString('pt-BR') : '-'; // AAAA-MM-DD é data local
 
 export default function LoteForm() {
   const navigate = useNavigate();

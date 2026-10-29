@@ -22,7 +22,7 @@ const STATUS_BADGE = {
   CANCELADO:   'bg-slate-700 text-slate-400 border border-slate-600',
 };
 
-const fmtDate = (v) => v ? new Date(v).toLocaleDateString('pt-BR') : '-';
+const fmtDate = (v) => v ? new Date(/^\d{4}-\d{2}-\d{2}$/.test(v) ? v + 'T00:00:00' : v).toLocaleDateString('pt-BR') : '-'; // AAAA-MM-DD é data local
 
 export default function LoteLista() {
   const [lotes, setLotes] = useState([]);

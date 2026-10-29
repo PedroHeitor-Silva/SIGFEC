@@ -10,7 +10,7 @@ import { ModuleHeader } from '../theme/modules.jsx';
 import { currentUser } from '../theme/permissions';
 import { exportCSV } from '../utils/csv';
 import { printRelatorio } from '../utils/printDoc';
-import { fmtValor, csvValor, isNumerico, isoHoje, isoMenosDias, isoInicioMes, fmtDataIso } from '../utils/relatorio';
+import { fmtValor, csvValor, isNumerico, isoHoje, isoMenosDias, isoMaisDias, isoInicioMes, fmtDataIso } from '../utils/relatorio';
 
 /** Ícone e tipo de parceiro de cada relatório (o catálogo e as permissões vêm da API). */
 const META = {
@@ -22,7 +22,7 @@ const META = {
   estoque:                { icon: Package,        semPeriodo: true },
   kardex:                 { icon: ArrowLeftRight },
   vendas:                 { icon: ShoppingCart,   parceiro: 'CLIENTE' },
-  financeiro:             { icon: DollarSign,     parceiro: 'TODOS' },
+  financeiro:             { icon: DollarSign,     parceiro: 'TODOS', futuro: 90 }, // inclui vencimentos dos próximos 90 dias
 };
 
 const PERIODOS = [
@@ -99,13 +99,16 @@ export default function Relatorios() {
   const escolher = (k) => {
     setChave(k);
     setParceiroId('');
+    // ao trocar de relatório, reaplica o período rápido (o financeiro olha também para frente)
+    const p = PERIODOS.find((x) => x.key === periodo);
+    if (p) { const [i, f] = p.range(); setInicio(i); setFim(META[k]?.futuro ? isoMaisDias(META[k].futuro) : f); }
     setParams(k ? { tipo: k } : {}, { replace: true });
   };
 
   const aplicarPeriodo = (key) => {
     const p = PERIODOS.find((x) => x.key === key);
     setPeriodo(key);
-    if (p) { const [i, f] = p.range(); setInicio(i); setFim(f); }
+    if (p) { const [i, f] = p.range(); setInicio(i); setFim(meta.futuro ? isoMaisDias(meta.futuro) : f); }
   };
 
   const nomeParceiro = parceirosFiltro.find((p) => String(p.id) === String(parceiroId))?.nome;
@@ -141,8 +144,16 @@ export default function Relatorios() {
         )}
       />
 
-      {/* Catálogo */}
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      {/* Catálogo — no celular vira uma lista de seleção para o relatório ficar logo abaixo */}
+      {catalogo.length > 0 && (
+        <label className="block sm:hidden">
+          <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Relatório</span>
+          <select value={chave} onChange={(e) => escolher(e.target.value)} className={`${inputCls} block mt-1.5 w-full`}>
+            {catalogo.map((r) => <option key={r.chave} value={r.chave}>{r.titulo}</option>)}
+          </select>
+        </label>
+      )}
+      <div className="hidden sm:grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {catalogo.map((r) => {
           const Icon = META[r.chave]?.icon || FileChartColumn;
           const ativo = r.chave === chave;

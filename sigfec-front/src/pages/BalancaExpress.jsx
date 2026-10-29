@@ -93,7 +93,6 @@ export default function BalancaExpress() {
         produto: produtoId ? { id: Number(produtoId) } : null,
         pesoBruto: b, pesoTara: t,
         percentualImpureza: parseFloat(impureza) || 0,
-        dataHoraEntrada: new Date().toISOString(),
       });
       toast.success(`Pesagem #${savedCount + 1} registrada!`);
       setSavedCount((n) => n + 1);

@@ -102,7 +102,7 @@ public class VendaService {
             if (pedido > disponivel) {
                 throw RegraNegocioException.conflito(
                         "Estoque insuficiente de " + nomeProduto
-                        + " — disponível: " + disponivel + ", pedido: " + pedido + ".");
+                        + " — disponível: " + qtd(disponivel) + ", pedido: " + qtd(pedido) + ".");
             }
         }
 
@@ -211,6 +211,13 @@ public class VendaService {
                         "Venda cancelada; cancelar também a cobrança Asaas " + c.getAsaasPaymentId());
             }
         }
+    }
+
+    /** 2000.0 → "2.000"; 12.5 → "12,5" (mensagens para o usuário). */
+    private static String qtd(double v) {
+        java.text.NumberFormat nf = java.text.NumberFormat.getNumberInstance(new java.util.Locale("pt", "BR"));
+        nf.setMaximumFractionDigits(2);
+        return nf.format(v);
     }
 
     private Venda carregar(Long id) {

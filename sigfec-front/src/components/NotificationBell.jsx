@@ -9,7 +9,7 @@ import { formatarQtd } from '../utils/unidades';
 const fmtMoney = (v) =>
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(v) || 0);
 
-const fmtDate = (v) => v ? new Date(v).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }) : '-';
+const fmtDate = (v) => v ? new Date(/^\d{4}-\d{2}-\d{2}$/.test(v) ? v + 'T00:00:00' : v).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }) : '-'; // AAAA-MM-DD é data local
 
 const daysUntil = (dateStr) => {
   if (!dateStr) return Infinity;

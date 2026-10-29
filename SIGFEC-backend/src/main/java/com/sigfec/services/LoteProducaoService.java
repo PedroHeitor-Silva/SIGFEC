@@ -4,6 +4,8 @@ import com.sigfec.domain.entities.Estoque;
 import com.sigfec.domain.entities.LoteProducao;
 import com.sigfec.domain.entities.Pesagem;
 import com.sigfec.domain.enums.EnumStatusLote;
+import com.sigfec.domain.enums.EnumStatusQualidade;
+import com.sigfec.repositories.AnaliseLaboratorioRepository;
 import com.sigfec.repositories.EstoqueRepository;
 import com.sigfec.repositories.LoteProducaoRepository;
 import com.sigfec.repositories.PesagemRepository;
@@ -31,6 +33,7 @@ public class LoteProducaoService {
     private final LoteProducaoRepository loteRepository;
     private final PesagemRepository pesagemRepository;
     private final ProdutoRepository produtoRepository;
+    private final AnaliseLaboratorioRepository analiseRepository;
     private final EstoqueRepository estoqueRepository;
     private final MovimentacaoEstoqueService movEstoqueService;
     private final AuditService auditService;
@@ -74,6 +77,11 @@ public class LoteProducaoService {
                 if (stub.getId() == null) continue;
                 Pesagem p = pesagemRepository.findById(stub.getId())
                         .orElseThrow(() -> RegraNegocioException.naoEncontrada("Pesagem #" + stub.getId() + " não encontrada."));
+                var laudo = analiseRepository.findByPesagemId(p.getId()).orElseThrow(() -> RegraNegocioException.conflito(
+                        "Pesagem #" + p.getId() + " ainda não tem laudo do laboratório."));
+                if (laudo.getStatusQualidade() == EnumStatusQualidade.REPROVADO) {
+                    throw RegraNegocioException.conflito("Pesagem #" + p.getId() + " foi reprovada no laboratório e não pode ir para a produção.");
+                }
                 if (p.isConsumida()) {
                     throw RegraNegocioException.conflito("Pesagem #" + p.getId()
                             + " já foi consumida por outro lote.");

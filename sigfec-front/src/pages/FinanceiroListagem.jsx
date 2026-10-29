@@ -60,9 +60,10 @@ export default function FinanceiroListagem() {
 
   const filtered = useMemo(() => {
     return titulos.filter((t) => {
-      // Aba: ABERTO mostra não-pagos; HISTORICO mostra pagos
-      if (aba === 'ABERTO' && t.statusFinanceiro === 'PAGO') return false;
-      if (aba === 'HISTORICO' && t.statusFinanceiro !== 'PAGO') return false;
+      // Aba: ABERTO mostra o que ainda tem saldo; HISTORICO mostra quitados e cancelados
+      const encerrado = t.statusFinanceiro === 'PAGO' || t.statusFinanceiro === 'CANCELADO';
+      if (aba === 'ABERTO' && encerrado) return false;
+      if (aba === 'HISTORICO' && !encerrado) return false;
       const tipo = tipoDe(t);
       if (filtroTipo !== 'TODOS' && tipo !== filtroTipo) return false;
       if (aba === 'ABERTO' && filtroStatus !== 'TODOS' && t.statusFinanceiro !== filtroStatus) return false;
@@ -85,9 +86,10 @@ export default function FinanceiroListagem() {
       .reduce((s, t) => s + saldoDe(t), 0);
     const receberAberto = titulos.filter((t) => t.cliente && t.statusFinanceiro !== 'PAGO' && t.statusFinanceiro !== 'CANCELADO')
       .reduce((s, t) => s + saldoDe(t), 0);
-    const recebido = titulos.filter((t) => t.cliente && t.statusFinanceiro === 'PAGO')
+    // inclui as baixas parciais (valorPago acumulado) dos títulos ainda em aberto
+    const recebido = titulos.filter((t) => t.cliente && t.statusFinanceiro !== 'CANCELADO')
       .reduce((s, t) => s + Number(t.valorPago || 0), 0);
-    const pago = titulos.filter((t) => t.fornecedor && t.statusFinanceiro === 'PAGO')
+    const pago = titulos.filter((t) => t.fornecedor && t.statusFinanceiro !== 'CANCELADO')
       .reduce((s, t) => s + Number(t.valorPago || 0), 0);
     const atrasados = titulos.filter((t) => t.statusFinanceiro === 'ATRASADO').length;
     return { pagarAberto, receberAberto, recebido, pago, atrasados };
@@ -96,6 +98,7 @@ export default function FinanceiroListagem() {
   const aplicarBaixa = async (id, body) => {
     const { data } = await api.patch(`/financeiro/${id}/baixar`, body);
     setTitulos((prev) => prev.map((t) => t.id === id ? data : t));
+    return data;
   };
 
   const estornar = async (t) => {
@@ -364,8 +367,9 @@ export default function FinanceiroListagem() {
         onClose={() => setBaixando(null)}
         onConfirm={async (body) => {
           try {
-            await aplicarBaixa(baixando.id, body);
-            toast.success('Título quitado.');
+            const atualizado = await aplicarBaixa(baixando.id, body);
+            toast.success(atualizado?.statusFinanceiro === 'PAGO' ? 'Título quitado.'
+              : `Baixa parcial registrada. Saldo: ${fmtMoeda(saldoDe(atualizado))}.`);
             setBaixando(null);
           } catch (err) { toast.error(err?.response?.data?.error || 'Falha ao dar baixa.'); }
         }}

@@ -133,7 +133,6 @@ export default function TelaPesagem() {
         pesoBruto: brutoNum,
         pesoTara: taraNum,
         percentualImpureza: parseFloat(impureza) || 0,
-        dataHoraEntrada: new Date().toISOString(),
       });
       toast.success(entradaId ? 'Pesagem registrada — senha finalizada na fila.' : 'Pesagem registrada com sucesso.');
       navigate(entradaId ? '/fila' : '/pesagem');

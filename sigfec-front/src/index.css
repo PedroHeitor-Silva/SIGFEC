@@ -118,6 +118,7 @@ input:focus, select:focus, textarea:focus {
 /* Hover suave em tabelas */
 table tbody tr { transition: background-color 120ms ease; }
 table tbody tr:hover { background-color: #f8fafc; }
+:root[data-theme="dark"] table tbody tr:hover { background-color: rgba(30, 41, 59, 0.6); }
 
 /* Autofill claro */
 input:-webkit-autofill, input:-webkit-autofill:hover, input:-webkit-autofill:focus {
