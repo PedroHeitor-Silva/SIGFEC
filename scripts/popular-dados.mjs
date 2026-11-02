@@ -149,7 +149,8 @@ async function main() {
   const produtos = await api('GET', '/produtos');
   const prod = (cat) => produtos.find((p) => p.categoria === cat);
   const MANDIOCA = prod('MANDIOCA'), FECULA = prod('FECULA'), P_DOCE = prod('POLVILHO_DOCE'),
-    P_AZEDO = prod('POLVILHO_AZEDO_GRANULADO'), TAPIOCA = prod('TAPIOCA');
+    P_AZEDO = prod('POLVILHO_AZEDO_GRANULADO'), TAPIOCA = prod('TAPIOCA'),
+    P_PO = prod('POLVILHO_AZEDO_PO'), DEXTRINA = prod('DEXTRINA');
   const cidades = await api('GET', '/cidades/estado/PR');
   const cidade = (nome) => {
     const c = cidades.find((x) => x.nome.toLowerCase() === nome.toLowerCase());
@@ -251,7 +252,7 @@ async function main() {
   // ----- produção: lotes semanais com as cargas aprovadas -----
   passo('lotes de produção (entrada no estoque via Kardex)');
   const aprovadas = comLaudo.filter((c) => c.status !== 'REPROVADO');
-  const ROTACAO = [FECULA, FECULA, P_DOCE, FECULA, P_AZEDO, FECULA, TAPIOCA, FECULA, P_DOCE, FECULA, FECULA];
+  const ROTACAO = [FECULA, P_DOCE, FECULA, P_AZEDO, DEXTRINA, FECULA, TAPIOCA, P_PO, FECULA, P_DOCE, FECULA];
   const lotes = [];
   for (let i = 0, l = 0; i < aprovadas.length; l++) {
     const grupo = aprovadas.slice(i, i + inteiro(3, 5)); i += grupo.length;
@@ -278,12 +279,12 @@ async function main() {
   passo('vendas, notas e contas a receber');
   const estoque = await api('GET', '/estoque');
   const saldo = Object.fromEntries(estoque.map((e) => [e.produto.id, e.quantidadeAtual]));
-  const PRECO = { [FECULA.id]: 98, [P_DOCE.id]: 112, [P_AZEDO.id]: 126, [TAPIOCA.id]: 154 };
+  const PRECO = { [FECULA.id]: 98, [P_DOCE.id]: 112, [P_AZEDO.id]: 126, [TAPIOCA.id]: 154, [P_PO.id]: 131, [DEXTRINA.id]: 189 };
   const vendas = [];
   for (let d = -60; d <= -2; d += inteiro(3, 6)) {
     const data = dia(d);
     const itens = [];
-    for (const p of [FECULA, rnd() < 0.4 ? escolher([P_DOCE, P_AZEDO, TAPIOCA]) : null].filter(Boolean)) {
+    for (const p of [FECULA, rnd() < 0.5 ? escolher([P_DOCE, P_AZEDO, TAPIOCA, P_PO, DEXTRINA]) : null].filter(Boolean)) {
       const qtd = Math.min(Math.round(entre(120, 520) / 10) * 10, Math.floor((saldo[p.id] || 0) * 0.6));
       if (qtd >= 40) { itens.push({ produto: { id: p.id }, quantidade: qtd, valorUnitario: r2(PRECO[p.id] * entre(0.96, 1.05)) }); saldo[p.id] -= qtd; }
     }

@@ -3,7 +3,9 @@ package com.sigfec.services;
 import com.sigfec.domain.entities.Estoque;
 import com.sigfec.domain.entities.LoteProducao;
 import com.sigfec.domain.entities.Pesagem;
+import com.sigfec.domain.enums.EnumCategoriaProduto;
 import com.sigfec.domain.enums.EnumStatusLote;
+import com.sigfec.domain.enums.EnumTipoMovEstoque;
 import com.sigfec.domain.enums.EnumStatusQualidade;
 import com.sigfec.repositories.AnaliseLaboratorioRepository;
 import com.sigfec.repositories.EstoqueRepository;
@@ -12,9 +14,12 @@ import com.sigfec.repositories.PesagemRepository;
 import com.sigfec.repositories.ProdutoRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.List;
@@ -37,6 +42,10 @@ public class LoteProducaoService {
     private final EstoqueRepository estoqueRepository;
     private final MovimentacaoEstoqueService movEstoqueService;
     private final AuditService auditService;
+
+    /** Resíduo fibroso gerado por kg de mandioca processada (peso final das cargas). Padrão: 12%. */
+    @Value("${sigfec.producao.fator-residuo:0.12}")
+    private double fatorResiduo = 0.12;
 
     public List<LoteProducao> listar() {
         return loteRepository.findAll();
@@ -171,6 +180,26 @@ public class LoteProducaoService {
         );
         log.info("Lote #{} finalizado — +{} no estoque (Kardex) do produto #{}",
                 lote.getId(), qtd, lote.getProduto().getId());
+        entrarResiduo(lote);
+    }
+
+    /**
+     * Subproduto: a fibra que sobra da extração do amido entra no estoque do produto RESIDUO_FIBROSO
+     * (toneladas), proporcional ao peso final das cargas consumidas. Sem produto de resíduo cadastrado, não faz nada.
+     */
+    private void entrarResiduo(LoteProducao lote) {
+        if (lote.getProduto().getCategoria() == EnumCategoriaProduto.RESIDUO_FIBROSO || fatorResiduo <= 0) return;
+        if (lote.getPesagensConsumidas() == null || lote.getPesagensConsumidas().isEmpty()) return;
+        var residuo = produtoRepository.findFirstByCategoria(EnumCategoriaProduto.RESIDUO_FIBROSO).orElse(null);
+        if (residuo == null) return;
+        BigDecimal kgEntrada = lote.getPesagensConsumidas().stream()
+                .map(p -> p.getPesoFinal() != null ? p.getPesoFinal() : BigDecimal.ZERO)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        double toneladas = kgEntrada.multiply(BigDecimal.valueOf(fatorResiduo))
+                .divide(BigDecimal.valueOf(1000), 3, RoundingMode.HALF_UP).doubleValue();
+        if (toneladas <= 0) return;
+        movEstoqueService.aplicar(residuo, EnumTipoMovEstoque.ENTRADA_PRODUCAO, toneladas,
+                "Resíduo fibroso do lote " + lote.getCodigoLote(), "LOTE", lote.getId());
     }
 
     /** Marca as pesagens vinculadas ao lote como disponíveis novamente. */

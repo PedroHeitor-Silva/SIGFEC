@@ -6,4 +6,8 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ProdutoRepository extends JpaRepository<Produto, Long> {
+
+    /** Primeiro produto da categoria (ex.: o resíduo fibroso gerado pela produção). */
+    java.util.Optional<Produto> findFirstByCategoria(com.sigfec.domain.enums.EnumCategoriaProduto categoria);
+
 }

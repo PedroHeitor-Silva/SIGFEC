@@ -39,7 +39,8 @@ public class MovimentacaoEstoqueService {
                 });
 
         double atual = estoque.getQuantidadeAtual() != null ? estoque.getQuantidadeAtual() : 0.0;
-        double novoSaldo = isEntrada(tipo) ? atual + qtd : atual - qtd;
+        // arredonda em 3 casas: evita lixo de ponto flutuante (ex.: 76.21900000000001 t)
+        double novoSaldo = Math.round((isEntrada(tipo) ? atual + qtd : atual - qtd) * 1000.0) / 1000.0;
         if (novoSaldo < 0) {
             throw RegraNegocioException.conflito("Saldo ficaria negativo (" + novoSaldo + "). Operação bloqueada.");
         }

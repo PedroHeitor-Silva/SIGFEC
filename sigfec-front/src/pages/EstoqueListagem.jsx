@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Search, Trash2, Package, AlertTriangle, Pencil } from 'lucide-react';
+import { Plus, Search, Trash2, Package, AlertTriangle, Pencil, Scale, CircleDashed } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../services/api';
 import { ModuleHeader } from '../theme/modules.jsx';
@@ -20,8 +20,16 @@ const CATEGORIA_LABEL = {
   DEXTRINA: 'Dextrina', RESIDUO_FIBROSO: 'Resíduo', MANDIOCA: 'Mandioca',
 };
 
+/** Papel do produto no processo (define ordem e o que a tela mostra). */
+const TIPO = {
+  MANDIOCA: { ordem: 3, label: 'Matéria-prima' },
+  RESIDUO_FIBROSO: { ordem: 2, label: 'Subproduto' },
+};
+const tipoDe = (cat) => TIPO[cat] || { ordem: 1, label: 'Produto acabado' };
+
 export default function EstoqueListagem() {
   const [estoques, setEstoques] = useState([]);
+  const [produtos, setProdutos] = useState([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -30,8 +38,11 @@ export default function EstoqueListagem() {
 
   const carregar = () => {
     setLoading(true);
-    api.get('/estoque')
-      .then(({ data }) => setEstoques(data || []))
+    Promise.all([api.get('/estoque'), api.get('/produtos').catch(() => ({ data: [] }))])
+      .then(([est, prod]) => {
+        setEstoques(Array.isArray(est.data) ? est.data : []);
+        setProdutos(Array.isArray(prod.data) ? prod.data : []);
+      })
       .catch(() => setError('Não foi possível carregar o estoque.'))
       .finally(() => setLoading(false));
   };
@@ -43,11 +54,23 @@ export default function EstoqueListagem() {
     return min > 0 && atual <= min;
   };
 
+  // Todos os produtos do catálogo: os sem registro de estoque aparecem com saldo 0 ("sem movimentação").
+  const linhas = useMemo(() => {
+    const porProduto = new Map(estoques.map((e) => [e.produto?.id, e]));
+    const semCadastro = estoques.filter((e) => !produtos.some((p) => p.id === e.produto?.id));
+    const todas = [
+      ...produtos.map((p) => porProduto.get(p.id) || { id: null, produto: p, quantidadeAtual: 0, quantidadeMinima: 0, semRegistro: true }),
+      ...semCadastro,
+    ];
+    return todas.sort((a, b) => tipoDe(a.produto?.categoria).ordem - tipoDe(b.produto?.categoria).ordem
+      || (a.produto?.nome || '').localeCompare(b.produto?.nome || ''));
+  }, [estoques, produtos]);
+
   const filtered = useMemo(() => {
     const t = search.trim().toLowerCase();
-    if (!t) return estoques;
-    return estoques.filter((e) => (e.produto?.nome || '').toLowerCase().includes(t));
-  }, [estoques, search]);
+    if (!t) return linhas;
+    return linhas.filter((e) => (e.produto?.nome || '').toLowerCase().includes(t));
+  }, [linhas, search]);
 
   const alertas = useMemo(() => estoques.filter(abaixoMinimo).length, [estoques]);
 
@@ -77,7 +100,7 @@ export default function EstoqueListagem() {
       <ModuleHeader
         moduleKey="estoque"
         title="Controle de Estoque"
-        subtitle={`${estoques.length} ${estoques.length === 1 ? 'produto em estoque' : 'produtos em estoque'}`}
+        subtitle={`${linhas.length} produtos no catálogo · ${estoques.length} com registro de estoque`}
         action={
           <button type="button" onClick={() => navigate('/estoque/novo')}
             className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-500 transition">
@@ -109,7 +132,7 @@ export default function EstoqueListagem() {
           <table className="min-w-full text-sm">
             <thead>
               <tr className="border-b border-slate-800 bg-slate-800/50">
-                {['Produto', 'Categoria', 'Saldo Atual', 'Mínimo', 'Situação', 'Ações'].map((h) => (
+                {['Produto', 'Categoria', 'Saldo atual', 'Mínimo', 'Situação', 'Ações'].map((h) => (
                   <th key={h} className="px-5 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-500">{h}</th>
                 ))}
               </tr>
@@ -134,30 +157,41 @@ export default function EstoqueListagem() {
                 </td></tr>
               ) : (
                 filtered.map((e) => {
-                  const baixo = abaixoMinimo(e);
+                  const materiaPrima = e.produto?.categoria === 'MANDIOCA';
+                  const baixo = !e.semRegistro && abaixoMinimo(e);
                   const un = e.produto?.unidadeMedida;
                   const eqAtual = equivalenteKg(e.quantidadeAtual, un);
                   return (
-                    <tr key={e.id} className="border-b border-slate-800/60 hover:bg-slate-800/40 transition">
+                    <tr key={e.id ?? `p-${e.produto?.id}`} className={`border-b border-slate-800/60 hover:bg-slate-800/40 transition ${e.semRegistro ? 'opacity-80' : ''}`}>
                       <td className="px-5 py-4 font-medium text-white">{e.produto?.nome || '—'}</td>
                       <td className="px-5 py-4">
                         <span className="inline-flex rounded-full bg-slate-800 border border-slate-700 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">
                           {CATEGORIA_LABEL[e.produto?.categoria] || e.produto?.categoria || '—'}
                         </span>
+                        <span className="block mt-1 text-[11px] text-slate-500">{tipoDe(e.produto?.categoria).label}</span>
                       </td>
                       <td className="px-5 py-4">
-                        <span className={`font-mono font-bold ${baixo ? 'text-amber-400' : 'text-white'}`}>
+                        {materiaPrima ? <span className="text-slate-500">—</span> : (
+                        <span className={`font-mono font-bold ${baixo ? 'text-amber-400' : e.semRegistro ? 'text-slate-400' : 'text-white'}`}>
                           {formatarQtd(e.quantidadeAtual, un)}
-                        </span>
-                        {eqAtual && (
+                        </span>)}
+                        {!materiaPrima && !e.semRegistro && eqAtual && (
                           <span className="block text-[11px] text-slate-600">≈ {eqAtual}</span>
                         )}
                       </td>
                       <td className="px-5 py-4 font-mono text-slate-400">
-                        {formatarQtd(e.quantidadeMinima, un)}
+                        {materiaPrima || e.semRegistro ? '—' : formatarQtd(e.quantidadeMinima, un)}
                       </td>
                       <td className="px-5 py-4">
-                        {baixo ? (
+                        {materiaPrima ? (
+                          <span className="inline-flex items-center gap-1.5 rounded-full bg-sky-500/10 text-sky-400 border border-sky-500/30 px-2.5 py-0.5 text-xs font-semibold">
+                            <Scale size={11} /> Matéria-prima · controlada pela pesagem
+                          </span>
+                        ) : e.semRegistro ? (
+                          <span className="inline-flex items-center gap-1.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700 px-2.5 py-0.5 text-xs font-semibold">
+                            <CircleDashed size={11} /> Sem movimentação
+                          </span>
+                        ) : baixo ? (
                           <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2.5 py-0.5 text-xs font-semibold">
                             <AlertTriangle size={11} /> Estoque baixo
                           </span>
@@ -169,12 +203,15 @@ export default function EstoqueListagem() {
                       </td>
                       <td className="px-5 py-4">
                         <div className="flex gap-1">
-                          {can('estoque', 'editar') && (
+                          {e.semRegistro && !materiaPrima && can('estoque', 'criar') && (
+                            <BotaoAcao icon={Plus} label="Registrar estoque" cor="verde" onClick={() => navigate('/estoque/novo')} />
+                          )}
+                          {!e.semRegistro && can('estoque', 'editar') && (
                             <Tooltip label="Ajustar quantidades">
                               <BotaoAcao icon={Pencil} label="Ajustar quantidades" cor="azul" soIcone dicaNativa={false} onClick={() => setEditing(e)} />
                             </Tooltip>
                           )}
-                          {can('estoque', 'excluir') && (
+                          {!e.semRegistro && can('estoque', 'excluir') && (
                             <Tooltip label="Excluir">
                               <BotaoAcao icon={Trash2} label="Excluir" cor="vermelho" soIcone dicaNativa={false} onClick={() => handleDelete(e.id)} />
                             </Tooltip>
