@@ -18,4 +18,7 @@ public interface ContaReceberRepository extends JpaRepository<ContaReceber, Long
 
     /** Conta gerada na confirmação de uma venda (descrição "Venda #id"). */
     List<ContaReceber> findByDescricao(String descricao);
+
+    /** Contas de uma venda: "Venda #id" (pagamento único) ou "Venda #id - parcela i/N". */
+    List<ContaReceber> findByDescricaoOrDescricaoStartingWith(String descricao, String prefixoParcela);
 }

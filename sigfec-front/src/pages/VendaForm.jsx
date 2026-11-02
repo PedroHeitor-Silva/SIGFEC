@@ -6,6 +6,7 @@ import api from '../services/api';
 import { ModuleHeader } from '../theme/modules.jsx';
 import { maskMoeda, unmaskMoeda } from '../utils/masks';
 import { isoHoje } from '../utils/relatorio';
+import { FORMAS_PAGAMENTO, MAX_PARCELAS, ehAVista, dividirParcelas, resumoPagamento } from '../utils/formasPagamento';
 
 const inputCls = 'mt-2 w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-3 text-white placeholder:text-slate-500 outline-none focus:border-emerald-500 transition';
 const labelCls = 'text-xs font-bold uppercase tracking-wider text-slate-400';
@@ -19,6 +20,8 @@ export default function VendaForm() {
     clienteId: '',
     dataVenda: isoHoje(),
     observacao: '',
+    formaPagamento: '',
+    parcelas: 1,
   });
   // item em edição
   const [novoItem, setNovoItem] = useState({ produtoId: '', quantidade: '', valorUnitario: '' });
@@ -70,6 +73,9 @@ export default function VendaForm() {
   const removeItem = (idx) => setItens((prev) => prev.filter((_, i) => i !== idx));
 
   const valorTotal = useMemo(() => itens.reduce((s, i) => s + i.subtotal, 0), [itens]);
+  const aVista = ehAVista(form.formaPagamento);
+  const nParcelas = aVista ? 1 : Number(form.parcelas) || 1;
+  const parcelasPrevistas = useMemo(() => (valorTotal > 0 ? dividirParcelas(valorTotal, nParcelas) : []), [valorTotal, nParcelas]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -82,6 +88,8 @@ export default function VendaForm() {
         dataVenda: form.dataVenda,
         observacao: form.observacao,
         statusVenda: 'ORCAMENTO',
+        formaPagamento: form.formaPagamento || null,
+        parcelas: nParcelas,
         itens: itens.map((i) => ({
           produto: { id: i.produtoId },
           quantidade: i.quantidade,
@@ -138,6 +146,26 @@ export default function VendaForm() {
                   className={inputCls} required />
               </label>
               <label className="block">
+                <span className={labelCls}>Forma de pagamento</span>
+                <select value={form.formaPagamento}
+                  onChange={(e) => setForm((p) => ({ ...p, formaPagamento: e.target.value, parcelas: ehAVista(e.target.value) ? 1 : p.parcelas }))}
+                  className={inputCls}>
+                  <option value="">A prazo — 30 dias (padrão)</option>
+                  {FORMAS_PAGAMENTO.map((f) => <option key={f.value} value={f.value}>{f.label}{f.aVista ? ' (à vista)' : ''}</option>)}
+                </select>
+              </label>
+              <label className="block">
+                <span className={labelCls}>Parcelas</span>
+                <select value={nParcelas} disabled={aVista}
+                  onChange={(e) => setForm((p) => ({ ...p, parcelas: Number(e.target.value) }))}
+                  className={inputCls}>
+                  {Array.from({ length: MAX_PARCELAS }, (_, i) => i + 1).map((n) => (
+                    <option key={n} value={n}>{n === 1 ? '1x (pagamento único)' : `${n}x${valorTotal > 0 ? ' de ' + fmtMoeda(valorTotal / n) : ''}`}</option>
+                  ))}
+                </select>
+                {aVista && <span className="mt-1 block text-[11px] text-slate-500">Pagamento à vista: 1 parcela, vence na data da confirmação.</span>}
+              </label>
+              <label className="block sm:col-span-2">
                 <span className={labelCls}>Observação</span>
                 <input type="text" value={form.observacao}
                   onChange={(e) => setForm((p) => ({ ...p, observacao: e.target.value }))}
@@ -247,7 +275,21 @@ export default function VendaForm() {
               <div className="mt-4 rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-4">
                 <p className="text-[11px] font-bold uppercase tracking-widest text-emerald-400 mb-1">Valor Total</p>
                 <p className="text-3xl font-bold font-mono text-white">{fmtMoeda(valorTotal)}</p>
+                <p className="mt-1 text-xs font-semibold text-slate-400">{resumoPagamento(form.formaPagamento, nParcelas)}</p>
               </div>
+              {parcelasPrevistas.length > 1 && (
+                <div className="mt-3 rounded-lg border border-slate-800">
+                  <p className="px-3 py-2 text-[11px] font-bold uppercase tracking-widest text-slate-400 border-b border-slate-800">Parcelas previstas</p>
+                  <ul className="max-h-48 overflow-y-auto divide-y divide-slate-800/60">
+                    {parcelasPrevistas.map((v, i) => (
+                      <li key={i} className="flex justify-between px-3 py-1.5 text-xs">
+                        <span className="text-slate-400">{i + 1}ª · vence em {30 * (i + 1)} dias</span>
+                        <span className="font-mono font-semibold text-white">{fmtMoeda(v)}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
             <button type="submit" disabled={saving}
               className="mt-6 w-full inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-600 py-3 text-sm font-bold text-white hover:bg-emerald-500 disabled:opacity-50 transition shadow-lg shadow-emerald-900/40">

@@ -18,6 +18,7 @@ import { printReciboFinanceiro } from '../utils/printDoc';
 import { maskMoeda, unmaskMoeda, moedaFromNumber } from '../utils/masks';
 import CobrancaModal from '../components/CobrancaModal';
 import { isoHoje } from '../utils/relatorio';
+import { FORMAS_PAGAMENTO, formaLabel } from '../utils/formasPagamento';
 
 const STATUS_BADGE = {
   ABERTO: 'bg-amber-500/10 text-amber-400 border border-amber-500/20',
@@ -284,7 +285,7 @@ export default function FinanceiroListagem() {
                           <td className="px-4 py-3 text-slate-300 font-mono">{fmtData(t.dataPagamento)}</td>
                           <td className="px-4 py-3">
                             <span className="inline-flex rounded-full bg-slate-800 border border-slate-700 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">
-                              {t.formaPagamento || '—'}
+                              {formaLabel(t.formaPagamento)}
                             </span>
                           </td>
                         </>
@@ -381,7 +382,8 @@ function BaixaModal({ titulo, onClose, onConfirm }) {
       const saldo = Math.max(0, Number(titulo.valorOriginal || 0) - Number(titulo.valorPago || 0));
       setValorPago(moedaFromNumber(saldo));
       setDataPagamento(todayIso());
-      setFormaPagamento('PIX');
+      // forma combinada na venda (ex.: cartão de crédito) já vem selecionada
+      setFormaPagamento(titulo.formaPagamento || 'PIX');
     }
   }, [titulo]);
 
@@ -453,11 +455,7 @@ function BaixaModal({ titulo, onClose, onConfirm }) {
                 <label className="block">
                   <span className={labelCls}>Forma</span>
                   <select value={formaPagamento} onChange={(e) => setFormaPagamento(e.target.value)} className={inputCls}>
-                    <option value="PIX">PIX</option>
-                    <option value="DINHEIRO">Dinheiro</option>
-                    <option value="TRANSFERENCIA">Transferência</option>
-                    <option value="BOLETO">Boleto</option>
-                    <option value="CHEQUE">Cheque</option>
+                    {FORMAS_PAGAMENTO.map((f) => <option key={f.value} value={f.value}>{f.label}</option>)}
                   </select>
                 </label>
               </div>

@@ -6,6 +6,7 @@
  * a pré-visualização abre por cima do próprio sistema — o usuário nunca fica sem o documento.
  */
 import { UNIDADES } from './unidades.js';
+import { formaLabel, resumoPagamento } from './formasPagamento.js';
 
 // ===================== formatação =====================
 const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -287,6 +288,7 @@ export function printNotaFiscal(venda) {
     ${totais([
       { rotulo: 'Quantidade de itens', valor: String(itens.length) },
       { rotulo: 'Peso total', valor: `${num(pesoTotal, 0)} kg` },
+      { rotulo: 'Pagamento', valor: esc(resumoPagamento(venda.formaPagamento, venda.parcelas)) },
       { rotulo: 'VALOR TOTAL DA NOTA', valor: fmtMoney(venda.valorTotal), destaque: true },
     ])}
     ${venda.observacao ? `<p class="nota"><strong>Observações:</strong> ${esc(venda.observacao)}</p>` : ''}
@@ -317,7 +319,7 @@ export function printReciboFinanceiro(titulo) {
       { label: 'Descrição', valor: titulo.descricao, largo: true },
       { label: 'Emissão', valor: fmtData(titulo.dataEmissao) },
       { label: 'Vencimento', valor: fmtData(titulo.dataVencimento) },
-      { label: 'Forma de pagamento', valor: rotulo(titulo.formaPagamento) },
+      { label: 'Forma de pagamento', valor: formaLabel(titulo.formaPagamento) },
       { label: 'Data do pagamento', valor: fmtData(titulo.dataPagamento) },
     ])}
     <section class="bloco"><h2>Valores</h2>

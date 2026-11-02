@@ -75,7 +75,7 @@ class VendaServiceTest {
         Venda v = venda(EnumStatusVenda.CONFIRMADA);
         ContaReceber conta = new ContaReceber();
         conta.setValorPago(BigDecimal.ZERO);
-        when(contaRepo.findByDescricao("Venda #7")).thenReturn(List.of(conta));
+        when(contaRepo.findByDescricaoOrDescricaoStartingWith("Venda #7", "Venda #7 - parcela ")).thenReturn(List.of(conta));
 
         service.cancelar(7L);
 
@@ -90,7 +90,7 @@ class VendaServiceTest {
         venda(EnumStatusVenda.CONFIRMADA);
         ContaReceber conta = new ContaReceber();
         conta.setValorPago(new BigDecimal("100"));
-        when(contaRepo.findByDescricao("Venda #7")).thenReturn(List.of(conta));
+        when(contaRepo.findByDescricaoOrDescricaoStartingWith("Venda #7", "Venda #7 - parcela ")).thenReturn(List.of(conta));
 
         assertThrows(RegraNegocioException.class, () -> service.cancelar(7L));
         verifyNoInteractions(mov);
@@ -125,5 +125,54 @@ class VendaServiceTest {
         assertNull(salva.getId());
         assertEquals(EnumStatusVenda.ORCAMENTO, salva.getStatusVenda());
         assertNull(salva.getNumeroNota());
+    }
+
+    /** Venda pronta para confirmar: 1 item, estoque suficiente, total informado. */
+    private Venda vendaParaConfirmar(String total, com.sigfec.domain.enums.EnumFormaPagamento forma, Integer parcelas) {
+        EstoqueRepository estoqueRepo = mock(EstoqueRepository.class);
+        com.sigfec.domain.entities.Estoque est = new com.sigfec.domain.entities.Estoque();
+        est.setQuantidadeAtual(1000.0);
+        when(estoqueRepo.findByProduto_Id(1L)).thenReturn(Optional.of(est));
+        service = new VendaService(vendaRepo, mock(ProdutoRepository.class), estoqueRepo, contaRepo, mov, mock(AuditService.class));
+        Venda v = venda(EnumStatusVenda.ORCAMENTO);
+        v.setValorTotal(new BigDecimal(total));
+        v.setFormaPagamento(forma);
+        v.setParcelas(parcelas);
+        return v;
+    }
+
+    @Test
+    @DisplayName("Cartão de crédito em 3x gera 3 contas a receber (30/60/90 dias) que somam o total")
+    void parcelaEmTres() {
+        vendaParaConfirmar("1000.00", com.sigfec.domain.enums.EnumFormaPagamento.CARTAO_CREDITO, 3);
+        service.confirmar(7L);
+        var captor = org.mockito.ArgumentCaptor.forClass(ContaReceber.class);
+        verify(contaRepo, times(3)).save(captor.capture());
+        List<ContaReceber> contas = captor.getAllValues();
+        assertEquals(0, new BigDecimal("1000.00").compareTo(contas.stream().map(ContaReceber::getValorOriginal).reduce(BigDecimal.ZERO, BigDecimal::add)));
+        assertEquals(0, new BigDecimal("333.34").compareTo(contas.get(2).getValorOriginal()), "centavo de arredondamento na última");
+        assertEquals(java.time.LocalDate.now().plusDays(90), contas.get(2).getDataVencimento());
+        assertEquals("Venda #7 - parcela 2/3", contas.get(1).getDescricao());
+        assertEquals("CARTAO_CREDITO", contas.get(0).getFormaPagamento());
+    }
+
+    @Test
+    @DisplayName("Débito é à vista: 1 conta, vencendo hoje, mesmo pedindo parcelas")
+    void debitoAVista() {
+        Venda v = vendaParaConfirmar("500.00", com.sigfec.domain.enums.EnumFormaPagamento.CARTAO_DEBITO, 4);
+        v.getItens().get(0).setValorUnitario(new BigDecimal("10")); // 50 × R$ 10 = R$ 500 (atualizar recalcula o total)
+        service.atualizar(7L, v);
+        service.confirmar(7L);
+        var captor = org.mockito.ArgumentCaptor.forClass(ContaReceber.class);
+        verify(contaRepo, times(1)).save(captor.capture());
+        assertEquals(java.time.LocalDate.now(), captor.getValue().getDataVencimento());
+        assertEquals("Venda #7", captor.getValue().getDescricao());
+    }
+
+    @Test
+    @DisplayName("Recusa mais de 12 parcelas")
+    void recusaTrezeParcelas() {
+        Venda v = vendaParaConfirmar("500.00", com.sigfec.domain.enums.EnumFormaPagamento.BOLETO, 13);
+        assertThrows(RegraNegocioException.class, () -> service.atualizar(7L, v));
     }
 }

@@ -4,6 +4,16 @@ import { Save, ArrowLeft, TrendingUp, TrendingDown } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../services/api';
 import { maskMoeda, unmaskMoeda } from '../utils/masks';
+import { MAX_PARCELAS, dividirParcelas } from '../utils/formasPagamento';
+
+const fmtMoeda = (v) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(v) || 0);
+/** Vencimento da parcela i (mesma regra do backend: +1 mês por parcela). */
+const vencimentoParcela = (iso, i) => {
+  if (!iso) return '—';
+  const d = new Date(`${iso}T00:00:00`);
+  d.setMonth(d.getMonth() + i);
+  return d.toLocaleDateString('pt-BR');
+};
 
 const inputCls = 'mt-2 w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-3 text-white placeholder:text-slate-500 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/20 transition';
 const labelCls = 'text-xs font-bold uppercase tracking-wider text-slate-400';
@@ -13,7 +23,7 @@ export default function FinanceiroCadastro() {
   const [parceiros, setParceiros] = useState([]);
   const [form, setForm] = useState({
     parceiroId: '', valorOriginal: '', dataEmissao: '', dataVencimento: '',
-    statusFinanceiro: 'ABERTO', descricao: '',
+    statusFinanceiro: 'ABERTO', descricao: '', parcelas: 1,
   });
   const [saving, setSaving] = useState(false);
   const navigate = useNavigate();
@@ -42,8 +52,9 @@ export default function FinanceiroCadastro() {
     };
 
     try {
-      await api.post(`/financeiro/${tipo === 'PAGAR' ? 'pagar' : 'receber'}`, body);
-      toast.success('Lançamento salvo.');
+      const n = Number(form.parcelas) || 1;
+      await api.post(`/financeiro/${tipo === 'PAGAR' ? 'pagar' : 'receber'}`, body, { params: n > 1 ? { parcelas: n } : undefined });
+      toast.success(n > 1 ? `Lançamento salvo em ${n} parcelas.` : 'Lançamento salvo.');
       navigate('/financeiro');
     } catch (err) {
       toast.error(err?.response?.data?.error || 'Falha ao salvar.');
@@ -145,10 +156,36 @@ export default function FinanceiroCadastro() {
             </label>
           </div>
 
-          <label className="block">
-            <span className={labelCls}>Descrição</span>
-            <input type="text" name="descricao" value={form.descricao} onChange={handleChange} placeholder="Referência / nota fiscal / observações" className={inputCls} />
-          </label>
+          <div className="grid gap-5 sm:grid-cols-3">
+            <label className="block sm:col-span-2">
+              <span className={labelCls}>Descrição</span>
+              <input type="text" name="descricao" value={form.descricao} onChange={handleChange} placeholder="Referência / nota fiscal / observações" className={inputCls} />
+            </label>
+            <label className="block">
+              <span className={labelCls}>Parcelas</span>
+              <select name="parcelas" value={form.parcelas} onChange={handleChange} className={inputCls}>
+                {Array.from({ length: MAX_PARCELAS }, (_, i) => i + 1).map((n) => (
+                  <option key={n} value={n}>{n === 1 ? '1x (único)' : `${n}x mensais`}</option>
+                ))}
+              </select>
+            </label>
+          </div>
+
+          {Number(form.parcelas) > 1 && unmaskMoeda(form.valorOriginal) > 0 && (
+            <div className="rounded-lg border border-slate-800">
+              <p className="px-4 py-2 text-[11px] font-bold uppercase tracking-widest text-slate-400 border-b border-slate-800">
+                {form.parcelas} parcelas — a 1ª no vencimento informado, as demais mês a mês
+              </p>
+              <ul className="grid sm:grid-cols-2 divide-y divide-slate-800/60">
+                {dividirParcelas(unmaskMoeda(form.valorOriginal), form.parcelas).map((v, i) => (
+                  <li key={i} className="flex justify-between px-4 py-1.5 text-xs">
+                    <span className="text-slate-400">{i + 1}ª · {vencimentoParcela(form.dataVencimento, i)}</span>
+                    <span className="font-mono font-semibold text-white">{fmtMoeda(v)}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           <div className="flex justify-end gap-3 pt-2">
             <button type="button" onClick={() => navigate('/financeiro')} className="rounded-lg border border-slate-700 bg-slate-800 px-6 py-3 text-sm font-semibold text-slate-400 hover:bg-slate-700 transition">

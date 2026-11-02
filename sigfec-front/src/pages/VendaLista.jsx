@@ -9,6 +9,7 @@ import { ModuleHeader } from '../theme/modules.jsx';
 import { confirm } from '../components/ConfirmDialog';
 import EmptyState from '../components/EmptyState';
 import BotaoAcao from '../components/BotaoAcao';
+import { resumoPagamento } from '../utils/formasPagamento';
 import { TableSkeleton } from '../components/Skeleton';
 import { printNotaFiscal } from '../utils/printDoc';
 
@@ -189,7 +190,10 @@ export default function VendaLista() {
                       <td className="px-4 py-3 font-medium text-white min-w-[220px]">{v.cliente?.nome || '—'}</td>
                       <td className="px-4 py-3 text-slate-400">{fmtData(v.dataVenda)}</td>
                       <td className="px-4 py-3 text-slate-400 font-mono">{(v.itens || []).length}</td>
-                      <td className="px-4 py-3 text-emerald-400 font-mono font-bold">{fmtMoeda(v.valorTotal)}</td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        <span className="block text-emerald-400 font-mono font-bold">{fmtMoeda(v.valorTotal)}</span>
+                        <span className="block text-[11px] text-slate-500">{resumoPagamento(v.formaPagamento, v.parcelas)}</span>
+                      </td>
                       <td className="px-4 py-3">
                         <span className={`inline-flex rounded-full px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider ${STATUS_BADGE[st]}`}>
                           {st}

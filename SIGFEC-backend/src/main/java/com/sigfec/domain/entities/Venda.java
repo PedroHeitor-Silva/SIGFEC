@@ -44,6 +44,15 @@ public class Venda {
 
     private String observacao;
 
+    /** Forma de pagamento combinada (null = a prazo em 30 dias, comportamento antigo). */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "forma_pagamento")
+    private com.sigfec.domain.enums.EnumFormaPagamento formaPagamento;
+
+    /** Número de parcelas da conta a receber (1 a 12; à vista = 1). */
+    @Column(name = "parcelas")
+    private Integer parcelas;
+
     @Column(name = "data_criacao")
     private LocalDateTime dataCriacao;
 

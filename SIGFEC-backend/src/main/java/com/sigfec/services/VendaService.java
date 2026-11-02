@@ -59,6 +59,7 @@ public class VendaService {
 
     /** Hidrata produtos dos itens, religa a referência pai e recalcula os totais. */
     private Venda montarESalvar(Venda venda) {
+        normalizarPagamento(venda);
         if (venda.getItens() != null) {
             for (ItemVenda item : venda.getItens()) {
                 item.setVenda(venda);
@@ -121,15 +122,8 @@ public class VendaService {
             );
         }
 
-        // 2. Gera Conta a Receber do cliente
-        ContaReceber conta = new ContaReceber();
-        conta.setCliente(venda.getCliente());
-        conta.setValorOriginal(venda.getValorTotal());
-        conta.setDataEmissao(LocalDate.now());
-        conta.setDataVencimento(LocalDate.now().plusDays(30));
-        conta.setStatusFinanceiro(EnumStatusFinanceiro.ABERTO);
-        conta.setDescricao("Venda #" + venda.getId());
-        contaReceberRepository.save(conta);
+        // 3. Gera as Contas a Receber do cliente — uma por parcela
+        gerarContasReceber(venda);
 
         venda.setStatusVenda(EnumStatusVenda.CONFIRMADA);
         Venda salva = vendaRepository.save(venda);
@@ -190,7 +184,7 @@ public class VendaService {
     }
 
     private void desfazerConfirmacao(Venda venda) {
-        List<ContaReceber> contas = contaReceberRepository.findByDescricao("Venda #" + venda.getId());
+        List<ContaReceber> contas = contasDaVenda(venda.getId());
         // valida tudo antes de alterar qualquer coisa
         for (ContaReceber c : contas) {
             if (c.getValorPago() != null && c.getValorPago().signum() > 0) {
@@ -218,6 +212,42 @@ public class VendaService {
         java.text.NumberFormat nf = java.text.NumberFormat.getNumberInstance(new java.util.Locale("pt", "BR"));
         nf.setMaximumFractionDigits(2);
         return nf.format(v);
+    }
+
+    /**
+     * Forma de pagamento e parcelas: à vista (dinheiro, PIX, débito) é sempre 1 parcela;
+     * as demais aceitam de 1 a 12. Sem forma informada, mantém o padrão antigo (1 parcela em 30 dias).
+     */
+    private void normalizarPagamento(Venda venda) {
+        int parcelas = venda.getParcelas() == null ? 1 : venda.getParcelas();
+        if (venda.getFormaPagamento() != null && venda.getFormaPagamento().aVista()) parcelas = 1;
+        Parcelamento.validar(parcelas);
+        venda.setParcelas(parcelas);
+    }
+
+    /** Uma conta a receber por parcela, de 30 em 30 dias (à vista: vence no dia, já com a forma de pagamento). */
+    private void gerarContasReceber(Venda venda) {
+        int n = venda.getParcelas() == null ? 1 : venda.getParcelas();
+        boolean aVista = venda.getFormaPagamento() != null && venda.getFormaPagamento().aVista();
+        List<java.math.BigDecimal> valores = Parcelamento.dividir(venda.getValorTotal(), n);
+        LocalDate hoje = LocalDate.now();
+        for (int i = 1; i <= n; i++) {
+            ContaReceber conta = new ContaReceber();
+            conta.setCliente(venda.getCliente());
+            conta.setValorOriginal(valores.get(i - 1));
+            conta.setDataEmissao(hoje);
+            conta.setDataVencimento(aVista ? hoje : hoje.plusDays(30L * i));
+            conta.setStatusFinanceiro(EnumStatusFinanceiro.ABERTO);
+            conta.setDescricao("Venda #" + venda.getId() + Parcelamento.sufixo(i, n));
+            if (venda.getFormaPagamento() != null) conta.setFormaPagamento(venda.getFormaPagamento().name());
+            contaReceberRepository.save(conta);
+        }
+    }
+
+    /** Contas geradas pela venda: "Venda #id" ou "Venda #id - parcela i/N". */
+    private List<ContaReceber> contasDaVenda(Long vendaId) {
+        String base = "Venda #" + vendaId;
+        return contaReceberRepository.findByDescricaoOrDescricaoStartingWith(base, base + " - parcela ");
     }
 
     private Venda carregar(Long id) {

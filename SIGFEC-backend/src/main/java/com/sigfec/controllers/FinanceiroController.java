@@ -40,14 +40,22 @@ public class FinanceiroController {
         return receberRepo.findAll();
     }
 
+    /** ?parcelas=N divide o título em N parcelas mensais a partir do vencimento informado. */
     @PostMapping("/pagar")
-    public ResponseEntity<ContaPagar> criarPagar(@RequestBody ContaPagar conta) {
+    @org.springframework.transaction.annotation.Transactional
+    public ResponseEntity<?> criarPagar(@RequestBody ContaPagar conta, @RequestParam(defaultValue = "1") int parcelas) {
         prepararNovo(conta);
-        return ResponseEntity.status(HttpStatus.CREATED).body(pagarRepo.save(conta));
+        if (parcelas <= 1) return ResponseEntity.status(HttpStatus.CREATED).body(pagarRepo.save(conta));
+        List<ContaPagar> criadas = new java.util.ArrayList<>();
+        for (TituloFinanceiro t : parcelar(conta, parcelas, () -> { ContaPagar c = new ContaPagar(); c.setFornecedor(conta.getFornecedor()); return c; })) {
+            criadas.add(pagarRepo.save((ContaPagar) t));
+        }
+        return ResponseEntity.status(HttpStatus.CREATED).body(criadas);
     }
 
     @PostMapping("/receber")
-    public ResponseEntity<ContaReceber> criarReceber(@RequestBody ContaReceber conta) {
+    @org.springframework.transaction.annotation.Transactional
+    public ResponseEntity<?> criarReceber(@RequestBody ContaReceber conta, @RequestParam(defaultValue = "1") int parcelas) {
         prepararNovo(conta);
         // dados da cobrança só são preenchidos pela integração Asaas
         conta.setAsaasPaymentId(null);
@@ -58,7 +66,31 @@ public class FinanceiroController {
         conta.setLinkBoleto(null);
         conta.setLinhaDigitavel(null);
         conta.setCodigoBarrasBoleto(null);
-        return ResponseEntity.status(HttpStatus.CREATED).body(receberRepo.save(conta));
+        if (parcelas <= 1) return ResponseEntity.status(HttpStatus.CREATED).body(receberRepo.save(conta));
+        List<ContaReceber> criadas = new java.util.ArrayList<>();
+        for (TituloFinanceiro t : parcelar(conta, parcelas, () -> { ContaReceber c = new ContaReceber(); c.setCliente(conta.getCliente()); return c; })) {
+            criadas.add(receberRepo.save((ContaReceber) t));
+        }
+        return ResponseEntity.status(HttpStatus.CREATED).body(criadas);
+    }
+
+    /** Copia o título em N parcelas: valor dividido (centavos na última), vencimento +1 mês a cada parcela. */
+    private static List<TituloFinanceiro> parcelar(TituloFinanceiro modelo, int parcelas,
+                                                   java.util.function.Supplier<TituloFinanceiro> novo) {
+        List<java.math.BigDecimal> valores = com.sigfec.services.Parcelamento.dividir(modelo.getValorOriginal(), parcelas);
+        java.time.LocalDate primeiro = modelo.getDataVencimento() != null ? modelo.getDataVencimento() : java.time.LocalDate.now().plusDays(30);
+        String descricao = modelo.getDescricao() != null && !modelo.getDescricao().isBlank() ? modelo.getDescricao() : "Lançamento";
+        List<TituloFinanceiro> lista = new java.util.ArrayList<>();
+        for (int i = 1; i <= parcelas; i++) {
+            TituloFinanceiro t = novo.get();
+            t.setValorOriginal(valores.get(i - 1));
+            t.setValorPago(java.math.BigDecimal.ZERO);
+            t.setDataEmissao(modelo.getDataEmissao());
+            t.setDataVencimento(primeiro.plusMonths(i - 1L));
+            t.setDescricao(descricao + com.sigfec.services.Parcelamento.sufixo(i, parcelas));
+            lista.add(t);
+        }
+        return lista;
     }
 
     /** Título novo nasce em aberto: id, pagamento e status nunca vêm do cliente. */
@@ -101,7 +133,10 @@ public class FinanceiroController {
                     ? java.time.LocalDate.parse(dataObj.toString())
                     : java.time.LocalDate.now());
             if (body.get("formaPagamento") != null) {
-                titulo.setFormaPagamento(body.get("formaPagamento").toString());
+                String forma = body.get("formaPagamento").toString();
+                try { com.sigfec.domain.enums.EnumFormaPagamento.valueOf(forma); }
+                catch (IllegalArgumentException e) { throw RegraNegocioException.invalida("Forma de pagamento inválida: " + forma + "."); }
+                titulo.setFormaPagamento(forma);
             }
             // status recalculado no @PreUpdate
             return ResponseEntity.ok(tituloRepo.save(titulo));
