@@ -46,7 +46,24 @@ public class AsaasService {
         HttpHeaders h = new HttpHeaders();
         h.setContentType(MediaType.APPLICATION_JSON);
         h.set("access_token", apiKey);
+        h.set("User-Agent", "SIGFEC"); // exigido pelo Asaas nas contas novas
         return h;
+    }
+
+    /**
+     * Traduz a resposta de erro do Asaas numa mensagem útil para o usuário
+     * (antes: "Erro ao criar cliente no Asaas: " com o corpo vazio).
+     */
+    private AsaasException erroAsaas(String acao, HttpStatusCodeException e) {
+        String corpo = e.getResponseBodyAsString();
+        if (e.getStatusCode().value() == 401 || corpo.contains("invalid_access_token")) {
+            return new AsaasException("Chave da API Asaas inválida ou expirada. Gere uma nova chave em "
+                    + "sandbox.asaas.com → Integrações → Chaves de API e atualize asaas.api-key (asaas-local.properties) "
+                    + "ou a variável ASAAS_API_KEY; depois reinicie o backend.");
+        }
+        String detalhe = corpo.replaceAll(".*\"description\":\"([^\"]+)\".*", "$1");
+        if (detalhe.isBlank() || detalhe.equals(corpo) && corpo.length() > 200) detalhe = "HTTP " + e.getStatusCode().value();
+        return new AsaasException(acao + ": " + detalhe);
     }
 
     // ============================ CLIENTE ============================
@@ -70,6 +87,7 @@ public class AsaasService {
             }
         } catch (HttpStatusCodeException e) {
             log.warn("Falha ao buscar cliente Asaas: {}", e.getResponseBodyAsString());
+            if (e.getStatusCode().value() == 401) throw erroAsaas("Erro ao consultar cliente no Asaas", e);
         }
 
         // 2. Não existe — cria
@@ -86,7 +104,7 @@ public class AsaasService {
             }
             return resp.getBody().id();
         } catch (HttpStatusCodeException e) {
-            throw new AsaasException("Erro ao criar cliente no Asaas: " + e.getResponseBodyAsString());
+            throw erroAsaas("Erro ao criar cliente no Asaas", e);
         }
     }
 
@@ -149,7 +167,7 @@ public class AsaasService {
             if (resp.getBody() == null) throw new AsaasException("QR Code PIX não retornado pelo Asaas.");
             return resp.getBody();
         } catch (HttpStatusCodeException e) {
-            throw new AsaasException("Erro ao obter QR Code PIX: " + e.getResponseBodyAsString());
+            throw erroAsaas("Erro ao obter QR Code PIX", e);
         }
     }
 
@@ -233,7 +251,7 @@ public class AsaasService {
             }
             return resp.getBody();
         } catch (HttpStatusCodeException e) {
-            throw new AsaasException("Erro ao criar cobrança no Asaas: " + e.getResponseBodyAsString());
+            throw erroAsaas("Erro ao criar cobrança no Asaas", e);
         }
     }
 }
