@@ -48,8 +48,10 @@ public class SecurityConfig {
                         .requestMatchers("/api/cidades/**", "/api/estados/**").permitAll()
                         // Webhook Asaas — chamado pelo gateway, sem token JWT
                         .requestMatchers("/api/webhooks/**").permitAll()
-                        // Resto requer autenticação
-                        .anyRequest().authenticated()
+                        // Resto da API requer autenticação
+                        .requestMatchers("/api/**").authenticated()
+                        // Telas (arquivos estáticos do front embutido) são públicas
+                        .anyRequest().permitAll()
                 )
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();

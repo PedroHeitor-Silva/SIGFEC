@@ -1,0 +1,11 @@
+**/node_modules
+**/dist
+**/target
+**/.git
+.claude
+deploy
+scripts
+*.docx
+*.md
+SIGFEC-backend/src/main/resources/asaas-local.properties
+SIGFEC-backend/asaas-local.properties

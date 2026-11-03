@@ -11,6 +11,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -68,6 +69,11 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, Object>> runtime(RuntimeException e) {
         log.error("Erro de negócio: {}", e.getMessage());
         return body(HttpStatus.BAD_REQUEST, e.getMessage());
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<Map<String, Object>> semRecurso(NoResourceFoundException e) {
+        return body(HttpStatus.NOT_FOUND, "Recurso não encontrado.");
     }
 
     @ExceptionHandler(Exception.class)
