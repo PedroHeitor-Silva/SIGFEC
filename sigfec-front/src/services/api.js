@@ -5,8 +5,13 @@ import axios from 'axios';
 // VITE_API_URL sobrescreve, ex.: http://servidor:8080/api.
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || '/api',
-  timeout: 8000,
+  // No servidor grátis o backend "dorme" sem uso e leva até ~1 min para acordar: 8 s fazia o
+  // dashboard desistir das chamadas e abrir vazio.
+  timeout: 60000,
 });
+
+const TENTATIVAS_GET = 2;
+const esperar = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // Injeta JWT em todo request se houver token salvo
 api.interceptors.request.use((config) => {
@@ -32,8 +37,16 @@ api.interceptors.request.use((config) => {
 // Logout automático só em 401 (token expirado/ausente)
 api.interceptors.response.use(
   (r) => r,
-  (err) => {
+  async (err) => {
     const status = err?.response?.status;
+    // GET que falhou por servidor acordando/reiniciando (sem resposta, timeout ou 502/503/504): tenta de novo
+    const cfg = err.config;
+    const transitorio = err.code !== 'ERR_CANCELED' && (!err.response || [502, 503, 504].includes(status));
+    if (cfg && (cfg.method || 'get') === 'get' && transitorio && (cfg._tentativa || 0) < TENTATIVAS_GET) {
+      cfg._tentativa = (cfg._tentativa || 0) + 1;
+      await esperar(2000 * cfg._tentativa);
+      return api(cfg);
+    }
     if (status === 401) {
       const url = err.config?.url || '';
       if (!url.includes('/usuarios/login')) {
