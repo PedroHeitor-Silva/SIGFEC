@@ -6,7 +6,7 @@ import api from '../services/api';
 import { ModuleHeader } from '../theme/modules.jsx';
 import { maskMoeda, unmaskMoeda } from '../utils/masks';
 import { isoHoje } from '../utils/relatorio';
-import { FORMAS_PAGAMENTO, MAX_PARCELAS, ehAVista, dividirParcelas, resumoPagamento } from '../utils/formasPagamento';
+import { FORMAS_PAGAMENTO, maxParcelas, intervaloParcelas, ehAVista, dividirParcelas, resumoPagamento } from '../utils/formasPagamento';
 
 const inputCls = 'mt-2 w-full rounded-lg border border-slate-700 bg-slate-800 px-4 py-3 text-white placeholder:text-slate-500 outline-none focus:border-emerald-500 transition';
 const labelCls = 'text-xs font-bold uppercase tracking-wider text-slate-400';
@@ -150,7 +150,7 @@ export default function VendaForm() {
                 <select value={form.formaPagamento}
                   onChange={(e) => setForm((p) => ({ ...p, formaPagamento: e.target.value, parcelas: ehAVista(e.target.value) ? 1 : p.parcelas }))}
                   className={inputCls}>
-                  <option value="">A prazo — 30 dias (padrão)</option>
+                  <option value="">A prazo — {intervaloParcelas()} dias (padrão)</option>
                   {FORMAS_PAGAMENTO.map((f) => <option key={f.value} value={f.value}>{f.label}{f.aVista ? ' (à vista)' : ''}</option>)}
                 </select>
               </label>
@@ -159,7 +159,7 @@ export default function VendaForm() {
                 <select value={nParcelas} disabled={aVista}
                   onChange={(e) => setForm((p) => ({ ...p, parcelas: Number(e.target.value) }))}
                   className={inputCls}>
-                  {Array.from({ length: MAX_PARCELAS }, (_, i) => i + 1).map((n) => (
+                  {Array.from({ length: maxParcelas() }, (_, i) => i + 1).map((n) => (
                     <option key={n} value={n}>{n === 1 ? '1x (pagamento único)' : `${n}x${valorTotal > 0 ? ' de ' + fmtMoeda(valorTotal / n) : ''}`}</option>
                   ))}
                 </select>

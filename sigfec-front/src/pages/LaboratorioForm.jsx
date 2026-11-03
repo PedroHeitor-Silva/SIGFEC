@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
-  ArrowLeft, Printer, Save, Beaker, Droplets, FlaskConical, Sun,
+  ArrowLeft, Save, Beaker, Droplets, FlaskConical, Sun,
   Plus, Trash2, Scale,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -24,10 +24,17 @@ export default function LaboratorioForm() {
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const [params] = useSearchParams();
 
   useEffect(() => {
     api.get('/pesagens')
-      .then(({ data }) => setPesagens((data || []).filter((p) => p.gramasAmido == null))) // só cargas sem laudo
+      .then(({ data }) => {
+        const semLaudo = (data || []).filter((p) => p.gramasAmido == null); // só cargas sem laudo
+        setPesagens(semLaudo);
+        // vindo de "Analisar" na lista: a carga já vem escolhida
+        const pre = params.get('pesagem');
+        if (pre && semLaudo.some((p) => String(p.id) === pre)) setForm((f) => ({ ...f, cargaId: pre }));
+      })
       .catch(() => toast.error('Falha ao carregar pesagens.'))
       .finally(() => setLoading(false));
   }, []);
@@ -38,6 +45,12 @@ export default function LaboratorioForm() {
 
   // Carga >15t exige 3+ amostras
   const minAmostras = toneladas > 15 ? 3 : 2;
+
+  // abre os campos de amostra que a carga exige (sem o usuário ter que clicar em "Adicionar")
+  useEffect(() => {
+    setAmostras((prev) => prev.length >= minAmostras ? prev
+      : [...prev, ...Array.from({ length: minAmostras - prev.length }, (_, i) => novaAmostra(prev.length + i + 1))]);
+  }, [minAmostras]);
 
   // Renda média (sem descarte)
   const rendaMedia = useMemo(() => {
@@ -128,7 +141,9 @@ export default function LaboratorioForm() {
                 <option value="">{loading ? 'Carregando...' : 'Selecione a carga'}</option>
                 {pesagens.map((p) => (
                   <option key={p.id} value={p.id}>
-                    #{p.id} • {p.produtorNome || 'Produtor não informado'} • {Number(p.pesoFinal ?? p.pesoLiquido ?? 0).toLocaleString('pt-BR')} kg
+                    PES-{String(p.id).padStart(6, '0')} • {p.produtorNome || 'Produtor não informado'} • {Number(p.pesoFinal ?? p.pesoLiquido ?? 0).toLocaleString('pt-BR')} kg
+                    {p.dataHoraEntrada ? ` • ${new Date(p.dataHoraEntrada).toLocaleDateString('pt-BR')}` : ''}
+                    {p.veiculoPlaca ? ` • ${p.veiculoPlaca}` : ''}
                   </option>
                 ))}
               </select>
@@ -253,12 +268,8 @@ export default function LaboratorioForm() {
           </div>
         </div>
 
+        {/* O laudo impresso fica na lista do laboratório (botão de impressora), já com o resultado gravado. */}
         <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
-          <button type="button"
-            onClick={() => { toast.success('Enviando para impressão.'); window.print(); }}
-            className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-700 bg-slate-800 px-6 py-3 text-sm font-semibold text-slate-300 hover:bg-slate-700 transition">
-            <Printer size={15} /> Imprimir Etiqueta
-          </button>
           <button type="submit" disabled={saving}
             className="inline-flex items-center justify-center gap-2 rounded-lg bg-emerald-600 px-6 py-3 text-sm font-bold text-white hover:bg-emerald-500 disabled:opacity-50 transition">
             <Save size={15} /> {saving ? 'Finalizando...' : 'Finalizar Laudo'}

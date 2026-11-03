@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Users, IdCard, Truck, Package, UserCog, ChevronRight, Plus } from 'lucide-react';
-import { motion } from 'framer-motion';
 import api from '../services/api';
 import { ModuleHeader } from '../theme/modules.jsx';
 
@@ -57,18 +56,14 @@ export default function DashboardCadastros() {
         subtitle="Visão geral de todas entidades de cadastro do sistema"
       />
 
-      <motion.div
-        initial="hidden" animate="visible"
-        variants={{ visible: { transition: { staggerChildren: 0.05 } } }}
-        className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3"
-      >
+      {/* sem animação de entrada: em aba de fundo ela travava e deixava os cartões quase invisíveis */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {CARDS.map((card) => {
           const Icon = card.icon;
           const count = counts[card.id];
           return (
-            <motion.div
+            <div
               key={card.id}
-              variants={{ hidden: { y: 10, opacity: 0 }, visible: { y: 0, opacity: 1 } }}
               className="group relative rounded-xl border border-slate-800 bg-slate-900 p-6 overflow-hidden hover:border-slate-700 transition"
             >
               <div className={`absolute inset-0 bg-gradient-to-br ${card.accent.bg} opacity-0 group-hover:opacity-100 transition pointer-events-none`} />
@@ -104,10 +99,10 @@ export default function DashboardCadastros() {
                   </Link>
                 </div>
               </div>
-            </motion.div>
+            </div>
           );
         })}
-      </motion.div>
+      </div>
     </div>
   );
 }

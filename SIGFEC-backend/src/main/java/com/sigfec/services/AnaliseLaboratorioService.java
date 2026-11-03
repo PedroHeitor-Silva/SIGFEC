@@ -35,6 +35,14 @@ public class AnaliseLaboratorioService {
     @Value("${sigfec.pagamento-produtor.prazo-dias:7}")
     private int prazoPagamentoDias = 7;
 
+    /** Quando presente, o prazo vem de Configurações (o @Value acima fica como padrão). */
+    private ConfiguracaoService configuracao;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    public void setConfiguracao(ConfiguracaoService configuracao) {
+        this.configuracao = configuracao;
+    }
+
     public List<AnaliseLaboratorio> listar() {
         return repository.findAll();
     }
@@ -116,7 +124,7 @@ public class AnaliseLaboratorioService {
         conta.setFornecedor(pesagem.getProdutor());
         conta.setValorOriginal(valor);
         conta.setDataEmissao(LocalDate.now());
-        conta.setDataVencimento(LocalDate.now().plusDays(prazoPagamentoDias));
+        conta.setDataVencimento(LocalDate.now().plusDays(configuracao != null ? configuracao.inteiro(ConfiguracaoService.PRODUTOR_PRAZO) : prazoPagamentoDias));
         conta.setDescricao(descricaoPagamento(pesagem.getId()));
         contaPagarRepository.save(conta);
         auditService.log("PAGAMENTO_PRODUTOR_GERADO", "Pesagem", pesagem.getId(),

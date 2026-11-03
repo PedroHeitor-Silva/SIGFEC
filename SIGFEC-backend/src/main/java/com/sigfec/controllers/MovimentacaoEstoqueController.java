@@ -33,10 +33,21 @@ public class MovimentacaoEstoqueController {
     /** Ajuste manual de estoque (entrada/saída). */
     @PostMapping("/ajuste")
     public ResponseEntity<MovimentacaoEstoque> ajuste(@RequestBody Map<String, Object> body) {
+        if (body.get("produtoId") == null || body.get("tipo") == null || body.get("quantidade") == null) {
+            throw com.sigfec.services.RegraNegocioException.invalida("Informe produto, tipo e quantidade do ajuste.");
+        }
         Long produtoId = Long.valueOf(body.get("produtoId").toString());
-        EnumTipoMovEstoque tipo = EnumTipoMovEstoque.valueOf(body.get("tipo").toString());
-        double qtd = Double.parseDouble(body.get("quantidade").toString());
-        String motivo = body.get("motivo") != null ? body.get("motivo").toString() : null;
+        EnumTipoMovEstoque tipo;
+        try { tipo = EnumTipoMovEstoque.valueOf(body.get("tipo").toString()); }
+        catch (IllegalArgumentException e) { throw com.sigfec.services.RegraNegocioException.invalida("Tipo de ajuste inválido."); }
+        if (tipo != EnumTipoMovEstoque.AJUSTE_ENTRADA && tipo != EnumTipoMovEstoque.AJUSTE_SAIDA) {
+            throw com.sigfec.services.RegraNegocioException.invalida("Ajuste manual só pode ser AJUSTE_ENTRADA ou AJUSTE_SAIDA.");
+        }
+        double qtd;
+        try { qtd = Double.parseDouble(body.get("quantidade").toString().replace(',', '.')); }
+        catch (NumberFormatException e) { throw com.sigfec.services.RegraNegocioException.invalida("Quantidade inválida."); }
+        String motivo = body.get("motivo") != null ? body.get("motivo").toString().trim() : "";
+        if (motivo.isEmpty()) throw com.sigfec.services.RegraNegocioException.invalida("Informe o motivo do ajuste (ex.: inventário, avaria).");
         Produto p = produtoRepository.findById(produtoId)
                 .orElseThrow(() -> com.sigfec.services.RegraNegocioException.naoEncontrada("Produto não encontrado."));
         var mov = service.aplicar(p, tipo, qtd, motivo, "AJUSTE_MANUAL", null);

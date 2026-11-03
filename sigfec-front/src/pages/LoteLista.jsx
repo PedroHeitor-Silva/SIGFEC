@@ -15,6 +15,9 @@ import Tooltip from '../components/Tooltip';
 import BotaoAcao from '../components/BotaoAcao';
 import { TableSkeleton } from '../components/Skeleton';
 import { formatarQtd } from '../utils/unidades';
+import SortableHeader, { applySort } from '../components/SortableHeader';
+import DateRangeFilter from '../components/DateRangeFilter';
+import { BarraFiltros, CampoBusca, FiltroSelect, opcoesDe, noPeriodo, contem } from '../components/Filtros';
 
 const STATUS_BADGE = {
   EM_PRODUCAO: 'bg-amber-500/10 text-amber-400 border border-amber-500/20',
@@ -42,13 +45,19 @@ export default function LoteLista() {
   };
   useEffect(carregar, []);
 
-  const filtered = useMemo(() => {
-    const t = search.trim().toLowerCase();
-    if (!t) return lotes;
-    return lotes.filter((l) =>
-      (l.codigoLote || '').toLowerCase().includes(t) ||
-      (l.produto?.nome || '').toLowerCase().includes(t));
-  }, [lotes, search]);
+  const [fProduto, setFProduto] = useState('');
+  const [fStatus, setFStatus] = useState('');
+  const [datas, setDatas] = useState({ from: '', to: '' });
+  const [sort, setSort] = useState({ key: 'dataFabricacao', dir: 'desc' });
+
+  const filtered = useMemo(() => applySort(lotes.filter((l) =>
+    contem(search, l.codigoLote, l.produto?.nome, l.observacao)
+    && (!fProduto || l.produto?.nome === fProduto)
+    && (!fStatus || (l.statusLote || 'EM_PRODUCAO') === fStatus)
+    && noPeriodo(l.dataFabricacao, datas)), sort, { rendimentoReal: (l) => (l.rendimentoReal != null ? Number(l.rendimentoReal) : null) }),
+  [lotes, search, fProduto, fStatus, datas, sort]);
+  const algumFiltro = !!(search || fProduto || fStatus || datas.from || datas.to);
+  const limpar = () => { setSearch(''); setFProduto(''); setFStatus(''); setDatas({ from: '', to: '' }); };
 
   const aplicarStatus = async (lote, novoStatus, msgOk, msgConfirm) => {
     if (msgConfirm) {
@@ -126,22 +135,27 @@ export default function LoteLista() {
       />
 
       <div className="rounded-xl border border-slate-800 bg-slate-900 overflow-hidden">
-        <div className="px-5 py-4 border-b border-slate-800">
-          <div className="relative max-w-sm">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
-            <input type="text" value={search} onChange={(e) => setSearch(e.target.value)}
-              placeholder="Buscar por código ou produto"
-              className="w-full rounded-lg border border-slate-700 bg-slate-800 py-2.5 pl-9 pr-4 text-sm text-white placeholder:text-slate-500 outline-none focus:border-emerald-500 transition" />
-          </div>
-        </div>
+        <BarraFiltros total={lotes.length} exibidos={filtered.length} ativo={algumFiltro} onLimpar={limpar}>
+          <CampoBusca value={search} onChange={setSearch} placeholder="Buscar código, produto ou observação" />
+          <FiltroSelect label="Produto" value={fProduto} onChange={setFProduto} options={opcoesDe(lotes, (l) => l.produto?.nome)} />
+          <FiltroSelect label="Status" value={fStatus} onChange={setFStatus}
+            options={Object.keys(STATUS_BADGE).map((s) => ({ value: s, label: s.replace(/_/g, ' ').toLowerCase().replace(/^./, (c) => c.toUpperCase()) }))} />
+          <span className="inline-flex items-center gap-2 text-xs font-semibold text-slate-400">
+            Fabricação <DateRangeFilter from={datas.from} to={datas.to} onChange={setDatas} />
+          </span>
+        </BarraFiltros>
 
         <div className="overflow-x-auto">
           <table className="min-w-full text-sm">
             <thead>
               <tr className="border-b border-slate-800 bg-slate-800/50">
-                {['Código', 'Produto', 'Fabricação', 'Quantidade', 'Rendimento', 'Status', 'Ações'].map((h) => (
-                  <th key={h} className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-500">{h}</th>
-                ))}
+                <SortableHeader sortKey="codigoLote" current={sort} onChange={setSort}>Código</SortableHeader>
+                <SortableHeader sortKey="produto.nome" current={sort} onChange={setSort}>Produto</SortableHeader>
+                <SortableHeader sortKey="dataFabricacao" current={sort} onChange={setSort}>Fabricação</SortableHeader>
+                <SortableHeader sortKey="quantidadeProduzida" current={sort} onChange={setSort}>Quantidade</SortableHeader>
+                <SortableHeader sortKey="rendimentoReal" current={sort} onChange={setSort}>Rendimento</SortableHeader>
+                <SortableHeader sortKey="statusLote" current={sort} onChange={setSort}>Status</SortableHeader>
+                <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-500">Ações</th>
               </tr>
             </thead>
             <tbody>
@@ -152,8 +166,8 @@ export default function LoteLista() {
               ) : filtered.length === 0 ? (
                 <tr><td colSpan={7} className="py-2">
                   <EmptyState icon={Boxes} accent="emerald"
-                    title="Nenhum lote registrado"
-                    description="Vincule pesagens à produção pra gerar rastreabilidade e dar entrada no estoque."
+                    title={algumFiltro ? 'Nenhum lote com esses filtros' : 'Nenhum lote registrado'}
+                    description={algumFiltro ? 'Use "Limpar filtros" para ver todos.' : 'Vincule pesagens à produção pra gerar rastreabilidade e dar entrada no estoque.'}
                     action={
                       <button type="button" onClick={() => navigate('/lotes/novo')}
                         className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-500 transition">
@@ -187,23 +201,24 @@ export default function LoteLista() {
                         </span>
                       </td>
                       <td className="px-4 py-3">
-                        <div className="flex gap-1">
-                          <Tooltip label="Ver detalhes">
-                              <BotaoAcao icon={Eye} label="Ver detalhes" cor="azul" soIcone dicaNativa={false} onClick={() => setDetalhe(l)} />
-                            </Tooltip>
+                        <div className="flex flex-nowrap items-center gap-1.5">
+                          {/* ação principal do status com texto; secundárias só ícone */}
                           {status === 'EM_PRODUCAO' && (
-                            <>
-                              <Tooltip label="Finalizar (entra no estoque)">
-                              <BotaoAcao icon={CheckCircle2} label="Finalizar (entra no estoque)" cor="verde" soIcone dicaNativa={false} onClick={() => handleFinalizar(l)} />
+                            <Tooltip label="Fecha o lote e lança a produção no estoque">
+                              <BotaoAcao icon={CheckCircle2} label="Finalizar" cor="verde" dicaNativa={false} onClick={() => handleFinalizar(l)} />
                             </Tooltip>
-                              <Tooltip label="Cancelar lote">
-                              <BotaoAcao icon={XCircle} label="Cancelar lote" cor="ambar" soIcone dicaNativa={false} onClick={() => handleCancelar(l)} />
-                            </Tooltip>
-                            </>
                           )}
                           {status === 'FINALIZADO' && (
-                            <Tooltip label="Expedir">
-                              <BotaoAcao icon={Truck} label="Expedir" cor="azul" soIcone dicaNativa={false} onClick={() => handleExpedir(l)} />
+                            <Tooltip label="Marca o lote como expedido">
+                              <BotaoAcao icon={Truck} label="Expedir" cor="azul" dicaNativa={false} onClick={() => handleExpedir(l)} />
+                            </Tooltip>
+                          )}
+                          <Tooltip label="Ver detalhes">
+                            <BotaoAcao icon={Eye} label="Ver detalhes" cor="azul" soIcone dicaNativa={false} onClick={() => setDetalhe(l)} />
+                          </Tooltip>
+                          {status === 'EM_PRODUCAO' && (
+                            <Tooltip label="Cancelar lote">
+                              <BotaoAcao icon={XCircle} label="Cancelar lote" cor="ambar" soIcone dicaNativa={false} onClick={() => handleCancelar(l)} />
                             </Tooltip>
                           )}
                           {(status === 'EM_PRODUCAO' || status === 'CANCELADO') && (

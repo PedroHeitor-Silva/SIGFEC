@@ -30,8 +30,19 @@ public class JwtUtil {
         this.expirationMs = expirationMs;
     }
 
+    /** Duração da sessão definida em Configurações; sem ela, vale sigfec.jwt.expiration-ms. */
+    private com.sigfec.services.ConfiguracaoService configuracao;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    public void setConfiguracao(@org.springframework.context.annotation.Lazy com.sigfec.services.ConfiguracaoService configuracao) {
+        this.configuracao = configuracao;
+    }
+
     public String generate(String login, String perfilAcesso, Long userId) {
         Date now = new Date();
+        long expirationMs = configuracao != null
+                ? configuracao.inteiro(com.sigfec.services.ConfiguracaoService.SESSAO_HORAS) * 3_600_000L
+                : this.expirationMs;
         return Jwts.builder()
                 .subject(login)
                 .claim("perfil", perfilAcesso)

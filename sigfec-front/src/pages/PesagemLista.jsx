@@ -20,6 +20,7 @@ import DateRangeFilter from '../components/DateRangeFilter';
 import { toastUndo } from '../utils/undoToast';
 import SortableHeader, { applySort } from '../components/SortableHeader';
 import { pesoFromNumber, maskPlaca } from '../utils/masks';
+import { BarraFiltros, CampoBusca, FiltroSelect, opcoesDe } from '../components/Filtros';
 
 const numPesagem = (id) => `PES-${String(id).padStart(6, '0')}`;
 const fmtPeso = (v) => (v != null ? pesoFromNumber(Number(v)) : '—');
@@ -40,6 +41,9 @@ export default function PesagemLista() {
   const [dateRange, setDateRange] = useState({ from: '', to: '' });
   const [filtroSituacao, setFiltroSituacao] = useState('TODOS');
   const [sort, setSort] = useState({ key: 'dataHoraEntrada', dir: 'desc' });
+  const [fProdutor, setFProdutor] = useState('');
+  const [fVeiculo, setFVeiculo] = useState('');
+  const [fLaudo, setFLaudo] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [deletingId, setDeletingId] = useState(null);
@@ -60,6 +64,10 @@ export default function PesagemLista() {
     const matches = pesagens.filter((p) => {
       if (filtroSituacao === 'DISPONIVEL' && p.consumida) return false;
       if (filtroSituacao === 'CONSUMIDA' && !p.consumida) return false;
+      if (fProdutor && p.produtorNome !== fProdutor) return false;
+      if (fVeiculo && p.veiculoPlaca !== fVeiculo) return false;
+      if (fLaudo === 'COM' && p.gramasAmido == null) return false;
+      if (fLaudo === 'SEM' && p.gramasAmido != null) return false;
       if (t) {
         const match = (p.produtorNome || '').toLowerCase().includes(t) ||
                       (p.veiculoPlaca || '').toLowerCase().includes(t) ||
@@ -76,7 +84,9 @@ export default function PesagemLista() {
       return true;
     });
     return applySort(matches, sort);
-  }, [pesagens, search, dateRange, sort, filtroSituacao]);
+  }, [pesagens, search, dateRange, sort, filtroSituacao, fProdutor, fVeiculo, fLaudo]);
+  const algumFiltro = !!(search || fProdutor || fVeiculo || fLaudo || dateRange.from || dateRange.to || filtroSituacao !== 'TODOS');
+  const limpar = () => { setSearch(''); setFProdutor(''); setFVeiculo(''); setFLaudo(''); setDateRange({ from: '', to: '' }); setFiltroSituacao('TODOS'); };
 
   const totais = useMemo(() => ({
     qtd: filtered.length,
@@ -147,14 +157,9 @@ export default function PesagemLista() {
 
       <div className="rounded-xl border border-slate-800 bg-slate-900 overflow-hidden">
         {/* Filtros */}
-        <div className="px-5 py-4 border-b border-slate-800 flex flex-col lg:flex-row gap-3 lg:items-center lg:justify-between">
-          <div className="flex flex-col sm:flex-row gap-3 flex-1">
-            <div className="relative max-w-xs flex-1">
-              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
-              <input type="text" value={search} onChange={(e) => setSearch(e.target.value)}
-                placeholder="Buscar nº, produtor, produto ou placa"
-                className="w-full rounded-lg border border-slate-700 bg-slate-800 py-2.5 pl-9 pr-4 text-sm text-white placeholder:text-slate-500 outline-none focus:border-emerald-500 transition" />
-            </div>
+        <BarraFiltros total={pesagens.length} exibidos={filtered.length} ativo={algumFiltro} onLimpar={limpar}
+          ordenacao={`Peso final da lista: ${fmtPeso(totais.pesoFinal)}`}>
+          <CampoBusca value={search} onChange={setSearch} placeholder="Buscar nº, produtor, produto ou placa" />
             <div className="flex gap-1.5">
               {[['TODOS', 'Todos'], ['DISPONIVEL', 'Disponíveis'], ['CONSUMIDA', 'Consumidas']].map(([k, l]) => (
                 <button key={k} type="button" onClick={() => setFiltroSituacao(k)}
@@ -163,9 +168,14 @@ export default function PesagemLista() {
                   }`}>{l}</button>
               ))}
             </div>
-          </div>
-          <DateRangeFilter from={dateRange.from} to={dateRange.to} onChange={setDateRange} />
-        </div>
+          <FiltroSelect label="Produtor" value={fProdutor} onChange={setFProdutor} options={opcoesDe(pesagens, (p) => p.produtorNome)} />
+          <FiltroSelect label="Veículo" value={fVeiculo} onChange={setFVeiculo} options={opcoesDe(pesagens, (p) => p.veiculoPlaca)} />
+          <FiltroSelect label="Laudo" value={fLaudo} onChange={setFLaudo}
+            options={[{ value: 'SEM', label: 'Aguardando laudo' }, { value: 'COM', label: 'Com laudo' }]} />
+          <span className="inline-flex items-center gap-2 text-xs font-semibold text-slate-400">
+            Data <DateRangeFilter from={dateRange.from} to={dateRange.to} onChange={setDateRange} />
+          </span>
+        </BarraFiltros>
 
         <div className="overflow-x-auto">
           <table className="min-w-full text-sm">

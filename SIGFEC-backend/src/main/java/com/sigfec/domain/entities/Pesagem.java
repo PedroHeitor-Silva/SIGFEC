@@ -44,6 +44,10 @@ public class Pesagem {
     @Column(name = "percentual_impureza", precision = 5, scale = 2)
     private BigDecimal percentualImpureza;
 
+    /** Notas do operador da balança sobre a carga. */
+    @Column(length = 500)
+    private String observacao;
+
     @Column(name = "peso_final", precision = 12, scale = 2)
     private BigDecimal pesoFinal;
 

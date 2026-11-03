@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import {
   ArrowLeft, Save, ClipboardCheck, Check, X, Truck, User, CheckCircle2, XCircle, Lock,
 } from 'lucide-react';
-import toast, { Toaster } from 'react-hot-toast';
+import toast from 'react-hot-toast';
 import api from '../services/api';
 import { maskPlaca } from '../utils/masks';
 
@@ -100,7 +100,6 @@ export default function ChecklistCargaForm() {
 
   return (
     <div>
-      <Toaster position="top-right" toastOptions={{ style: { background: '#1e293b', color: '#fff' } }} />
 
       <div className="mx-auto max-w-3xl">
         <button onClick={() => navigate('/fila')}
@@ -137,6 +136,25 @@ export default function ChecklistCargaForm() {
         {bloqueado && (
           <div className="mb-4 flex items-center gap-2 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-400">
             <Lock size={16} /> O veículo já saiu da fila de espera ({entrada.status.toLowerCase().replace('_', ' ')}): o checklist está somente para consulta.
+          </div>
+        )}
+
+        {!bloqueado && (
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-3">
+            <p className="text-sm text-slate-300">Carga sem problemas? Marque tudo de uma vez e ajuste só o que não estiver conforme.</p>
+            <div className="flex gap-2">
+              <button type="button"
+                onClick={() => setRespostas(Object.fromEntries(PERGUNTAS.map((p) => [p.campo, true])))}
+                className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-bold text-white hover:bg-emerald-700 transition">
+                <CheckCircle2 size={16} /> Marcar tudo como Sim
+              </button>
+              {respondidas > 0 && (
+                <button type="button" onClick={() => setRespostas({})}
+                  className="rounded-lg border border-slate-700 px-3 py-2 text-sm font-semibold text-slate-400 hover:bg-slate-800 transition">
+                  Limpar
+                </button>
+              )}
+            </div>
           </div>
         )}
 

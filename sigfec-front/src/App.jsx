@@ -34,6 +34,8 @@ import TabelaPrecos from './pages/TabelaPrecos';
 import VendaLista from './pages/VendaLista';
 import VendaForm from './pages/VendaForm';
 import MockupShowcase from './pages/MockupShowcase';
+import Configuracoes from './pages/Configuracoes';
+import { recarregarConfigPublica } from './utils/configPublica';
 import { MODULES, SECTIONS, PATHS, moduleFromPath } from './theme/modules.jsx';
 import { canAccessModule, canAccessPath, PERFIS } from './theme/permissions';
 import ConfirmDialog from './components/ConfirmDialog';
@@ -96,6 +98,9 @@ function AppRoutes() {
     if (saved) setUser(JSON.parse(saved));
     else if (!isLogin) navigate('/login');
   }, []);
+
+  // dados da empresa e limites (Configurações) — recarrega a cada login
+  useEffect(() => { if (user) recarregarConfigPublica(); }, [user?.id, user?.login]);
 
   useEffect(() => {
     if (!user || isLogin || isExpress) return;
@@ -325,6 +330,7 @@ function AppRoutes() {
                 <Route path="/financeiro" element={<FinanceiroListagem />} />
                 <Route path="/financeiro/novo" element={<FinanceiroCadastro />} />
                 <Route path="/relatorios" element={<Relatorios />} />
+                <Route path="/configuracoes" element={<Configuracoes />} />
                 <Route path="/estoque" element={<EstoqueListagem />} />
                 <Route path="/estoque/novo" element={<EstoqueCadastro />} />
                 <Route path="/vendas" element={<VendaLista />} />

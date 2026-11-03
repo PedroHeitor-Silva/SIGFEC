@@ -1,7 +1,7 @@
 import {
   LayoutDashboard, Users, Weight, UserCircle, Beaker,
   DollarSign, Package, IdCard, Truck, UserCog, Boxes, ClipboardList, ShoppingCart,
-  ListChecks, FileChartColumn,
+  ListChecks, FileChartColumn, Settings,
 } from 'lucide-react';
 
 /*
@@ -48,6 +48,7 @@ export const MODULES = {
   vendas:      M('Vendas',        'Gestão',      ShoppingCart,    'brand'),
   financeiro:  M('Financeiro',    'Gestão',      DollarSign,      'amber'),
   relatorios:  M('Relatórios',    'Gestão',      FileChartColumn, 'indigo'),
+  configuracoes: M('Configurações', 'Administração', Settings,      'slate'),
 };
 
 export const SECTIONS = [
@@ -55,6 +56,7 @@ export const SECTIONS = [
   { label: 'Operacional', items: ['fila', 'pesagem', 'romaneio', 'laboratorio', 'lotes'] },
   { label: 'Cadastros',   items: ['cadastros', 'parceiros', 'motoristas', 'veiculos', 'produtos', 'usuarios'] },
   { label: 'Gestão',      items: ['estoque', 'vendas', 'financeiro', 'relatorios'] },
+  { label: 'Administração', items: ['configuracoes'] },
 ];
 
 export const PATHS = {
@@ -74,6 +76,7 @@ export const PATHS = {
   vendas: '/vendas',
   financeiro: '/financeiro',
   relatorios: '/relatorios',
+  configuracoes: '/configuracoes',
 };
 
 export function moduleFromPath(pathname) {

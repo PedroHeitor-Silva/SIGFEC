@@ -9,7 +9,10 @@ import { ModuleHeader } from '../theme/modules.jsx';
 import { confirm } from '../components/ConfirmDialog';
 import EmptyState from '../components/EmptyState';
 import BotaoAcao from '../components/BotaoAcao';
-import { resumoPagamento } from '../utils/formasPagamento';
+import { resumoPagamento, formaLabel } from '../utils/formasPagamento';
+import SortableHeader, { applySort } from '../components/SortableHeader';
+import DateRangeFilter from '../components/DateRangeFilter';
+import { BarraFiltros, CampoBusca, FiltroSelect, opcoesDe, noPeriodo, contem } from '../components/Filtros';
 import { TableSkeleton } from '../components/Skeleton';
 import { printNotaFiscal } from '../utils/printDoc';
 
@@ -40,14 +43,24 @@ export default function VendaLista() {
   };
   useEffect(carregar, []);
 
-  const filtered = useMemo(() => {
-    const t = search.trim().toLowerCase();
-    if (!t) return vendas;
-    return vendas.filter((v) =>
-      (v.cliente?.nome || '').toLowerCase().includes(t) ||
-      String(v.numeroNota || '').includes(t)
-    );
-  }, [vendas, search]);
+  const [fCliente, setFCliente] = useState('');
+  const [fStatus, setFStatus] = useState('');
+  const [fForma, setFForma] = useState('');
+  const [fProduto, setFProduto] = useState('');
+  const [datas, setDatas] = useState({ from: '', to: '' });
+  const [sort, setSort] = useState({ key: 'dataVenda', dir: 'desc' });
+
+  const filtered = useMemo(() => applySort(vendas.filter((v) =>
+    contem(search, v.cliente?.nome, v.numeroNota && String(v.numeroNota).padStart(6, '0'), `#${v.id}`, v.observacao)
+    && (!fCliente || v.cliente?.nome === fCliente)
+    && (!fStatus || (v.statusVenda || 'ORCAMENTO') === fStatus)
+    && (!fForma || formaLabel(v.formaPagamento) === fForma)
+    && (!fProduto || (v.itens || []).some((i) => i.produto?.nome === fProduto))
+    && noPeriodo(v.dataVenda, datas)), sort, { itens: (v) => (v.itens || []).length }),
+  [vendas, search, fCliente, fStatus, fForma, fProduto, datas, sort]);
+  const algumFiltro = !!(search || fCliente || fStatus || fForma || fProduto || datas.from || datas.to);
+  const limpar = () => { setSearch(''); setFCliente(''); setFStatus(''); setFForma(''); setFProduto(''); setDatas({ from: '', to: '' }); };
+  const totalFiltrado = filtered.filter((v) => v.statusVenda !== 'CANCELADA').reduce((s, v) => s + Number(v.valorTotal || 0), 0);
 
   const totais = useMemo(() => {
     const faturado = vendas.filter((v) => v.statusVenda === 'FATURADA' || v.statusVenda === 'CONFIRMADA')
@@ -142,22 +155,32 @@ export default function VendaLista() {
       </div>
 
       <div className="rounded-xl border border-slate-800 bg-slate-900 overflow-hidden">
-        <div className="px-5 py-4 border-b border-slate-800">
-          <div className="relative max-w-sm">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
-            <input type="text" value={search} onChange={(e) => setSearch(e.target.value)}
-              placeholder="Buscar cliente ou nº nota"
-              className="w-full rounded-lg border border-slate-700 bg-slate-800 py-2.5 pl-9 pr-4 text-sm text-white placeholder:text-slate-500 outline-none focus:border-emerald-500 transition" />
-          </div>
-        </div>
+        <BarraFiltros total={vendas.length} exibidos={filtered.length} ativo={algumFiltro} onLimpar={limpar}
+          ordenacao={algumFiltro ? `Total filtrado (sem canceladas): ${fmtMoeda(totalFiltrado)}` : null}>
+          <CampoBusca value={search} onChange={setSearch} placeholder="Buscar cliente, nº da nota ou pedido" />
+          <FiltroSelect label="Cliente" value={fCliente} onChange={setFCliente} options={opcoesDe(vendas, (v) => v.cliente?.nome)} />
+          <FiltroSelect label="Produto" value={fProduto} onChange={setFProduto}
+            options={opcoesDe(vendas.flatMap((v) => v.itens || []), (i) => i.produto?.nome)} />
+          <FiltroSelect label="Status" value={fStatus} onChange={setFStatus}
+            options={[['ORCAMENTO', 'Orçamento'], ['CONFIRMADA', 'Confirmada'], ['FATURADA', 'Faturada'], ['CANCELADA', 'Cancelada']].map(([value, label]) => ({ value, label }))} />
+          <FiltroSelect label="Pagamento" value={fForma} onChange={setFForma} options={opcoesDe(vendas, (v) => v.formaPagamento && formaLabel(v.formaPagamento))} />
+          <span className="inline-flex items-center gap-2 text-xs font-semibold text-slate-400">
+            Data <DateRangeFilter from={datas.from} to={datas.to} onChange={setDatas} />
+          </span>
+        </BarraFiltros>
 
         <div className="overflow-x-auto">
           <table className="min-w-full text-sm">
             <thead>
               <tr className="border-b border-slate-800 bg-slate-800/50">
-                {['ID', 'NF', 'Cliente', 'Data', 'Itens', 'Valor', 'Status', 'Ações'].map((h) => (
-                  <th key={h} className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-500">{h}</th>
-                ))}
+                <SortableHeader sortKey="id" current={sort} onChange={setSort}>Pedido</SortableHeader>
+                <SortableHeader sortKey="numeroNota" current={sort} onChange={setSort}>NF</SortableHeader>
+                <SortableHeader sortKey="cliente.nome" current={sort} onChange={setSort}>Cliente</SortableHeader>
+                <SortableHeader sortKey="dataVenda" current={sort} onChange={setSort}>Data</SortableHeader>
+                <SortableHeader sortKey="itens" current={sort} onChange={setSort}>Itens</SortableHeader>
+                <SortableHeader sortKey="valorTotal" current={sort} onChange={setSort}>Valor</SortableHeader>
+                <SortableHeader sortKey="statusVenda" current={sort} onChange={setSort}>Status</SortableHeader>
+                <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-500">Ações</th>
               </tr>
             </thead>
             <tbody>
@@ -168,8 +191,8 @@ export default function VendaLista() {
               ) : filtered.length === 0 ? (
                 <tr><td colSpan={8} className="py-2">
                   <EmptyState icon={ShoppingCart} accent="emerald"
-                    title="Nenhuma venda registrada"
-                    description="Registre a venda de fécula, polvilho e outros produtos aos clientes."
+                    title={algumFiltro ? 'Nenhuma venda com esses filtros' : 'Nenhuma venda registrada'}
+                    description={algumFiltro ? 'Use "Limpar filtros" para ver todas.' : 'Registre a venda de fécula, polvilho e outros produtos aos clientes.'}
                     action={
                       <button type="button" onClick={() => navigate('/vendas/nova')}
                         className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-500 transition">

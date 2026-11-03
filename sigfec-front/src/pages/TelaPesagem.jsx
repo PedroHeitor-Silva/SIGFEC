@@ -2,9 +2,9 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   ArrowLeft, Save, Scale, Truck, Package, User, FileText,
-  Gauge, Crosshair, Wifi, Activity,
+  Gauge, Crosshair,
 } from 'lucide-react';
-import toast, { Toaster } from 'react-hot-toast';
+import toast from 'react-hot-toast';
 import Select from 'react-select';
 import api from '../services/api';
 import { pesoFromNumber, maskPlaca, maskPeso, unmaskInteiro } from '../utils/masks';
@@ -74,7 +74,11 @@ export default function TelaPesagem() {
       })));
 
       const ps = pr.status === 'fulfilled' ? (pr.value.data || []) : [];
-      setProdutos(ps.map((p) => ({ value: p.id, label: p.nome })));
+      const opcoes = ps.map((p) => ({ value: p.id, label: p.nome, categoria: p.categoria }));
+      setProdutos(opcoes);
+      // carga de entrada quase sempre é mandioca: já vem selecionada
+      const mandioca = opcoes.find((o) => o.categoria === 'MANDIOCA');
+      if (mandioca) setSelProduto((atual) => atual || mandioca);
 
       const todas = pe.status === 'fulfilled' ? (pe.value.data || []) : [];
       const maxId = todas.reduce((m, p) => Math.max(m, p.id || 0), 0);
@@ -133,6 +137,7 @@ export default function TelaPesagem() {
         pesoBruto: brutoNum,
         pesoTara: taraNum,
         percentualImpureza: parseFloat(impureza) || 0,
+        observacao: observacao.trim() || null,
       });
       toast.success(entradaId ? 'Pesagem registrada — senha finalizada na fila.' : 'Pesagem registrada com sucesso.');
       navigate(entradaId ? '/fila' : '/pesagem');
@@ -150,7 +155,6 @@ export default function TelaPesagem() {
 
   return (
     <div className="space-y-6">
-      <Toaster position="top-right" />
 
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -183,33 +187,16 @@ export default function TelaPesagem() {
         </div>
       )}
 
-      {/* Bloco BALANÇA */}
-      <div className="rounded-xl border border-slate-800 bg-gradient-to-br from-slate-900 to-slate-950 p-6">
-        <div className="flex items-center justify-between flex-wrap gap-4">
-          <div className="flex items-center gap-4">
-            <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20">
-              <Gauge size={28} className="text-amber-400" />
-            </div>
-            <div>
-              <p className="text-[11px] font-bold uppercase tracking-widest text-slate-500">Peso na Balança</p>
-              <p className="text-4xl font-black text-white font-mono tracking-tight">
-                {pesoBalanca.toLocaleString('pt-BR')}<span className="text-lg text-slate-500 ml-1">kg</span>
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-3">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-500/10 border border-amber-500/20 px-3 py-1.5 text-xs font-semibold text-amber-400">
-              <Activity size={12} /> Aguardando integração
-            </span>
-            <button type="button" onClick={capturarPeso}
-              className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-bold text-white hover:bg-emerald-500 active:scale-95 transition">
-              <Crosshair size={15} /> Capturar Peso
-            </button>
-          </div>
-        </div>
-        <p className="mt-3 text-[11px] text-slate-600">
-          A leitura automática via balança serial (Web Serial) será conectada futuramente. Por ora, informe o peso manualmente ou use "Capturar Peso".
-        </p>
+      {/* Balança: sem integração ainda — aviso discreto em vez de um painel "0 kg" que confunde */}
+      <div className="flex flex-wrap items-center gap-3 rounded-xl border border-slate-800 bg-slate-900 px-4 py-3 text-sm text-slate-400">
+        <Gauge size={18} className="text-amber-500" />
+        <span>Digite os pesos lidos no visor da balança. <span className="text-slate-500">(Leitura automática da balança: integração futura.)</span></span>
+        {pesoBalanca > 0 && (
+          <button type="button" onClick={capturarPeso}
+            className="ml-auto inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-emerald-500">
+            <Crosshair size={14} /> Capturar {pesoBalanca.toLocaleString('pt-BR')} kg
+          </button>
+        )}
       </div>
 
       <form onSubmit={handleSubmit} className="grid gap-5 xl:grid-cols-3">

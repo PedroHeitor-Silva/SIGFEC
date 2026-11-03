@@ -4,6 +4,8 @@ import {
   Plus, Search, Trash2, UserCog, Edit2, Power, ShieldOff, ShieldCheck, Shield,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import SortableHeader, { applySort } from '../components/SortableHeader';
+import { BarraFiltros, CampoBusca, contem } from '../components/Filtros';
 import api from '../services/api';
 import { ModuleHeader } from '../theme/modules.jsx';
 import { confirm } from '../components/ConfirmDialog';
@@ -45,18 +47,17 @@ export default function UsuarioLista() {
   };
   useEffect(carregar, []);
 
+  const [sort, setSort] = useState({ key: 'nome', dir: 'asc' });
   const filtered = useMemo(() => {
-    const t = search.trim().toLowerCase();
-    return usuarios.filter((u) => {
+    return applySort(usuarios.filter((u) => {
       if (filtroStatus === 'ATIVOS' && !u.statusAtivo) return false;
       if (filtroStatus === 'INATIVOS' && u.statusAtivo) return false;
       if (filtroPerfil !== 'TODOS' && u.perfilAcesso !== filtroPerfil) return false;
-      if (!t) return true;
-      return (u.login || '').toLowerCase().includes(t) ||
-             (u.nome || '').toLowerCase().includes(t) ||
-             (u.email || '').toLowerCase().includes(t);
-    });
-  }, [usuarios, search, filtroStatus, filtroPerfil]);
+      return contem(search, u.login, u.nome, u.email);
+    }), sort);
+  }, [usuarios, search, filtroStatus, filtroPerfil, sort]);
+  const algumFiltro = !!(search || filtroStatus !== 'TODOS' || filtroPerfil !== 'TODOS');
+  const limpar = () => { setSearch(''); setFiltroStatus('TODOS'); setFiltroPerfil('TODOS'); };
 
   const toggleAtivo = async (u) => {
     const novoStatus = !u.statusAtivo;
@@ -116,13 +117,8 @@ export default function UsuarioLista() {
       />
 
       <div className="rounded-xl border border-slate-800 bg-slate-900 overflow-hidden">
-        <div className="px-5 py-4 border-b border-slate-800 flex flex-col lg:flex-row gap-3 lg:items-center">
-          <div className="relative flex-1 max-w-sm">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
-            <input type="text" value={search} onChange={(e) => setSearch(e.target.value)}
-              placeholder="Buscar por login, nome ou email"
-              className="w-full rounded-lg border border-slate-700 bg-slate-800 py-2.5 pl-9 pr-4 text-sm text-white placeholder:text-slate-500 outline-none focus:border-emerald-500 transition" />
-          </div>
+        <BarraFiltros total={usuarios.length} exibidos={filtered.length} ativo={algumFiltro} onLimpar={limpar}>
+          <CampoBusca value={search} onChange={setSearch} placeholder="Buscar por login, nome ou email" />
           <div className="flex flex-wrap gap-1.5">
             {['TODOS', 'ATIVOS', 'INATIVOS'].map((s) => (
               <button key={s} type="button" onClick={() => setFiltroStatus(s)}
@@ -137,15 +133,16 @@ export default function UsuarioLista() {
               {PERFIL_OPTIONS.map((p) => <option key={p.value} value={p.value}>{p.label}</option>)}
             </select>
           </div>
-        </div>
+        </BarraFiltros>
 
         <div className="overflow-x-auto">
           <table className="min-w-full text-sm">
             <thead>
               <tr className="border-b border-slate-800 bg-slate-800/50">
-                {['ID', 'Login', 'Nome', 'Email', 'Perfil', 'Acesso', 'Ações'].map((h) => (
-                  <th key={h} className="px-5 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-500">{h}</th>
+                {[['ID', 'id'], ['Login', 'login'], ['Nome', 'nome'], ['Email', 'email'], ['Perfil', 'perfilAcesso'], ['Acesso', 'statusAtivo']].map(([h, k]) => (
+                  <SortableHeader key={h} sortKey={k} current={sort} onChange={setSort}>{h}</SortableHeader>
                 ))}
+                <th className="px-5 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-500">Ações</th>
               </tr>
             </thead>
             <tbody>

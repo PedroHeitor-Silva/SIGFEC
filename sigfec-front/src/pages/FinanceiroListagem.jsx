@@ -19,6 +19,9 @@ import { maskMoeda, unmaskMoeda, moedaFromNumber } from '../utils/masks';
 import CobrancaModal from '../components/CobrancaModal';
 import { isoHoje } from '../utils/relatorio';
 import { FORMAS_PAGAMENTO, formaLabel } from '../utils/formasPagamento';
+import SortableHeader, { applySort } from '../components/SortableHeader';
+import DateRangeFilter from '../components/DateRangeFilter';
+import { BarraFiltros, CampoBusca, FiltroSelect, opcoesDe, noPeriodo, contem } from '../components/Filtros';
 
 const STATUS_BADGE = {
   ABERTO: 'bg-amber-500/10 text-amber-400 border border-amber-500/20',
@@ -28,6 +31,8 @@ const STATUS_BADGE = {
 };
 
 const STATUS_ICON = { PAGO: CheckCircle2, ATRASADO: AlertTriangle, ABERTO: Clock };
+/** Coluna de ações fixa à direita: os botões ficam visíveis mesmo quando a tabela rola para o lado. */
+const COL_ACOES = 'sticky right-0 z-10 bg-slate-900 shadow-[-8px_0_8px_-8px_rgba(0,0,0,0.15)]';
 
 const fmtMoeda = (v) =>
   v != null
@@ -59,28 +64,39 @@ export default function FinanceiroListagem() {
   const parceiroDe = (t) => t.fornecedor?.nome ?? t.cliente?.nome ?? '-';
   const saldoDe = (t) => Math.max(0, Number(t.valorOriginal || 0) - Number(t.valorPago || 0));
 
-  const filtered = useMemo(() => {
-    return titulos.filter((t) => {
-      // Aba: ABERTO mostra o que ainda tem saldo; HISTORICO mostra quitados e cancelados
-      const encerrado = t.statusFinanceiro === 'PAGO' || t.statusFinanceiro === 'CANCELADO';
-      if (aba === 'ABERTO' && encerrado) return false;
-      if (aba === 'HISTORICO' && !encerrado) return false;
-      const tipo = tipoDe(t);
-      if (filtroTipo !== 'TODOS' && tipo !== filtroTipo) return false;
-      if (aba === 'ABERTO' && filtroStatus !== 'TODOS' && t.statusFinanceiro !== filtroStatus) return false;
-      if (!search) return true;
-      return parceiroDe(t).toLowerCase().includes(search.toLowerCase());
-    });
-  }, [titulos, search, filtroTipo, filtroStatus, aba]);
+  const [fParceiro, setFParceiro] = useState('');
+  const [fForma, setFForma] = useState('');
+  const [datas, setDatas] = useState({ from: '', to: '' });
+  // Em aberto: vence primeiro no topo. Histórico: pago mais recente no topo.
+  const [sort, setSort] = useState({ key: 'dataVencimento', dir: 'asc' });
+  const trocarAba = (a) => {
+    setAba(a);
+    setDatas({ from: '', to: '' });
+    setSort(a === 'HISTORICO' ? { key: 'dataPagamento', dir: 'desc' } : { key: 'dataVencimento', dir: 'asc' });
+  };
+  const campoData = aba === 'HISTORICO' ? 'dataPagamento' : 'dataVencimento';
 
-  // Histórico ordenado por data de pagamento (mais recente primeiro)
-  const historicoOrdenado = useMemo(() => {
-    if (aba !== 'HISTORICO') return filtered;
-    return [...filtered].sort((a, b) =>
-      new Date(b.dataPagamento || 0) - new Date(a.dataPagamento || 0));
-  }, [filtered, aba]);
+  const daAba = useMemo(() => titulos.filter((t) => {
+    // Aba: ABERTO mostra o que ainda tem saldo; HISTORICO mostra quitados e cancelados
+    const encerrado = t.statusFinanceiro === 'PAGO' || t.statusFinanceiro === 'CANCELADO';
+    return aba === 'ABERTO' ? !encerrado : encerrado;
+  }), [titulos, aba]);
 
-  const listaExibida = aba === 'HISTORICO' ? historicoOrdenado : filtered;
+  const filtered = useMemo(() => applySort(daAba.filter((t) => {
+    const tipo = tipoDe(t);
+    if (filtroTipo !== 'TODOS' && tipo !== filtroTipo) return false;
+    if (aba === 'ABERTO' && filtroStatus !== 'TODOS' && t.statusFinanceiro !== filtroStatus) return false;
+    if (fParceiro && parceiroDe(t) !== fParceiro) return false;
+    if (fForma && formaLabel(t.formaPagamento) !== fForma) return false;
+    if (!noPeriodo(t[campoData], datas)) return false;
+    return contem(search, parceiroDe(t), t.descricao, `#${t.id}`);
+  }), sort, { parceiro: parceiroDe, saldo: saldoDe, tipo: tipoDe }),
+  [daAba, search, filtroTipo, filtroStatus, fParceiro, fForma, datas, campoData, sort, aba]);
+
+  const listaExibida = filtered;
+  const algumFiltro = !!(search || fParceiro || fForma || datas.from || datas.to || filtroTipo !== 'TODOS' || filtroStatus !== 'TODOS');
+  const limpar = () => { setSearch(''); setFParceiro(''); setFForma(''); setDatas({ from: '', to: '' }); setFiltroTipo('TODOS'); setFiltroStatus('TODOS'); };
+  const somaFiltrada = filtered.reduce((s, t) => s + (aba === 'HISTORICO' ? Number(t.valorPago || 0) : saldoDe(t)), 0);
 
   const totais = useMemo(() => {
     const pagarAberto = titulos.filter((t) => t.fornecedor && t.statusFinanceiro !== 'PAGO' && t.statusFinanceiro !== 'CANCELADO')
@@ -183,7 +199,7 @@ export default function FinanceiroListagem() {
             const Icon = a.icon;
             const active = aba === a.key;
             return (
-              <button key={a.key} type="button" onClick={() => setAba(a.key)}
+              <button key={a.key} type="button" onClick={() => trocarAba(a.key)}
                 className={`relative inline-flex items-center gap-2 px-5 py-3.5 text-xs font-bold uppercase tracking-wider transition ${
                   active ? 'text-lime-400' : 'text-slate-500 hover:text-white'
                 }`}>
@@ -194,17 +210,9 @@ export default function FinanceiroListagem() {
           })}
         </div>
 
-        <div className="px-5 py-4 border-b border-slate-800 flex flex-col lg:flex-row gap-3 lg:items-center">
-          <div className="relative flex-1 max-w-sm">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Buscar parceiro"
-              className="w-full rounded-lg border border-slate-700 bg-slate-800 py-2.5 pl-9 pr-4 text-sm text-white placeholder:text-slate-500 outline-none focus:border-emerald-500 transition"
-            />
-          </div>
+        <BarraFiltros total={daAba.length} exibidos={filtered.length} ativo={algumFiltro} onLimpar={limpar}
+          ordenacao={`${aba === 'HISTORICO' ? 'Total pago' : 'Saldo'} da lista: ${fmtMoeda(somaFiltrada)}`}>
+          <CampoBusca value={search} onChange={setSearch} placeholder="Buscar parceiro, descrição ou nº" />
           <div className="flex flex-nowrap items-center gap-1.5">
             {['TODOS', 'RECEBER', 'PAGAR'].map((t) => (
               <button key={t} type="button" onClick={() => setFiltroTipo(t)}
@@ -226,23 +234,32 @@ export default function FinanceiroListagem() {
               ))}
             </>)}
           </div>
-        </div>
+          <FiltroSelect label="Parceiro" value={fParceiro} onChange={setFParceiro} options={opcoesDe(daAba, parceiroDe)} />
+          {aba === 'HISTORICO' && (
+            <FiltroSelect label="Forma" value={fForma} onChange={setFForma} options={opcoesDe(daAba, (t) => t.formaPagamento && formaLabel(t.formaPagamento))} />
+          )}
+          <span className="inline-flex items-center gap-2 text-xs font-semibold text-slate-400">
+            {aba === 'HISTORICO' ? 'Pago em' : 'Vencimento'} <DateRangeFilter from={datas.from} to={datas.to} onChange={setDatas} />
+          </span>
+        </BarraFiltros>
 
         <div className="overflow-x-auto">
           <table className="min-w-full text-sm">
             <thead>
               <tr className="border-b border-slate-800 bg-slate-800/50">
                 {(aba === 'HISTORICO'
-                  ? ['ID', 'Tipo', 'Parceiro', 'Valor', 'Pago', 'Pago em', 'Forma', 'Ações']
-                  : ['ID', 'Tipo', 'Parceiro', 'Valor', 'Pago', 'Saldo', 'Vencimento', 'Status', 'Ações']
-                ).map((h) => (
-                  <th key={h} className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-500">{h}</th>
-                ))}
+                  ? [['Tipo', 'tipo'], ['Parceiro / descrição', 'parceiro'], ['Valor', 'valorOriginal'], ['Pago', 'valorPago'], ['Pago em', 'dataPagamento'], ['Forma', 'formaPagamento'], ['Ações']]
+                  : [['Tipo', 'tipo'], ['Parceiro / descrição', 'parceiro'], ['Valor', 'valorOriginal'], ['Saldo', 'saldo'], ['Vencimento', 'dataVencimento'], ['Status', 'statusFinanceiro'], ['Ações']]
+                ).map(([h, k]) => (k ? (
+                  <SortableHeader key={h} px="px-3" sortKey={k} current={sort} onChange={setSort}>{h}</SortableHeader>
+                ) : (
+                  <th key={h} className={`px-3 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-500 ${COL_ACOES}`}>{h}</th>
+                )))}
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <TableSkeleton rows={5} cols={aba === 'HISTORICO' ? 8 : 9} />
+                <TableSkeleton rows={5} cols={aba === 'HISTORICO' ? 7 : 7} />
               ) : error ? (
                 <tr><td colSpan={9} className="px-5 py-8 text-center text-red-400">{error}</td></tr>
               ) : listaExibida.length === 0 ? (
@@ -270,20 +287,27 @@ export default function FinanceiroListagem() {
                   const quitado = t.statusFinanceiro === 'PAGO';
                   return (
                     <tr key={t.id} className="border-b border-slate-800/60 hover:bg-slate-800/40 transition">
-                      <td className="px-4 py-3 text-slate-500 text-xs font-mono">#{t.id}</td>
-                      <td className="px-4 py-3">
+                      <td className="px-3 py-3">
                         <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-bold uppercase ${tipo === 'PAGAR' ? 'bg-rose-500/10 text-rose-400' : 'bg-emerald-500/10 text-emerald-400'}`}>
                           {tipo === 'PAGAR' ? <TrendingDown size={9} /> : <TrendingUp size={9} />}
                           {tipo}
                         </span>
                       </td>
-                      <td className="px-4 py-3 font-medium text-white min-w-[220px]">{parceiroDe(t)}</td>
-                      <td className="px-4 py-3 text-white font-mono">{fmtMoeda(t.valorOriginal)}</td>
-                      <td className="px-4 py-3 font-mono text-emerald-400">{fmtMoeda(t.valorPago)}</td>
+                      <td className="px-3 py-3 min-w-[170px] max-w-[240px]">
+                        <p className="font-medium text-white">{parceiroDe(t)}</p>
+                        <p className="truncate text-xs text-slate-500" title={t.descricao || ''}><span className="font-mono">#{t.id}</span>{t.descricao ? ' · ' + t.descricao : ''}</p>
+                      </td>
+                      <td className="px-3 py-3 text-white font-mono whitespace-nowrap">
+                        {fmtMoeda(t.valorOriginal)}
+                        {aba !== 'HISTORICO' && Number(t.valorPago) > 0 && (
+                          <span className="block text-[11px] text-emerald-500">pago {fmtMoeda(t.valorPago)}</span>
+                        )}
+                      </td>
                       {aba === 'HISTORICO' ? (
                         <>
-                          <td className="px-4 py-3 text-slate-300 font-mono">{fmtData(t.dataPagamento)}</td>
-                          <td className="px-4 py-3">
+                          <td className="px-3 py-3 font-mono text-emerald-400 whitespace-nowrap">{fmtMoeda(t.valorPago)}</td>
+                          <td className="px-3 py-3 text-slate-300 font-mono">{fmtData(t.dataPagamento)}</td>
+                          <td className="px-3 py-3">
                             <span className="inline-flex rounded-full bg-slate-800 border border-slate-700 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">
                               {formaLabel(t.formaPagamento)}
                             </span>
@@ -291,18 +315,18 @@ export default function FinanceiroListagem() {
                         </>
                       ) : (
                         <>
-                          <td className={`px-4 py-3 font-mono font-bold ${saldo > 0 ? 'text-amber-400' : 'text-slate-600'}`}>
+                          <td className={`px-3 py-3 font-mono font-bold ${saldo > 0 ? 'text-amber-400' : 'text-slate-600'}`}>
                             {saldo > 0 ? fmtMoeda(saldo) : '—'}
                           </td>
-                          <td className="px-4 py-3 text-slate-400">{fmtData(t.dataVencimento)}</td>
-                          <td className="px-4 py-3">
+                          <td className="px-3 py-3 text-slate-400">{fmtData(t.dataVencimento)}</td>
+                          <td className="px-3 py-3">
                             <span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold ${STATUS_BADGE[t.statusFinanceiro] ?? 'bg-slate-700 text-slate-400'}`}>
                               <StatusIcon size={10} /> {t.statusFinanceiro || '-'}
                             </span>
                           </td>
                         </>
                       )}
-                      <td className="px-4 py-3">
+                      <td className={`px-3 py-3 ${COL_ACOES}`}>
                         <div className="flex flex-nowrap items-center gap-1.5">
                           {!quitado && t.statusFinanceiro !== 'CANCELADO' && (
                             <BotaoAcao icon={CheckCircle2} label={tipo === 'RECEBER' ? 'Receber' : 'Pagar'} cor="verde" onClick={() => setBaixando(t)} />

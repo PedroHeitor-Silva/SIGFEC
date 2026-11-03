@@ -85,8 +85,8 @@ export default function LoteForm() {
       });
       toast.success('Lote criado com sucesso!');
       navigate('/lotes');
-    } catch {
-      toast.error('Falha ao criar lote.');
+    } catch (err) {
+      toast.error(err?.response?.data?.error || 'Falha ao criar lote.');
     } finally {
       setSaving(false);
     }
@@ -123,7 +123,7 @@ export default function LoteForm() {
                 <select name="produtoId" value={form.produtoId} onChange={handleChange} className={inputCls} required>
                   <option value="">Selecione o produto...</option>
                   {produtos.map((p) => (
-                    <option key={p.id} value={p.id}>{p.nome} — {p.categoria}</option>
+                    <option key={p.id} value={p.id}>{p.nome} ({unidadeLabel(p.unidadeMedida || 'KG')})</option>
                   ))}
                 </select>
               </label>
@@ -163,8 +163,16 @@ export default function LoteForm() {
               <Scale size={16} className="text-amber-400" />
               <span className="text-sm font-bold text-white">Pesagens Consumidas</span>
               <span className="ml-auto text-xs text-slate-500">
-                {selectedPesagens.size} selecionada{selectedPesagens.size === 1 ? '' : 's'}
+                {selectedPesagens.size} de {pesagensDisponiveis.length} selecionada{selectedPesagens.size === 1 ? '' : 's'}
               </span>
+              {pesagensDisponiveis.length > 0 && (
+                <button type="button"
+                  onClick={() => setSelectedPesagens(selectedPesagens.size === pesagensDisponiveis.length
+                    ? new Set() : new Set(pesagensDisponiveis.map((p) => p.id)))}
+                  className="rounded-lg border border-slate-700 px-2.5 py-1 text-xs font-semibold text-emerald-500 hover:bg-slate-800 transition">
+                  {selectedPesagens.size === pesagensDisponiveis.length ? 'Desmarcar todas' : 'Selecionar todas'}
+                </button>
+              )}
             </div>
             <div className="max-h-96 overflow-y-auto divide-y divide-slate-800/60">
               {pesagensDisponiveis.length === 0 ? (
@@ -184,7 +192,7 @@ export default function LoteForm() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <span className="text-xs font-mono text-slate-500">#{p.id}</span>
+                          <span className="text-xs font-mono text-slate-500">PES-{String(p.id).padStart(6, '0')}</span>
                           <span className="text-sm font-medium text-white truncate">{p.produtorNome || p.produtor?.nome || 'Sem produtor'}</span>
                           {p.veiculoPlaca && <span className="text-[11px] font-mono uppercase text-slate-500">{p.veiculoPlaca}</span>}
                         </div>

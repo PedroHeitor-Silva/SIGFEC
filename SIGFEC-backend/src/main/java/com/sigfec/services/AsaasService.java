@@ -25,23 +25,25 @@ import java.util.Map;
 public class AsaasService {
 
     private final ContaReceberRepository contaReceberRepository;
+    private final ConfiguracaoService configuracao;
     private final RestTemplate rest;
-    private final String apiKey;
-    private final String baseUrl;
 
-    public AsaasService(ContaReceberRepository contaReceberRepository,
-                        @Value("${asaas.api-key:}") String apiKey,
-                        @Value("${asaas.base-url:https://api-sandbox.asaas.com/v3}") String baseUrl) {
+    public AsaasService(ContaReceberRepository contaReceberRepository, ConfiguracaoService configuracao) {
         this.contaReceberRepository = contaReceberRepository;
-        this.apiKey = apiKey;
-        this.baseUrl = baseUrl;
+        this.configuracao = configuracao;
         this.rest = new RestTemplate();
     }
 
-    /** Headers com token de acesso Asaas. */
+    /** URL do ambiente escolhido em Configurações (sandbox ou produção). */
+    private String url() {
+        return configuracao.asaasUrl();
+    }
+
+    /** Headers com token de acesso Asaas — chave e ambiente vêm de Configurações (ou do arquivo/ambiente). */
     private HttpHeaders headers() {
+        String apiKey = configuracao.valor(ConfiguracaoService.ASAAS_CHAVE);
         if (apiKey == null || apiKey.isBlank()) {
-            throw new AsaasException("Chave da API Asaas não configurada (ASAAS_API_KEY).");
+            throw new AsaasException("Chave da API Asaas não configurada. Informe-a em Configurações → Integração Asaas.");
         }
         HttpHeaders h = new HttpHeaders();
         h.setContentType(MediaType.APPLICATION_JSON);
@@ -57,13 +59,27 @@ public class AsaasService {
     private AsaasException erroAsaas(String acao, HttpStatusCodeException e) {
         String corpo = e.getResponseBodyAsString();
         if (e.getStatusCode().value() == 401 || corpo.contains("invalid_access_token")) {
-            return new AsaasException("Chave da API Asaas inválida ou expirada. Gere uma nova chave em "
-                    + "sandbox.asaas.com → Integrações → Chaves de API e atualize asaas.api-key (asaas-local.properties) "
-                    + "ou a variável ASAAS_API_KEY; depois reinicie o backend.");
+            return new AsaasException("Chave da API Asaas inválida ou expirada (ou de outro ambiente). Gere uma nova chave no painel "
+                    + "Asaas → Integrações → Chaves de API e informe-a em Configurações → Integração Asaas.");
         }
         String detalhe = corpo.replaceAll(".*\"description\":\"([^\"]+)\".*", "$1");
         if (detalhe.isBlank() || detalhe.equals(corpo) && corpo.length() > 200) detalhe = "HTTP " + e.getStatusCode().value();
         return new AsaasException(acao + ": " + detalhe);
+    }
+
+    /** Teste da tela de Configurações: consulta 1 cliente com a chave/ambiente atuais. */
+    public Map<String, Object> testarConexao() {
+        String ambiente = configuracao.valor(ConfiguracaoService.ASAAS_AMBIENTE);
+        try {
+            rest.exchange(url() + "/customers?limit=1", HttpMethod.GET, new HttpEntity<>(headers()), String.class);
+            return Map.of("ok", true, "ambiente", ambiente, "mensagem", "Conexão com o Asaas (" + ambiente + ") funcionando.");
+        } catch (HttpStatusCodeException e) {
+            return Map.of("ok", false, "ambiente", ambiente, "mensagem", erroAsaas("Falha na conexão", e).getMessage());
+        } catch (AsaasException e) {
+            return Map.of("ok", false, "ambiente", ambiente, "mensagem", e.getMessage());
+        } catch (Exception e) {
+            return Map.of("ok", false, "ambiente", ambiente, "mensagem", "Asaas inacessível: " + e.getMessage());
+        }
     }
 
     // ============================ CLIENTE ============================
@@ -79,7 +95,7 @@ public class AsaasService {
         // 1. Busca por CPF/CNPJ
         try {
             ResponseEntity<AsaasCustomerResponse> busca = rest.exchange(
-                    baseUrl + "/customers?cpfCnpj=" + doc,
+                    url() + "/customers?cpfCnpj=" + doc,
                     HttpMethod.GET, new HttpEntity<>(headers()), AsaasCustomerResponse.class);
             AsaasCustomerResponse body = busca.getBody();
             if (body != null && body.data() != null && !body.data().isEmpty()) {
@@ -97,7 +113,7 @@ public class AsaasService {
         );
         try {
             ResponseEntity<AsaasCustomerResponse> resp = rest.exchange(
-                    baseUrl + "/customers", HttpMethod.POST,
+                    url() + "/customers", HttpMethod.POST,
                     new HttpEntity<>(req, headers()), AsaasCustomerResponse.class);
             if (resp.getBody() == null || resp.getBody().id() == null) {
                 throw new AsaasException("Asaas não retornou ID do cliente.");
@@ -145,7 +161,7 @@ public class AsaasService {
         // Busca linha digitável / código de barras
         try {
             ResponseEntity<AsaasIdentificationFieldResponse> resp = rest.exchange(
-                    baseUrl + "/payments/" + conta.getAsaasPaymentId() + "/identificationField",
+                    url() + "/payments/" + conta.getAsaasPaymentId() + "/identificationField",
                     HttpMethod.GET, new HttpEntity<>(headers()), AsaasIdentificationFieldResponse.class);
             AsaasIdentificationFieldResponse body = resp.getBody();
             if (body != null) {
@@ -162,7 +178,7 @@ public class AsaasService {
     public AsaasPixQrCodeResponse buscarQrCodePix(String asaasPaymentId) {
         try {
             ResponseEntity<AsaasPixQrCodeResponse> resp = rest.exchange(
-                    baseUrl + "/payments/" + asaasPaymentId + "/pixQrCode",
+                    url() + "/payments/" + asaasPaymentId + "/pixQrCode",
                     HttpMethod.GET, new HttpEntity<>(headers()), AsaasPixQrCodeResponse.class);
             if (resp.getBody() == null) throw new AsaasException("QR Code PIX não retornado pelo Asaas.");
             return resp.getBody();
@@ -244,7 +260,7 @@ public class AsaasService {
 
         try {
             ResponseEntity<AsaasPaymentResponse> resp = rest.exchange(
-                    baseUrl + "/payments", HttpMethod.POST,
+                    url() + "/payments", HttpMethod.POST,
                     new HttpEntity<>(req, headers()), AsaasPaymentResponse.class);
             if (resp.getBody() == null || resp.getBody().id() == null) {
                 throw new AsaasException("Asaas não retornou a cobrança.");

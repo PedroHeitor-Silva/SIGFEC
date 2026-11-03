@@ -19,6 +19,7 @@ Fluxo do negócio: fila do pátio → checklist → pesagem → laudo do laborat
 - Mudanças de estado relevantes vão para `AuditService.log(...)`.
 - Estoque só muda via `MovimentacaoEstoqueService.aplicar(...)` (Kardex).
 - `application.properties` está em Latin-1: acentos como `ç`.
+- Parâmetros editáveis pelo admin (empresa, prazos, parcelas, Asaas…) ficam no catálogo do `ConfiguracaoService` (tabela `parametro_sistema`; o `.properties` é só o padrão). Parâmetro novo: adicionar lá e ler com `valor/inteiro/fracao/lista`. Segredos nunca saem da API (mascarados). No front, os públicos vêm de `utils/configPublica.js`.
 - Laudo aprovado gera `ContaPagar` ao produtor com descrição `AnaliseLaboratorioService.descricaoPagamento(id)` — relatórios dependem desse texto.
 
 ## Convenções do front

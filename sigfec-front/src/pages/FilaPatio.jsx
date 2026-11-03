@@ -4,11 +4,12 @@ import {
   Truck, User, UserCircle, PlusCircle, PhoneCall, PlayCircle, Undo2, Scale,
   XCircle, ClipboardCheck, Clock, RefreshCw, MapPin, MonitorPlay, Lock,
 } from 'lucide-react';
-import toast, { Toaster } from 'react-hot-toast';
+import toast from 'react-hot-toast';
 import Select from 'react-select';
 import api from '../services/api';
 import { maskPlaca } from '../utils/masks';
 import { getSelectStyles, selectMenuProps } from '../theme/selectStyles';
+import { CampoBusca, FiltroSelect, contem } from '../components/Filtros';
 
 const labelCls = 'text-xs font-bold uppercase tracking-wider text-slate-400';
 const LOCAL_KEY = '@sigfec:fila-local';
@@ -53,6 +54,8 @@ export default function FilaPatio() {
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(false);
   const [ocupado, setOcupado] = useState(null); // id em processamento (evita clique duplo)
+  const [busca, setBusca] = useState('');
+  const [ordemFila, setOrdemFila] = useState('espera');
   const navigate = useNavigate();
 
   const selectStyles = useMemo(() => getSelectStyles(), []);
@@ -151,8 +154,15 @@ export default function FilaPatio() {
   const ativos = fila.filter((e) => e.status === 'CHAMADO' || e.status === 'EM_ATENDIMENTO');
   const aguardando = fila.filter((e) => e.status === 'AGUARDANDO');
   const encerrados = fila.filter((e) => e.status === 'FINALIZADO' || e.status === 'CANCELADO');
+  // busca só filtra a exibição; contagens e "chamar próximo" continuam sobre a fila inteira
+  const casa = (e) => contem(busca, e.veiculo?.placa, maskPlaca(e.veiculo?.placa), e.motorista?.nome, e.produtor?.nome, senhaFmt(e.senhaDiaria));
+  const ordenar = (lista) => (ordemFila === 'espera' ? lista
+    : [...lista].sort((a, b) => (b.senhaDiaria ?? 0) - (a.senhaDiaria ?? 0)));
   const aptos = aguardando.filter((e) => e.checklistStatus === 'APROVADO').length;
   const ocupacao = Object.fromEntries(ativos.map((e) => [e.localChamada, e]));
+  // Veículo que já está na fila (aguardando ou em atendimento) não pode entrar de novo: some do select.
+  const naFila = new Set([...ativos, ...aguardando].map((e) => e.veiculo?.id));
+  const veiculosLivres = veiculos.filter((v) => !naFila.has(v.value));
 
   const Card = ({ e }) => {
     const st = STATUS[e.status] || STATUS.AGUARDANDO;
@@ -197,16 +207,24 @@ export default function FilaPatio() {
           <span className={`rounded-full border px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide ${st.cls}`}>{st.label}</span>
 
           {e.status === 'AGUARDANDO' && (
+            // Próximo passo em destaque: sem checklist aprovado → "Fazer checklist"; aprovado → "Chamar".
             <>
               <button onClick={() => navigate(`/fila/checklist/${e.id}`)}
-                className={`${btn} border border-slate-700 text-slate-300 hover:bg-slate-700`}>
-                <ClipboardCheck size={14} /> Checklist
+                className={`${btn} ${podeChamar
+                  ? 'border border-slate-700 text-slate-300 hover:bg-slate-700'
+                  : 'bg-amber-500 text-white hover:bg-amber-600 shadow-sm'}`}>
+                <ClipboardCheck size={14} /> {podeChamar ? 'Ver checklist' : e.checklistStatus === 'REPROVADO' ? 'Refazer checklist' : 'Fazer checklist'}
               </button>
-              <button onClick={() => chamar(e)} disabled={!podeChamar || ocupadoAqui}
-                title={podeChamar ? `Chamar para ${local || 'o local escolhido'}` : 'Aprove o checklist antes de chamar'}
-                className={`${btn} bg-sky-600 text-white hover:bg-sky-500`}>
-                {podeChamar ? <PhoneCall size={14} /> : <Lock size={14} />} Chamar
-              </button>
+              {podeChamar ? (
+                <button onClick={() => chamar(e)} disabled={ocupadoAqui} title={`Chamar para ${local || 'o local escolhido'}`}
+                  className={`${btn} bg-sky-600 text-white hover:bg-sky-500`}>
+                  <PhoneCall size={14} /> Chamar {local ? `p/ ${local}` : ''}
+                </button>
+              ) : (
+                <span className="inline-flex items-center gap-1 text-[11px] text-slate-500" title="O veículo só pode ser chamado com o checklist aprovado">
+                  <Lock size={12} /> chamar após checklist
+                </span>
+              )}
             </>
           )}
           {e.status === 'CHAMADO' && (
@@ -248,7 +266,6 @@ export default function FilaPatio() {
 
   return (
     <div>
-      <Toaster position="top-right" toastOptions={{ style: { background: '#1e293b', color: '#fff' } }} />
 
       <div className="mx-auto max-w-7xl">
         <div className="mb-6 pb-5 border-b border-slate-800 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
@@ -304,9 +321,13 @@ export default function FilaPatio() {
             <div className="space-y-4">
               <div>
                 <label className={labelCls}><Truck size={13} className="mr-1 inline" /> Veículo *</label>
-                <Select options={veiculos} value={selVeiculo} onChange={onSelectVeiculo}
-                  placeholder="Placa ou modelo..." styles={selectStyles} {...selectMenuProps}
-                  noOptionsMessage={() => 'Nenhum veículo'} />
+                <Select options={veiculosLivres} value={selVeiculo} onChange={onSelectVeiculo}
+                  placeholder="Digite a placa..." styles={selectStyles} {...selectMenuProps} autoFocus
+                  noOptionsMessage={() => 'Nenhum veículo livre com essa placa'} />
+                <p className="mt-1 text-[11px] text-slate-500">
+                  Veículo novo? <button type="button" onClick={() => navigate('/veiculos/novo')} className="font-semibold text-emerald-500 hover:underline">Cadastrar veículo</button>
+                  {' · '}<button type="button" onClick={() => navigate('/motoristas/novo')} className="font-semibold text-emerald-500 hover:underline">motorista</button>
+                </p>
               </div>
               <div>
                 <label className={labelCls}><User size={13} className="mr-1 inline" /> Motorista *</label>
@@ -342,9 +363,14 @@ export default function FilaPatio() {
               </div>
             ) : (
               <>
-                <Grupo titulo="Chamados / em atendimento" itens={ativos} vazio="Nenhum veículo chamado." />
-                <Grupo titulo="Aguardando" itens={aguardando} vazio="Ninguém aguardando." />
-                {encerrados.length > 0 && <Grupo titulo="Encerrados hoje" itens={encerrados} vazio="" />}
+                <div className="flex flex-wrap items-center gap-2.5">
+                  <CampoBusca value={busca} onChange={setBusca} placeholder="Buscar placa, motorista, produtor ou senha" />
+                  <FiltroSelect label="Ordem" value={ordemFila === 'espera' ? '' : ordemFila} onChange={(v) => setOrdemFila(v || 'espera')}
+                    todos="Ordem de chegada" options={[{ value: 'recentes', label: 'Mais recentes primeiro' }]} />
+                </div>
+                <Grupo titulo="Chamados / em atendimento" itens={ordenar(ativos.filter(casa))} vazio={busca ? 'Nada encontrado.' : 'Nenhum veículo chamado.'} />
+                <Grupo titulo="Aguardando" itens={ordenar(aguardando.filter(casa))} vazio={busca ? 'Nada encontrado.' : 'Ninguém aguardando.'} />
+                {encerrados.length > 0 && <Grupo titulo="Encerrados hoje" itens={ordenar(encerrados.filter(casa))} vazio="Nada encontrado." />}
               </>
             )}
           </div>

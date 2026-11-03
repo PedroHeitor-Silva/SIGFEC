@@ -28,11 +28,16 @@ export default function ProdutoLista() {
       newLabel="Novo Produto"
       searchPlaceholder="Buscar por nome ou categoria"
       filterKeys={['nome', 'categoria']}
+      ordemPadrao={{ key: 'nome', dir: 'asc' }}
+      filtros={[
+        { key: 'cat', label: 'Categoria', get: (p) => CATEGORIAS[p.categoria]?.label || p.categoria },
+        { key: 'un', label: 'Unidade', get: (p) => unidadeNome(p.unidadeMedida) },
+      ]}
       columns={[
         { label: 'ID', key: 'id', mono: true, accent: 'text-slate-500' },
         { label: 'Nome', key: 'nome', accent: 'text-white font-medium' },
         {
-          label: 'Categoria',
+          label: 'Categoria', sortKey: 'categoria', sortGet: (p) => CATEGORIAS[p.categoria]?.label || p.categoria,
           render: (p) => {
             const c = CATEGORIAS[p.categoria] || { label: p.categoria || '-', badge: 'bg-slate-700 text-slate-400' };
             return (
@@ -43,14 +48,14 @@ export default function ProdutoLista() {
           },
         },
         {
-          label: 'Unidade',
+          label: 'Unidade', key: 'unidadeMedida',
           render: (p) => (
             <span className="inline-flex rounded-md bg-slate-800 border border-slate-700 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">
               {unidadeNome(p.unidadeMedida)}
             </span>
           ),
         },
-        { label: 'Preço Base', render: (p) => fmtMoeda(p.precoBase), accent: 'text-emerald-400 font-mono font-bold' },
+        { label: 'Preço Base', key: 'precoBase', render: (p) => fmtMoeda(p.precoBase), accent: 'text-emerald-400 font-mono font-bold' },
         {
           label: 'Tabela',
           render: (p) => (

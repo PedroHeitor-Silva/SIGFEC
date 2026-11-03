@@ -2,6 +2,9 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Edit2, Trash2, Plus, RefreshCcw, Search, Users, Download, FileText } from 'lucide-react';
 import toast from 'react-hot-toast';
+import SortableHeader, { applySort } from '../components/SortableHeader';
+import DateRangeFilter from '../components/DateRangeFilter';
+import { BarraFiltros, CampoBusca, FiltroSelect, opcoesDe, noPeriodo, contem } from '../components/Filtros';
 import api from '../services/api';
 import { ModuleHeader } from '../theme/modules.jsx';
 import { confirm } from '../components/ConfirmDialog';
@@ -64,15 +67,19 @@ export default function ListaParceiros() {
 
   useEffect(() => { fetch(); }, []);
 
-  const filtered = useMemo(() => {
-    const t = search.trim().toLowerCase();
-    return parceiros.filter((p) => {
-      if (tipoFiltro !== 'TODOS' && p.tipoParceiro !== tipoFiltro) return false;
-      if (!t) return true;
-      return (p.nome || '').toLowerCase().includes(t) ||
-             (p.documento || '').toLowerCase().includes(t);
-    });
-  }, [parceiros, search, tipoFiltro]);
+  const [fCidade, setFCidade] = useState('');
+  const [datas, setDatas] = useState({ from: '', to: '' });
+  const [sort, setSort] = useState({ key: 'nome', dir: 'asc' });
+  const cidadeDe = (p) => p.endereco?.cidade?.nome || p.cidade || '';
+
+  const filtered = useMemo(() => applySort(parceiros.filter((p) =>
+    (tipoFiltro === 'TODOS' || p.tipoParceiro === tipoFiltro)
+    && (!fCidade || cidadeDe(p) === fCidade)
+    && noPeriodo(p.dataCadastro, datas)
+    && contem(search, p.nome, p.documento, (p.documento || '').replace(/\D/g, ''), p.email, p.telefone, cidadeDe(p))),
+  sort, { cidade: cidadeDe }), [parceiros, search, tipoFiltro, fCidade, datas, sort]);
+  const algumFiltro = !!(search || tipoFiltro !== 'TODOS' || fCidade || datas.from || datas.to);
+  const limpar = () => { setSearch(''); setTipoFiltro('TODOS'); setFCidade(''); setDatas({ from: '', to: '' }); };
 
   const handleDelete = async (p) => {
     const ok = await confirm({
@@ -134,17 +141,8 @@ export default function ListaParceiros() {
       />
 
       <div className="rounded-xl border border-slate-800 bg-slate-900 overflow-hidden">
-        <div className="px-5 py-4 border-b border-slate-800 flex flex-col lg:flex-row gap-3 lg:items-center">
-          <div className="relative flex-1 max-w-sm">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Buscar por nome ou documento"
-              className="w-full rounded-lg border border-slate-700 bg-slate-800 py-2.5 pl-9 pr-4 text-sm text-white placeholder:text-slate-500 outline-none focus:border-emerald-500 transition"
-            />
-          </div>
+        <BarraFiltros total={parceiros.length} exibidos={filtered.length} ativo={algumFiltro} onLimpar={limpar}>
+          <CampoBusca value={search} onChange={setSearch} placeholder="Buscar nome, CPF/CNPJ, telefone ou e-mail" />
           {/* Filtro tipo */}
           <div className="flex flex-wrap gap-1.5">
             {['TODOS', 'PRODUTOR', 'CLIENTE', 'FORNECEDOR'].map((t) => (
@@ -156,7 +154,11 @@ export default function ListaParceiros() {
               </button>
             ))}
           </div>
-        </div>
+          <FiltroSelect label="Cidade" value={fCidade} onChange={setFCidade} options={opcoesDe(parceiros, cidadeDe)} />
+          <span className="inline-flex items-center gap-2 text-xs font-semibold text-slate-400">
+            Cadastro <DateRangeFilter from={datas.from} to={datas.to} onChange={setDatas} />
+          </span>
+        </BarraFiltros>
 
         {error && (
           <div className="px-5 py-3 bg-amber-500/5 border-b border-amber-500/20 text-xs text-amber-400">{error}</div>
@@ -166,9 +168,10 @@ export default function ListaParceiros() {
           <table className="min-w-full text-sm">
             <thead>
               <tr className="border-b border-slate-800 bg-slate-800/50">
-                {['ID', 'Nome', 'Tipo', 'Documento', 'Cidade', 'E-mail', 'Cadastro', 'Ações'].map((h) => (
-                  <th key={h} className="px-5 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-500">{h}</th>
+                {[['ID', 'id'], ['Nome', 'nome'], ['Tipo', 'tipoParceiro'], ['Documento', 'documento'], ['Cidade', 'cidade'], ['E-mail', 'email'], ['Cadastro', 'dataCadastro']].map(([h, k]) => (
+                  <SortableHeader key={h} sortKey={k} current={sort} onChange={setSort}>{h}</SortableHeader>
                 ))}
+                <th className="px-5 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-500">Ações</th>
               </tr>
             </thead>
             <tbody>
@@ -179,9 +182,9 @@ export default function ListaParceiros() {
                   <EmptyState
                     icon={Users}
                     accent="cyan"
-                    title={search || tipoFiltro !== 'TODOS' ? 'Nenhum resultado' : 'Nenhum parceiro cadastrado'}
-                    description={search || tipoFiltro !== 'TODOS' ? 'Ajuste a busca ou filtro.' : 'Cadastre produtores, fornecedores ou clientes pra começar.'}
-                    action={!search && tipoFiltro === 'TODOS' && (
+                    title={algumFiltro ? 'Nenhum resultado' : 'Nenhum parceiro cadastrado'}
+                    description={algumFiltro ? 'Ajuste a busca ou use "Limpar filtros".' : 'Cadastre produtores, fornecedores ou clientes pra começar.'}
+                    action={!algumFiltro && (
                       <button type="button" onClick={() => navigate('/parceiros/novo')}
                         className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-500 transition">
                         <Plus size={15} /> Novo Parceiro

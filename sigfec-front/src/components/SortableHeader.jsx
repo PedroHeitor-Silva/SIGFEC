@@ -10,7 +10,7 @@ import { ChevronDown, ChevronUp, ChevronsUpDown } from 'lucide-react';
  *
  *   const sorted = useSorted(items, sort);
  */
-export default function SortableHeader({ sortKey, current, onChange, children, align = 'left' }) {
+export default function SortableHeader({ sortKey, current, onChange, children, align = 'left', px = 'px-5' }) {
   const active = current?.key === sortKey;
   const dir = current?.dir;
   const toggle = () => {
@@ -20,7 +20,7 @@ export default function SortableHeader({ sortKey, current, onChange, children, a
   };
 
   return (
-    <th className={`px-5 py-3 text-${align} text-xs font-bold uppercase tracking-wider text-slate-500`}>
+    <th aria-sort={active ? (dir === 'asc' ? 'ascending' : 'descending') : 'none'} className={`${px} py-3 text-${align} whitespace-nowrap text-xs font-bold uppercase tracking-wider text-slate-500`}>
       <button
         type="button"
         onClick={toggle}
@@ -35,24 +35,30 @@ export default function SortableHeader({ sortKey, current, onChange, children, a
   );
 }
 
+const ISO_DATA = /^\d{4}-\d{2}-\d{2}/;
+
 /**
- * Hook helper: sort array by current sort state.
+ * Ordena pela coluna atual. `acessores` mapeia sortKey → função (para valores calculados,
+ * ex.: { saldo: (t) => t.valorOriginal - t.valorPago }); sem acessor, a chave é um caminho ("produto.nome").
+ * Nulos vão sempre para o fim; datas ISO e números comparam como tal; texto em ordem alfabética pt-BR.
  */
-export function applySort(items, sort) {
+export function applySort(items, sort, acessores = {}) {
   if (!sort?.key) return items;
   const { key, dir } = sort;
+  const ler = acessores[key] || ((o) => get(o, key));
   const mult = dir === 'desc' ? -1 : 1;
   return [...items].sort((a, b) => {
-    const av = get(a, key);
-    const bv = get(b, key);
-    if (av == null && bv == null) return 0;
-    if (av == null) return 1;
-    if (bv == null) return -1;
+    const av = ler(a);
+    const bv = ler(b);
+    const vazioA = av == null || av === '';
+    const vazioB = bv == null || bv === '';
+    if (vazioA && vazioB) return 0;
+    if (vazioA) return 1;
+    if (vazioB) return -1;
     if (typeof av === 'number' && typeof bv === 'number') return (av - bv) * mult;
-    const ad = Date.parse(av);
-    const bd = Date.parse(bv);
-    if (!isNaN(ad) && !isNaN(bd)) return (ad - bd) * mult;
-    return String(av).localeCompare(String(bv), 'pt-BR') * mult;
+    if (typeof av === 'boolean' || typeof bv === 'boolean') return (Number(av) - Number(bv)) * mult;
+    if (ISO_DATA.test(av) && ISO_DATA.test(bv)) return (Date.parse(av) - Date.parse(bv)) * mult;
+    return String(av).localeCompare(String(bv), 'pt-BR', { numeric: true }) * mult;
   });
 }
 

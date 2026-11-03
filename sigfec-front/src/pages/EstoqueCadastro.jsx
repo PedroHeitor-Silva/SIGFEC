@@ -42,7 +42,7 @@ export default function EstoqueCadastro() {
       navigate('/estoque');
     } catch (err) {
       const msg = err?.response?.data;
-      toast.error(typeof msg === 'string' ? msg : 'Falha ao salvar.');
+      toast.error(msg?.error || (typeof msg === 'string' ? msg : 'Falha ao salvar.'));
     } finally {
       setSaving(false);
     }
@@ -104,8 +104,8 @@ export default function EstoqueCadastro() {
           </div>
 
           <p className="text-[11px] text-slate-600 leading-5">
-            Quantidade mínima dispara alerta de estoque baixo. O saldo cai automaticamente
-            nas vendas e sobe quando lotes de produção são finalizados.
+            Quantidade mínima dispara alerta de estoque baixo. O saldo inicial entra no Kardex como ajuste;
+            depois ele cai automaticamente nas vendas e sobe quando lotes de produção são finalizados.
           </p>
 
           <div className="flex justify-end gap-3 pt-2">

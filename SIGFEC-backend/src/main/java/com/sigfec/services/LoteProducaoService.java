@@ -47,6 +47,14 @@ public class LoteProducaoService {
     @Value("${sigfec.producao.fator-residuo:0.12}")
     private double fatorResiduo = 0.12;
 
+    /** Quando presente, o percentual vem de Configurações (o @Value acima fica como padrão). */
+    private ConfiguracaoService configuracao;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    public void setConfiguracao(ConfiguracaoService configuracao) {
+        this.configuracao = configuracao;
+    }
+
     public List<LoteProducao> listar() {
         return loteRepository.findAll();
     }
@@ -188,6 +196,7 @@ public class LoteProducaoService {
      * (toneladas), proporcional ao peso final das cargas consumidas. Sem produto de resíduo cadastrado, não faz nada.
      */
     private void entrarResiduo(LoteProducao lote) {
+        double fatorResiduo = configuracao != null ? configuracao.fracao(ConfiguracaoService.PRODUCAO_RESIDUO) : this.fatorResiduo;
         if (lote.getProduto().getCategoria() == EnumCategoriaProduto.RESIDUO_FIBROSO || fatorResiduo <= 0) return;
         if (lote.getPesagensConsumidas() == null || lote.getPesagensConsumidas().isEmpty()) return;
         var residuo = produtoRepository.findFirstByCategoria(EnumCategoriaProduto.RESIDUO_FIBROSO).orElse(null);

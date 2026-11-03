@@ -4,7 +4,7 @@ import { Save, ArrowLeft, TrendingUp, TrendingDown } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../services/api';
 import { maskMoeda, unmaskMoeda } from '../utils/masks';
-import { MAX_PARCELAS, dividirParcelas } from '../utils/formasPagamento';
+import { maxParcelas, dividirParcelas } from '../utils/formasPagamento';
 
 const fmtMoeda = (v) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(v) || 0);
 /** Vencimento da parcela i (mesma regra do backend: +1 mês por parcela). */
@@ -164,7 +164,7 @@ export default function FinanceiroCadastro() {
             <label className="block">
               <span className={labelCls}>Parcelas</span>
               <select name="parcelas" value={form.parcelas} onChange={handleChange} className={inputCls}>
-                {Array.from({ length: MAX_PARCELAS }, (_, i) => i + 1).map((n) => (
+                {Array.from({ length: maxParcelas() }, (_, i) => i + 1).map((n) => (
                   <option key={n} value={n}>{n === 1 ? '1x (único)' : `${n}x mensais`}</option>
                 ))}
               </select>

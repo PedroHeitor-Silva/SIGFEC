@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Search, Trash2, Package, AlertTriangle, Pencil, Scale, CircleDashed } from 'lucide-react';
+/* eslint-disable react/prop-types */
+import { Plus, Search, Trash2, Package, AlertTriangle, Pencil, Scale, CircleDashed, ArrowUpDown, History } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../services/api';
 import { ModuleHeader } from '../theme/modules.jsx';
@@ -13,6 +14,8 @@ import { toastUndo } from '../utils/undoToast';
 import EditModal from '../components/EditModal';
 import { unidadeLabel, formatarQtd, equivalenteKg } from '../utils/unidades';
 import { can } from '../theme/permissions';
+import SortableHeader, { applySort } from '../components/SortableHeader';
+import { BarraFiltros, CampoBusca, FiltroSelect, contem } from '../components/Filtros';
 
 const CATEGORIA_LABEL = {
   FECULA: 'Fécula', TAPIOCA: 'Tapioca', POLVILHO_DOCE: 'Polvilho Doce',
@@ -34,6 +37,7 @@ export default function EstoqueListagem() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [editing, setEditing] = useState(null);
+  const [ajustando, setAjustando] = useState(null);
   const navigate = useNavigate();
 
   const carregar = () => {
@@ -66,11 +70,22 @@ export default function EstoqueListagem() {
       || (a.produto?.nome || '').localeCompare(b.produto?.nome || ''));
   }, [estoques, produtos]);
 
-  const filtered = useMemo(() => {
-    const t = search.trim().toLowerCase();
-    if (!t) return linhas;
-    return linhas.filter((e) => (e.produto?.nome || '').toLowerCase().includes(t));
-  }, [linhas, search]);
+  const [fTipo, setFTipo] = useState('');
+  const [fSituacao, setFSituacao] = useState('');
+  const [sort, setSort] = useState({ key: null, dir: null }); // padrão: acabados → subproduto → matéria-prima
+
+  const situacaoDe = (e) => (e.produto?.categoria === 'MANDIOCA' ? 'Matéria-prima'
+    : e.semRegistro ? 'Sem movimentação' : abaixoMinimo(e) ? 'Estoque baixo' : 'Normal');
+
+  const filtered = useMemo(() => applySort(linhas.filter((e) =>
+    contem(search, e.produto?.nome, CATEGORIA_LABEL[e.produto?.categoria])
+    && (!fTipo || tipoDe(e.produto?.categoria).label === fTipo)
+    && (!fSituacao || situacaoDe(e) === fSituacao)), sort, {
+    categoria: (e) => CATEGORIA_LABEL[e.produto?.categoria] || e.produto?.categoria,
+    situacao: situacaoDe,
+  }), [linhas, search, fTipo, fSituacao, sort]);
+  const algumFiltro = !!(search || fTipo || fSituacao);
+  const limpar = () => { setSearch(''); setFTipo(''); setFSituacao(''); };
 
   const alertas = useMemo(() => estoques.filter(abaixoMinimo).length, [estoques]);
 
@@ -119,22 +134,22 @@ export default function EstoqueListagem() {
       )}
 
       <div className="rounded-xl border border-slate-800 bg-slate-900 overflow-hidden">
-        <div className="px-5 py-4 border-b border-slate-800">
-          <div className="relative max-w-sm">
-            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
-            <input type="text" value={search} onChange={(e) => setSearch(e.target.value)}
-              placeholder="Buscar produto"
-              className="w-full rounded-lg border border-slate-700 bg-slate-800 py-2.5 pl-9 pr-4 text-sm text-white placeholder:text-slate-500 outline-none focus:border-emerald-500 transition" />
-          </div>
-        </div>
+        <BarraFiltros total={linhas.length} exibidos={filtered.length} ativo={algumFiltro} onLimpar={limpar}>
+          <CampoBusca value={search} onChange={setSearch} placeholder="Buscar produto ou categoria" />
+          <FiltroSelect label="Tipo" value={fTipo} onChange={setFTipo} options={['Produto acabado', 'Subproduto', 'Matéria-prima']} />
+          <FiltroSelect label="Situação" value={fSituacao} onChange={setFSituacao} options={['Estoque baixo', 'Normal', 'Sem movimentação', 'Matéria-prima']} />
+        </BarraFiltros>
 
         <div className="overflow-x-auto">
           <table className="min-w-full text-sm">
             <thead>
               <tr className="border-b border-slate-800 bg-slate-800/50">
-                {['Produto', 'Categoria', 'Saldo atual', 'Mínimo', 'Situação', 'Ações'].map((h) => (
-                  <th key={h} className="px-5 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-500">{h}</th>
-                ))}
+                <SortableHeader sortKey="produto.nome" current={sort} onChange={setSort}>Produto</SortableHeader>
+                <SortableHeader sortKey="categoria" current={sort} onChange={setSort}>Categoria</SortableHeader>
+                <SortableHeader sortKey="quantidadeAtual" current={sort} onChange={setSort}>Saldo atual</SortableHeader>
+                <SortableHeader sortKey="quantidadeMinima" current={sort} onChange={setSort}>Mínimo</SortableHeader>
+                <SortableHeader sortKey="situacao" current={sort} onChange={setSort}>Situação</SortableHeader>
+                <th className="px-5 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-500">Ações</th>
               </tr>
             </thead>
             <tbody>
@@ -202,13 +217,19 @@ export default function EstoqueListagem() {
                         )}
                       </td>
                       <td className="px-5 py-4">
-                        <div className="flex gap-1">
-                          {e.semRegistro && !materiaPrima && can('estoque', 'criar') && (
-                            <BotaoAcao icon={Plus} label="Registrar estoque" cor="verde" onClick={() => navigate('/estoque/novo')} />
+                        <div className="flex flex-wrap gap-1.5">
+                          {!materiaPrima && can('estoque', e.semRegistro ? 'criar' : 'editar') && (
+                            <BotaoAcao icon={ArrowUpDown} label="Ajustar saldo" cor="verde" onClick={() => setAjustando(e)} />
                           )}
                           {!e.semRegistro && can('estoque', 'editar') && (
-                            <Tooltip label="Ajustar quantidades">
-                              <BotaoAcao icon={Pencil} label="Ajustar quantidades" cor="azul" soIcone dicaNativa={false} onClick={() => setEditing(e)} />
+                            <Tooltip label="Alterar estoque mínimo">
+                              <BotaoAcao icon={Pencil} label="Alterar estoque mínimo" cor="azul" soIcone dicaNativa={false} onClick={() => setEditing(e)} />
+                            </Tooltip>
+                          )}
+                          {!e.semRegistro && (
+                            <Tooltip label="Histórico (Kardex)">
+                              <BotaoAcao icon={History} label="Histórico (Kardex)" cor="azul" soIcone dicaNativa={false}
+                                onClick={() => navigate('/relatorios?tipo=kardex')} />
                             </Tooltip>
                           )}
                           {!e.semRegistro && can('estoque', 'excluir') && (
@@ -231,26 +252,133 @@ export default function EstoqueListagem() {
         open={!!editing}
         onClose={() => setEditing(null)}
         onSaved={(updated) => setEstoques((prev) => prev.map((e) => e.id === updated.id ? updated : e))}
-        title={`Ajustar Estoque — ${editing?.produto?.nome || ''}`}
+        title={`Estoque mínimo — ${editing?.produto?.nome || ''}`}
         endpoint={editing ? `/estoque/${editing.id}` : ''}
         initial={editing ? {
           id: editing.id,
-          quantidadeAtual: editing.quantidadeAtual ?? 0,
           quantidadeMinima: editing.quantidadeMinima ?? 0,
         } : {}}
         fields={[
           {
-            name: 'quantidadeAtual',
-            label: `Quantidade Atual (${unidadeLabel(editing?.produto?.unidadeMedida)})`,
-            type: 'number',
-          },
-          {
             name: 'quantidadeMinima',
-            label: `Quantidade Mínima (${unidadeLabel(editing?.produto?.unidadeMedida)})`,
+            label: `Avisar quando o saldo chegar a (${unidadeLabel(editing?.produto?.unidadeMedida)})`,
             type: 'number',
           },
         ]}
       />
+
+      {ajustando && (
+        <AjusteSaldoModal linha={ajustando} onClose={() => setAjustando(null)}
+          onSalvo={() => { setAjustando(null); carregar(); }} />
+      )}
+    </div>
+  );
+}
+
+/**
+ * Ajuste de saldo pelo Kardex: o usuário informa o saldo CONTADO (inventário) ou a quantidade a somar/tirar,
+ * e o motivo. Gera AJUSTE_ENTRADA/AJUSTE_SAIDA — o histórico fica no relatório de Kardex.
+ */
+function AjusteSaldoModal({ linha, onClose, onSalvo }) {
+  const un = linha.produto?.unidadeMedida;
+  const atual = Number(linha.quantidadeAtual || 0);
+  const [modo, setModo] = useState('CONTAGEM'); // CONTAGEM | ENTRADA | SAIDA
+  const [valor, setValor] = useState('');
+  const [motivo, setMotivo] = useState('');
+  const [salvando, setSalvando] = useState(false);
+
+  const num = parseFloat(String(valor).replace(',', '.'));
+  const diferenca = Number.isFinite(num)
+    ? (modo === 'CONTAGEM' ? num - atual : modo === 'ENTRADA' ? num : -num)
+    : 0;
+  const novoSaldo = atual + diferenca;
+
+  const MOTIVOS = modo === 'SAIDA' || diferenca < 0
+    ? ['Inventário (contagem física)', 'Avaria / perda', 'Amostra / consumo interno', 'Correção de lançamento']
+    : ['Inventário (contagem física)', 'Saldo inicial', 'Devolução de cliente', 'Correção de lançamento'];
+
+  const salvar = async () => {
+    if (!Number.isFinite(num) || num < 0) { toast.error('Informe uma quantidade válida.'); return; }
+    if (Math.abs(diferenca) < 0.0005) { toast('Saldo igual ao atual — nada a ajustar.', { icon: 'ℹ️' }); return; }
+    if (novoSaldo < 0) { toast.error('O saldo não pode ficar negativo.'); return; }
+    if (!motivo.trim()) { toast.error('Escolha ou escreva o motivo do ajuste.'); return; }
+    setSalvando(true);
+    try {
+      await api.post('/movimentacoes-estoque/ajuste', {
+        produtoId: linha.produto.id,
+        tipo: diferenca > 0 ? 'AJUSTE_ENTRADA' : 'AJUSTE_SAIDA',
+        quantidade: Math.abs(Math.round(diferenca * 1000) / 1000),
+        motivo: motivo.trim(),
+      });
+      toast.success(`Saldo de ${linha.produto.nome} ajustado para ${formatarQtd(novoSaldo, un)}.`);
+      onSalvo();
+    } catch (err) {
+      toast.error(err?.response?.data?.error || 'Não foi possível ajustar o saldo.');
+    } finally {
+      setSalvando(false);
+    }
+  };
+
+  const inputCls = 'mt-1.5 w-full rounded-lg border border-slate-700 bg-slate-800 px-3 py-2.5 text-sm text-white outline-none focus:border-emerald-500';
+  const ABAS = [
+    { k: 'CONTAGEM', l: 'Informar saldo contado' },
+    { k: 'ENTRADA', l: 'Somar ao saldo' },
+    { k: 'SAIDA', l: 'Tirar do saldo' },
+  ];
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
+      <div className="w-full max-w-md rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-2xl" onClick={(e) => e.stopPropagation()}
+        role="dialog" aria-modal="true" aria-label={`Ajustar saldo de ${linha.produto?.nome}`}>
+        <h2 className="text-lg font-bold text-white">Ajustar saldo — {linha.produto?.nome}</h2>
+        <p className="mt-1 text-sm text-slate-400">
+          Saldo atual: <strong className="font-mono text-white">{formatarQtd(atual, un)}</strong>. O ajuste fica registrado no Kardex com seu usuário.
+        </p>
+
+        <div className="mt-4 grid grid-cols-3 gap-1 rounded-lg bg-slate-800 p-1">
+          {ABAS.map((a) => (
+            <button key={a.k} type="button" onClick={() => setModo(a.k)}
+              className={`rounded-md px-2 py-1.5 text-xs font-semibold transition ${modo === a.k ? 'bg-slate-900 text-white shadow' : 'text-slate-400 hover:text-white'}`}>
+              {a.l}
+            </button>
+          ))}
+        </div>
+
+        <label className="mt-4 block text-sm font-semibold text-slate-200">
+          {modo === 'CONTAGEM' ? 'Quantidade contada' : 'Quantidade'} ({unidadeLabel(un)})
+          <input autoFocus type="number" min="0" step="0.001" value={valor} onChange={(e) => setValor(e.target.value)}
+            className={`${inputCls} font-mono text-base`} placeholder="0" />
+        </label>
+
+        {Number.isFinite(num) && Math.abs(diferenca) >= 0.0005 && (
+          <p className={`mt-2 text-sm font-semibold ${diferenca > 0 ? 'text-emerald-500' : 'text-rose-400'}`}>
+            {diferenca > 0 ? 'Entrada' : 'Saída'} de {formatarQtd(Math.abs(diferenca), un)} → novo saldo {formatarQtd(Math.max(novoSaldo, 0), un)}
+          </p>
+        )}
+
+        <label className="mt-4 block text-sm font-semibold text-slate-200">
+          Motivo
+          <input list="motivos-ajuste" value={motivo} onChange={(e) => setMotivo(e.target.value)} className={inputCls}
+            placeholder="Escolha ou escreva" maxLength={200} />
+          <datalist id="motivos-ajuste">{MOTIVOS.map((m) => <option key={m} value={m} />)}</datalist>
+        </label>
+        <div className="mt-2 flex flex-wrap gap-1.5">
+          {MOTIVOS.map((m) => (
+            <button key={m} type="button" onClick={() => setMotivo(m)}
+              className={`rounded-full border px-2.5 py-1 text-[11px] font-semibold transition ${motivo === m ? 'border-emerald-500 bg-emerald-500/15 text-emerald-500' : 'border-slate-700 text-slate-400 hover:bg-slate-800'}`}>
+              {m}
+            </button>
+          ))}
+        </div>
+
+        <div className="mt-6 flex justify-end gap-2">
+          <button type="button" onClick={onClose} className="h-10 rounded-lg border border-slate-700 px-4 text-sm font-semibold text-slate-300 hover:bg-slate-800">Cancelar</button>
+          <button type="button" onClick={salvar} disabled={salvando}
+            className="inline-flex h-10 items-center gap-2 rounded-lg bg-emerald-600 px-5 text-sm font-bold text-white hover:bg-emerald-700 disabled:opacity-50">
+            <ArrowUpDown size={15} /> {salvando ? 'Ajustando…' : 'Confirmar ajuste'}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

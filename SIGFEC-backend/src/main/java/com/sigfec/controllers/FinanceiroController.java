@@ -24,6 +24,7 @@ public class FinanceiroController {
     private final FinanceiroRepository tituloRepo;
     private final ContaPagarRepository pagarRepo;
     private final ContaReceberRepository receberRepo;
+    private final com.sigfec.services.ConfiguracaoService configuracao;
 
     @GetMapping
     public List<TituloFinanceiro> listarTodos() {
@@ -75,8 +76,9 @@ public class FinanceiroController {
     }
 
     /** Copia o título em N parcelas: valor dividido (centavos na última), vencimento +1 mês a cada parcela. */
-    private static List<TituloFinanceiro> parcelar(TituloFinanceiro modelo, int parcelas,
-                                                   java.util.function.Supplier<TituloFinanceiro> novo) {
+    private List<TituloFinanceiro> parcelar(TituloFinanceiro modelo, int parcelas,
+                                            java.util.function.Supplier<TituloFinanceiro> novo) {
+        com.sigfec.services.Parcelamento.validar(parcelas, configuracao.inteiro(com.sigfec.services.ConfiguracaoService.VENDAS_MAX_PARCELAS));
         List<java.math.BigDecimal> valores = com.sigfec.services.Parcelamento.dividir(modelo.getValorOriginal(), parcelas);
         java.time.LocalDate primeiro = modelo.getDataVencimento() != null ? modelo.getDataVencimento() : java.time.LocalDate.now().plusDays(30);
         String descricao = modelo.getDescricao() != null && !modelo.getDescricao().isBlank() ? modelo.getDescricao() : "Lançamento";

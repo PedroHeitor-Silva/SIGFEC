@@ -8,13 +8,15 @@ import java.util.List;
 /** Divide um valor em parcelas iguais; a diferença de arredondamento vai na última. */
 public final class Parcelamento {
 
+    /** Padrão; o administrador pode mudar em Configurações (até {@link #LIMITE}). */
     public static final int MAXIMO = 12;
+    public static final int LIMITE = 24;
 
     private Parcelamento() {}
 
     public static List<BigDecimal> dividir(BigDecimal total, int parcelas) {
         if (total == null || total.signum() <= 0) throw RegraNegocioException.invalida("Valor a parcelar deve ser maior que zero.");
-        validar(parcelas);
+        validar(parcelas, LIMITE);
         BigDecimal base = total.divide(BigDecimal.valueOf(parcelas), 2, RoundingMode.DOWN);
         List<BigDecimal> valores = new ArrayList<>();
         for (int i = 1; i < parcelas; i++) valores.add(base);
@@ -23,8 +25,12 @@ public final class Parcelamento {
     }
 
     public static void validar(int parcelas) {
-        if (parcelas < 1 || parcelas > MAXIMO) {
-            throw RegraNegocioException.invalida("Número de parcelas deve ser de 1 a " + MAXIMO + ".");
+        validar(parcelas, MAXIMO);
+    }
+
+    public static void validar(int parcelas, int maximo) {
+        if (parcelas < 1 || parcelas > maximo) {
+            throw RegraNegocioException.invalida("Número de parcelas deve ser de 1 a " + maximo + ".");
         }
     }
 

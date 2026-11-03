@@ -1,9 +1,9 @@
 package com.sigfec.controllers;
 
 import com.sigfec.services.AsaasService;
+import com.sigfec.services.ConfiguracaoService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,15 +22,15 @@ import java.util.Map;
 public class WebhookController {
 
     private final AsaasService asaasService;
-
-    /** Token de verificação do webhook (definido no painel Asaas). Vazio = sem verificação (dev). */
-    @Value("${asaas.webhook-token:}")
-    private String webhookToken;
+    private final ConfiguracaoService configuracao;
 
     @PostMapping("/asaas")
     public ResponseEntity<Void> asaas(
             @RequestHeader(value = "asaas-access-token", required = false) String tokenRecebido,
             @RequestBody Map<String, Object> evento) {
+
+        // Token de verificação (Configurações → Integração Asaas). Vazio = sem verificação (dev).
+        String webhookToken = configuracao.valor(ConfiguracaoService.ASAAS_WEBHOOK);
 
         // Valida autenticidade: se um token está configurado, ele DEVE bater.
         if (webhookToken != null && !webhookToken.isBlank()

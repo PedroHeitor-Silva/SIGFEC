@@ -32,6 +32,7 @@ const PATH_TO_MODULE = {
   '/vendas': 'vendas',
   '/financeiro': 'financeiro',
   '/relatorios': 'relatorios', // cada relatório ainda exige o módulo de origem (checado na API)
+  '/configuracoes': 'configuracoes', // só ADMIN (nenhum outro perfil tem o módulo; a API também exige ADMIN)
 };
 
 /** Ações granulares disponíveis por módulo. */

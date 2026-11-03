@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Beaker, Printer, Download } from 'lucide-react';
+import { Plus, Beaker, Printer, Download, Clock } from 'lucide-react';
 import api from '../services/api';
 import { ModuleHeader } from '../theme/modules.jsx';
 import EmptyState from '../components/EmptyState';
@@ -9,6 +9,9 @@ import BotaoAcao from '../components/BotaoAcao';
 import { TableSkeleton } from '../components/Skeleton';
 import { printLaudoLaboratorio } from '../utils/printDoc';
 import { exportCSV } from '../utils/csv';
+import SortableHeader, { applySort } from '../components/SortableHeader';
+import DateRangeFilter from '../components/DateRangeFilter';
+import { BarraFiltros, CampoBusca, FiltroSelect, opcoesDe, noPeriodo, contem } from '../components/Filtros';
 
 const fmt = (v) => {
   if (!v) return '-';
@@ -24,6 +27,7 @@ const rendaBadge = (v) => {
 
 export default function LaboratorioLista() {
   const [analises, setAnalises] = useState([]);
+  const [pendentes, setPendentes] = useState([]); // cargas pesadas que ainda não têm laudo
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const navigate = useNavigate();
@@ -33,12 +37,28 @@ export default function LaboratorioLista() {
       .then(({ data }) => setAnalises(data || []))
       .catch(() => setError('Não foi possível carregar as análises.'))
       .finally(() => setLoading(false));
+    api.get('/pesagens')
+      .then(({ data }) => setPendentes((data || []).filter((p) => p.gramasAmido == null)
+        .sort((a, b) => new Date(a.dataHoraEntrada) - new Date(b.dataHoraEntrada))))
+      .catch(() => {});
   }, []);
 
-  const sorted = useMemo(() =>
-    [...analises].sort((a, b) => new Date(b.dataCriacao) - new Date(a.dataCriacao)),
-    [analises]
-  );
+  const [search, setSearch] = useState('');
+  const [fProdutor, setFProdutor] = useState('');
+  const [fStatus, setFStatus] = useState('');
+  const [datas, setDatas] = useState({ from: '', to: '' });
+  const [sort, setSort] = useState({ key: 'dataCriacao', dir: 'desc' });
+
+  const sorted = useMemo(() => applySort(analises.filter((a) =>
+    contem(search, a.pesagem?.produtor?.nome, a.pesagem?.id && `PES-${String(a.pesagem.id).padStart(6, '0')}`, a.observacao)
+    && (!fProdutor || a.pesagem?.produtor?.nome === fProdutor)
+    && (!fStatus || (a.statusQualidade || 'AGUARDANDO_ANALISE') === fStatus)
+    && noPeriodo(a.dataCriacao, datas)), sort, {
+    amostras: (a) => (a.amostras || []).length,
+    rendaMedia: (a) => (a.rendaMedia != null ? Number(a.rendaMedia) : null),
+  }), [analises, search, fProdutor, fStatus, datas, sort]);
+  const algumFiltro = !!(search || fProdutor || fStatus || datas.from || datas.to);
+  const limpar = () => { setSearch(''); setFProdutor(''); setFStatus(''); setDatas({ from: '', to: '' }); };
 
   return (
     <div className="space-y-5">
@@ -75,14 +95,49 @@ export default function LaboratorioLista() {
         }
       />
 
+      {pendentes.length > 0 && (
+        <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 p-4">
+          <p className="mb-3 flex items-center gap-2 text-sm font-bold text-white">
+            <Clock size={16} className="text-amber-500" />
+            {pendentes.length === 1 ? '1 carga aguardando análise' : `${pendentes.length} cargas aguardando análise`}
+            <span className="font-normal text-slate-400">— o produtor só recebe depois do laudo.</span>
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {pendentes.slice(0, 8).map((p) => (
+              <button key={p.id} type="button" onClick={() => navigate(`/laboratorio/novo?pesagem=${p.id}`)}
+                className="inline-flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-left text-xs hover:border-emerald-500 transition">
+                <span className="font-mono font-bold text-amber-500">PES-{String(p.id).padStart(6, '0')}</span>
+                <span className="text-slate-200">{p.produtorNome || 'Sem produtor'}</span>
+                <span className="text-slate-500">{fmt(p.dataHoraEntrada)}</span>
+                <span className="rounded bg-emerald-600 px-2 py-0.5 font-bold text-white">Analisar</span>
+              </button>
+            ))}
+            {pendentes.length > 8 && <span className="self-center text-xs text-slate-500">+{pendentes.length - 8} — use "Nova Análise"</span>}
+          </div>
+        </div>
+      )}
+
       <div className="rounded-xl border border-slate-800 bg-slate-900 overflow-hidden">
+        <BarraFiltros total={analises.length} exibidos={sorted.length} ativo={algumFiltro} onLimpar={limpar}>
+          <CampoBusca value={search} onChange={setSearch} placeholder="Buscar produtor ou nº da carga (PES-...)" />
+          <FiltroSelect label="Produtor" value={fProdutor} onChange={setFProdutor} options={opcoesDe(analises, (a) => a.pesagem?.produtor?.nome)} />
+          <FiltroSelect label="Resultado" value={fStatus} onChange={setFStatus}
+            options={[['APROVADO', 'Aprovado'], ['APROVADO_COM_DESCONTO', 'Aprovado com desconto'], ['REPROVADO', 'Reprovado']].map(([value, label]) => ({ value, label }))} />
+          <span className="inline-flex items-center gap-2 text-xs font-semibold text-slate-400">
+            Data <DateRangeFilter from={datas.from} to={datas.to} onChange={setDatas} />
+          </span>
+        </BarraFiltros>
         <div className="overflow-x-auto">
           <table className="min-w-full text-sm">
             <thead>
               <tr className="border-b border-slate-800 bg-slate-800/50">
-                {['Data', 'Produtor', 'Amostras', 'Renda Média', 'Status', 'Carga', 'Ações'].map((h) => (
-                  <th key={h} className="px-5 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-500">{h}</th>
-                ))}
+                <SortableHeader sortKey="dataCriacao" current={sort} onChange={setSort}>Data</SortableHeader>
+                <SortableHeader sortKey="pesagem.produtor.nome" current={sort} onChange={setSort}>Produtor</SortableHeader>
+                <SortableHeader sortKey="amostras" current={sort} onChange={setSort}>Amostras</SortableHeader>
+                <SortableHeader sortKey="rendaMedia" current={sort} onChange={setSort}>Renda Média</SortableHeader>
+                <SortableHeader sortKey="statusQualidade" current={sort} onChange={setSort}>Status</SortableHeader>
+                <SortableHeader sortKey="pesagem.id" current={sort} onChange={setSort}>Carga</SortableHeader>
+                <th className="px-5 py-3 text-left text-xs font-bold uppercase tracking-wider text-slate-500">Ações</th>
               </tr>
             </thead>
             <tbody>
@@ -95,8 +150,8 @@ export default function LaboratorioLista() {
                   <EmptyState
                     icon={Beaker}
                     accent="fuchsia"
-                    title="Nenhuma análise registrada"
-                    description="Emita o primeiro laudo após uma pesagem para medir a renda da carga."
+                    title={algumFiltro ? 'Nenhum laudo com esses filtros' : 'Nenhuma análise registrada'}
+                    description={algumFiltro ? 'Use "Limpar filtros" para ver todos.' : 'Emita o primeiro laudo após uma pesagem para medir a renda da carga.'}
                     action={
                       <button type="button" onClick={() => navigate('/laboratorio/novo')}
                         className="inline-flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-500 transition">
@@ -131,7 +186,7 @@ export default function LaboratorioLista() {
                           {status.replace(/_/g, ' ')}
                         </span>
                       </td>
-                      <td className="px-5 py-4 text-slate-500 font-mono">#{item.pesagem?.id || '—'}</td>
+                      <td className="px-5 py-4 text-slate-500 font-mono">{item.pesagem?.id ? `PES-${String(item.pesagem.id).padStart(6, '0')}` : '—'}</td>
                       <td className="px-5 py-4">
                         <Tooltip label="Imprimir laudo">
                               <BotaoAcao icon={Printer} label="Imprimir laudo" cor="roxo" soIcone dicaNativa={false} onClick={() => printLaudoLaboratorio(item)} />

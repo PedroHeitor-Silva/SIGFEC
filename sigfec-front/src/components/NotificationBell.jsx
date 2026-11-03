@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { Bell, AlertCircle, Beaker, DollarSign, TrendingDown, Calendar, CheckCircle2, Package, IdCard } from 'lucide-react';
 import api from '../services/api';
 import { formatarQtd } from '../utils/unidades';
+import { configInt } from '../utils/configPublica';
 
 const fmtMoney = (v) =>
   new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(v) || 0);
@@ -55,7 +56,7 @@ export default function NotificationBell() {
 
       const alerts = [];
 
-      // === CNH vencida ou a vencer (<=30 dias) — ADMIN + PRODUCAO ===
+      // === CNH vencida ou a vencer (antecedência em Configurações → Alertas) — ADMIN + PRODUCAO ===
       if (veEstoque) {
         motoristas.forEach((m) => {
           if (!m.validadeCnh || m.statusAtivo === false) return;
@@ -67,7 +68,7 @@ export default function NotificationBell() {
               desc: `${m.nome} — habilitação vencida há ${Math.abs(dias)} dia(s)`,
               date: m.validadeCnh, link: '/motoristas',
             });
-          } else if (dias <= 30) {
+          } else if (dias <= configInt('alertas.cnh-dias')) {
             alerts.push({
               type: 'cnh-vencer', icon: IdCard, accent: 'amber',
               title: 'CNH a vencer',

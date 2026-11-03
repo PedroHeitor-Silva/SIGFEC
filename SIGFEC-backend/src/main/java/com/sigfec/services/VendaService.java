@@ -26,6 +26,22 @@ public class VendaService {
     private final MovimentacaoEstoqueService movEstoqueService;
     private final AuditService auditService;
 
+    /** Intervalo entre parcelas e máximo de parcelas (Configurações). Sem ele (testes): 30 dias e 12x. */
+    private ConfiguracaoService configuracao;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    public void setConfiguracao(ConfiguracaoService configuracao) {
+        this.configuracao = configuracao;
+    }
+
+    private int intervaloParcelas() {
+        return configuracao != null ? configuracao.inteiro(ConfiguracaoService.VENDAS_PRAZO) : 30;
+    }
+
+    private int maximoParcelas() {
+        return configuracao != null ? configuracao.inteiro(ConfiguracaoService.VENDAS_MAX_PARCELAS) : Parcelamento.MAXIMO;
+    }
+
     public List<Venda> listar() {
         return vendaRepository.findAll();
     }
@@ -221,7 +237,7 @@ public class VendaService {
     private void normalizarPagamento(Venda venda) {
         int parcelas = venda.getParcelas() == null ? 1 : venda.getParcelas();
         if (venda.getFormaPagamento() != null && venda.getFormaPagamento().aVista()) parcelas = 1;
-        Parcelamento.validar(parcelas);
+        Parcelamento.validar(parcelas, maximoParcelas());
         venda.setParcelas(parcelas);
     }
 
@@ -231,12 +247,13 @@ public class VendaService {
         boolean aVista = venda.getFormaPagamento() != null && venda.getFormaPagamento().aVista();
         List<java.math.BigDecimal> valores = Parcelamento.dividir(venda.getValorTotal(), n);
         LocalDate hoje = LocalDate.now();
+        long intervalo = intervaloParcelas();
         for (int i = 1; i <= n; i++) {
             ContaReceber conta = new ContaReceber();
             conta.setCliente(venda.getCliente());
             conta.setValorOriginal(valores.get(i - 1));
             conta.setDataEmissao(hoje);
-            conta.setDataVencimento(aVista ? hoje : hoje.plusDays(30L * i));
+            conta.setDataVencimento(aVista ? hoje : hoje.plusDays(intervalo * i));
             conta.setStatusFinanceiro(EnumStatusFinanceiro.ABERTO);
             conta.setDescricao("Venda #" + venda.getId() + Parcelamento.sufixo(i, n));
             if (venda.getFormaPagamento() != null) conta.setFormaPagamento(venda.getFormaPagamento().name());

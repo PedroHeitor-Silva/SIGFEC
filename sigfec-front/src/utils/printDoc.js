@@ -7,6 +7,7 @@
  */
 import { UNIDADES } from './unidades.js';
 import { formaLabel, resumoPagamento } from './formasPagamento.js';
+import { empresa } from './configPublica.js';
 
 // ===================== formatação =====================
 const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -47,9 +48,11 @@ const cabecalho = ({ tipo, numero, data, extra = '' }) => `
     <div class="empresa">
       ${LOGO}
       <div>
-        <strong>Fecularia Loanda</strong>
-        <span>Loanda — Paraná</span>
-        <small>SIGFEC · Sistema Integrado de Gestão para Fecularia</small>
+        <strong>${esc(empresa().nome)}</strong>
+        <span>${esc([empresa().cnpj && 'CNPJ ' + empresa().cnpj, empresa().cidade].filter(Boolean).join(' · '))}</span>
+        ${empresa().endereco || empresa().telefone
+          ? `<small>${esc([empresa().endereco, empresa().telefone].filter(Boolean).join(' · '))}</small>`
+          : '<small>SIGFEC · Sistema Integrado de Gestão para Fecularia</small>'}
       </div>
     </div>
     <div class="doc">
@@ -269,8 +272,11 @@ export function printNotaFiscal(venda) {
       extra: `<div>${selo(venda.statusVenda)}</div>`,
     })}
     ${campos('Emitente', [
-      { label: 'Razão social', valor: 'Fecularia Loanda' },
-      { label: 'Município', valor: 'Loanda / PR' },
+      { label: 'Razão social', valor: empresa().nome },
+      { label: 'CNPJ', valor: empresa().cnpj || '—' },
+      { label: 'Inscrição estadual', valor: empresa().ie || '—' },
+      { label: 'Município', valor: empresa().cidade },
+      ...(empresa().endereco ? [{ label: 'Endereço', valor: empresa().endereco, largo: true }] : []),
     ])}
     ${campos('Destinatário', [
       { label: 'Nome / razão social', valor: cliente.nome },
@@ -292,7 +298,7 @@ export function printNotaFiscal(venda) {
       { rotulo: 'VALOR TOTAL DA NOTA', valor: fmtMoney(venda.valorTotal), destaque: true },
     ])}
     ${venda.observacao ? `<p class="nota"><strong>Observações:</strong> ${esc(venda.observacao)}</p>` : ''}
-    ${assinaturas(['Fecularia Loanda', 'Recebedor (nome e data)'])}
+    ${assinaturas([empresa().nome, 'Recebedor (nome e data)'])}
     ${rodape('Documento auxiliar de uso interno, sem valor fiscal. A NF-e oficial exige emissor homologado e transmissão à SEFAZ.')}`;
   printDocument(html, `Nota-${venda.numeroNota || 'pedido-' + venda.id}`);
 }
@@ -329,7 +335,7 @@ export function printReciboFinanceiro(titulo) {
         { rotulo: quitado ? 'TÍTULO QUITADO' : 'SALDO RESTANTE', valor: quitado ? fmtMoney(0) : fmtMoney(saldo), destaque: true },
       ], quitado ? '#047857' : '#b45309')}
     </section>
-    ${assinaturas([ehPagamento ? 'Favorecido' : 'Cliente', 'Fecularia Loanda — Financeiro'])}
+    ${assinaturas([ehPagamento ? 'Favorecido' : 'Cliente', empresa().nome + ' — Financeiro'])}
     ${rodape(`Este comprovante registra ${ehPagamento ? 'o pagamento ao favorecido' : 'o recebimento do cliente'}.`)}`;
   printDocument(html, `Comprovante-${titulo.id || ''}`);
 }
@@ -370,7 +376,7 @@ export function printLaudoLaboratorio(analise) {
       ], cor)}
       <p class="nota">Critérios: ≥ 500 g aprovado · 350 a 499 g aprovado com desconto · &lt; 350 g reprovado.</p>
     </section>
-    ${assinaturas(['Responsável técnico', 'Laboratório — Fecularia Loanda'])}
+    ${assinaturas(['Responsável técnico', 'Laboratório — ' + empresa().nome])}
     ${rodape('Laudo de renda de amido da carga de mandioca.')}`;
   printDocument(html, `Laudo-${analise.id || ''}`);
 }

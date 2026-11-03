@@ -60,8 +60,20 @@ public class FilaService {
 
     // ------------------------------------------------------------------ consultas
 
-    /** Locais para onde um veículo pode ser chamado (configurável em application.properties). */
+    /** Quando presente, os locais vêm de Configurações (o application.properties fica como padrão). */
+    private ConfiguracaoService configuracao;
+
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    public void setConfiguracao(ConfiguracaoService configuracao) {
+        this.configuracao = configuracao;
+    }
+
+    /** Locais para onde um veículo pode ser chamado (Configurações → Fila do pátio). */
     public List<String> locaisChamada() {
+        if (configuracao != null) {
+            List<String> locais = configuracao.lista(ConfiguracaoService.FILA_LOCAIS);
+            if (!locais.isEmpty()) return locais;
+        }
         return locaisChamada;
     }
 
@@ -299,7 +311,7 @@ public class FilaService {
     private String validarLocal(String local) {
         String l = limpar(local);
         if (l == null) throw RegraNegocioException.invalida("Informe o local de chamada.");
-        return locaisChamada.stream().filter(x -> x.equalsIgnoreCase(l)).findFirst()
+        return locaisChamada().stream().filter(x -> x.equalsIgnoreCase(l)).findFirst()
                 .orElseThrow(() -> RegraNegocioException.invalida("Local de chamada inválido: " + l + "."));
     }
 
