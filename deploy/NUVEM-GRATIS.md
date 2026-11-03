@@ -3,12 +3,16 @@
 Endereço: **https://sigfec.onrender.com** — funciona 24 h, com HTTPS, mesmo com o PC desligado.
 
 ```
-celular / navegador ──HTTPS──▶ Render (container: telas + API Spring Boot) ──▶ Neon (PostgreSQL, São Paulo)
+celular / navegador ──HTTPS──▶ Render Ohio (container: telas + API Spring Boot) ──▶ Neon Ohio (PostgreSQL 17)
 ```
 
+Banco e sistema **na mesma região (Ohio / aws-us-east-2)**: com o banco em São Paulo cada consulta
+cruzava o continente e as telas levavam ~5 s.
+
 - **Render** (`dashboard.render.com`, serviço `sigfec`, plano Free): roda o `Dockerfile` da raiz do repositório.
-- **Neon** (`console.neon.tech`, projeto `morning-frost-19365626`, branch `production`): o banco do sistema online.
-  A connection string fica em `.env.local` (fora do git), gerado por `neon env pull`.
+- **Neon** (`console.neon.tech`, projeto **`sigfec-ohio`** / `long-pine-12441735`): o banco do sistema online.
+  Connection string: `neon connection-string --project-id long-pine-12441735`.
+  (O projeto `morning-frost-19365626`, em São Paulo, foi o primeiro e não é mais usado.)
 - Plano grátis: depois de 15 min sem uso o sistema "dorme"; o primeiro acesso demora até ~1 min.
   Antes de apresentar, abra o site uma vez para acordá-lo.
 
@@ -17,7 +21,7 @@ celular / navegador ──HTTPS──▶ Render (container: telas + API Spring B
 |---|---|
 | `DB_URL` | `jdbc:postgresql://HOST-DO-NEON/neondb?sslmode=require` (endereço sem `-pooler`) |
 | `DB_USER` | `neondb_owner` |
-| `DB_PASSWORD` | senha do Neon (está no `.env.local`) |
+| `DB_PASSWORD` | senha do Neon (trecho entre `neondb_owner:` e `@` da connection string) |
 | `SIGFEC_JWT_SECRET` | gerado pelo Render |
 | `TZ` | `America/Sao_Paulo` |
 
