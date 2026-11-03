@@ -6,7 +6,7 @@ import {
   User, Lock, ArrowRight, Eye, EyeOff,
   ShieldCheck, MapPin,
 } from 'lucide-react';
-import toast, { Toaster } from 'react-hot-toast';
+import toast from 'react-hot-toast';
 import api from '../services/api';
 import Logo from '../components/Logo';
 
@@ -41,7 +41,6 @@ export default function Login({ setUser }) {
 
   return (
     <div className="min-h-screen flex" style={{ background: '#f5f7fa' }}>
-      <Toaster position="top-right" />
 
       {/* ============== PAINEL ESQUERDO — brand visual only ============== */}
       <div
@@ -209,7 +208,11 @@ export default function Login({ setUser }) {
                 <label htmlFor="senha" className="block text-sm font-semibold text-gray-700">
                   Senha
                 </label>
-                <button type="button" className="text-xs font-semibold text-[#1ABB9C] hover:text-[#0e7c66] transition">
+                <button
+                  type="button"
+                  onClick={() => toast('Peça ao administrador do sistema: ele define uma nova senha em Cadastros → Usuários → Editar.', { icon: '🔑', duration: 7000 })}
+                  className="text-xs font-semibold text-[#1ABB9C] hover:text-[#0e7c66] transition"
+                >
                   Esqueceu?
                 </button>
               </div>
