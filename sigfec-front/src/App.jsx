@@ -140,7 +140,8 @@ function AppRoutes() {
       {/* === SIDEBAR (dark navy, ainda maior) === */}
       {user && (
         <aside
-          style={{ background: '#1e293b', color: '#e5e7eb' }}
+          // iPhone em tela cheia (PWA): afasta do relógio/Dynamic Island e da barra de início
+          style={{ background: '#1e293b', color: '#e5e7eb', paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)' }}
           className={`
             ${collapsed ? 'lg:w-24' : 'lg:w-72'}
             ${mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
@@ -158,9 +159,9 @@ function AppRoutes() {
               type="button"
               onClick={() => setMobileOpen(false)}
               aria-label="Fechar menu"
-              className="lg:hidden p-2 rounded-md"
+              className="lg:hidden inline-flex items-center justify-center h-11 w-11 -mr-2 rounded-md"
               style={{ color: '#94a3b8' }}
-            ><X size={22} /></button>
+            ><X size={24} /></button>
           </div>
 
           <nav className="flex-1 overflow-y-auto py-5 px-4" aria-label="Menu principal">
@@ -232,6 +233,7 @@ function AppRoutes() {
           <header
             className="sticky top-0 z-20"
             style={{
+              paddingTop: 'env(safe-area-inset-top)',
               background: theme === 'dark' ? '#0f172a' : '#fff',
               borderBottom: `1px solid ${theme === 'dark' ? '#1e293b' : '#e5e7eb'}`,
               boxShadow: '0 1px 3px rgba(0,0,0,0.04)',
@@ -241,9 +243,9 @@ function AppRoutes() {
               <div className="flex items-center gap-4 min-w-0 flex-1">
                 <button
                   type="button" onClick={() => setMobileOpen(true)} aria-label="Abrir menu"
-                  className="lg:hidden p-2 -ml-1 rounded-md"
+                  className="lg:hidden inline-flex items-center justify-center h-11 w-11 -ml-2 shrink-0 rounded-md"
                   style={{ color: theme === 'dark' ? '#cbd5e1' : '#4b5563' }}
-                ><Menu size={22} /></button>
+                ><Menu size={24} /></button>
 
                 <div className="min-w-0">
                   <p className="text-[11px] font-semibold uppercase tracking-[0.14em]"
