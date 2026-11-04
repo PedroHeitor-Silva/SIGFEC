@@ -35,3 +35,17 @@ desktop.ini
 
 # pacote temporário do deploy
 deploy/.pacote/
+.neon
+node_modules/
+.env.local
+
+# Plano B (jar local gerado, contem config local)
+planob/sigfec.jar
+
+# Ferramentas locais (fora do sistema)
+/package.json
+/package-lock.json
+neon.ts
+skills-lock.json
+.claude/skills/
+planob/
